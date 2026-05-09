@@ -1,0 +1,11 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="femme" x1="0" y1="0" x2="1200" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EC4899" />
+      <stop offset="1" stop-color="#FF9F45" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" rx="36" fill="url(#femme)" />
+  <text x="600" y="420" text-anchor="middle" fill="white" font-size="76" font-family="Arial, sans-serif" font-weight="800">Parfums Femme</text>
+  <text x="600" y="500" text-anchor="middle" fill="white" font-size="32" font-family="Arial, sans-serif">Grâce • Charme • Raffinement</text>
+</svg>

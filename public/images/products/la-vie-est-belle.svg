@@ -1,0 +1,29 @@
+<svg width="800" height="1067" viewBox="0 0 800 1067" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1067" fill="#F5F3EE"/>
+  <circle cx="400" cy="480" r="260" fill="url(#glow5)" opacity="0.3"/>
+  <!-- Curved smile bottle -->
+  <path d="M300 680 Q300 340 400 300 Q500 340 500 680 Z" fill="#F8E8EC"/>
+  <path d="M300 680 Q300 340 400 300 Q500 340 500 680 Z" stroke="#E8C8D0" stroke-width="2"/>
+  <!-- Glass reflection -->
+  <path d="M320 680 Q325 380 380 340 Q330 380 320 680 Z" fill="white" opacity="0.3"/>
+  <!-- Gold bow/wings -->
+  <path d="M400 300 Q320 260 280 280 Q320 300 400 300" fill="#C5A55A" opacity="0.8"/>
+  <path d="M400 300 Q480 260 520 280 Q480 300 400 300" fill="#C5A55A" opacity="0.8"/>
+  <!-- Cap -->
+  <ellipse cx="400" cy="295" rx="25" ry="15" fill="#C5A55A"/>
+  <rect x="390" y="260" width="20" height="40" rx="4" fill="#F0D0D8"/>
+  <!-- Pink liquid gradient inside -->
+  <path d="M310 680 Q310 450 400 420 Q490 450 490 680 Z" fill="#F0B8C8" opacity="0.3"/>
+  <!-- Brand text -->
+  <text x="400" y="540" text-anchor="middle" fill="#8A5060" font-size="20" font-family="Georgia, serif" letter-spacing="2" font-style="italic">La vie est belle</text>
+  <!-- Bottom label -->
+  <text x="400" y="920" text-anchor="middle" fill="#A89B7A" font-size="16" font-family="Arial, sans-serif" letter-spacing="2" font-weight="600">LANCÔME</text>
+  <text x="400" y="950" text-anchor="middle" fill="#999" font-size="14" font-family="Arial, sans-serif">75ml · Eau de Parfum</text>
+  <text x="400" y="1030" text-anchor="middle" fill="#C5A55A" font-size="24" font-family="Arial, sans-serif" font-weight="700">79 000 FCFA</text>
+  <defs>
+    <radialGradient id="glow5" cx="0.5" cy="0.5" r="0.5">
+      <stop stop-color="#F0B8C8" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#F5F3EE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

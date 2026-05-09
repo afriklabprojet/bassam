@@ -1,0 +1,36 @@
+<svg width="800" height="1067" viewBox="0 0 800 1067" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1067" fill="#F5F3EE"/>
+  <circle cx="400" cy="480" r="260" fill="url(#glow6)" opacity="0.3"/>
+  <!-- Clean rectangular bottle -->
+  <rect x="285" y="290" width="230" height="400" rx="6" fill="#0A1628"/>
+  <rect x="285" y="290" width="230" height="400" rx="6" stroke="#1A2A48" stroke-width="2"/>
+  <!-- Blue gradient overlay -->
+  <rect x="287" y="292" width="226" height="396" rx="5" fill="url(#blueGrad)" opacity="0.4"/>
+  <!-- Glass reflection -->
+  <rect x="295" y="305" width="20" height="360" rx="4" fill="white" opacity="0.06"/>
+  <!-- Cap -->
+  <rect x="330" y="220" width="140" height="80" rx="3" fill="#0A1628"/>
+  <rect x="330" y="220" width="140" height="80" rx="3" stroke="#1A2A48" stroke-width="1.5"/>
+  <!-- Neck -->
+  <rect x="360" y="270" width="80" height="25" fill="#0A1628"/>
+  <!-- Brand text -->
+  <text x="400" y="470" text-anchor="middle" fill="white" font-size="28" font-family="Georgia, serif" letter-spacing="8">CHANEL</text>
+  <text x="400" y="510" text-anchor="middle" fill="#6A8AB8" font-size="16" font-family="Georgia, serif" letter-spacing="4">BLEU DE CHANEL</text>
+  <!-- Épuisé ribbon -->
+  <rect x="285" y="600" width="230" height="30" fill="rgba(0,0,0,0.5)"/>
+  <text x="400" y="620" text-anchor="middle" fill="#FF6B6B" font-size="12" font-family="Arial, sans-serif" letter-spacing="3" font-weight="700">ÉPUISÉ</text>
+  <!-- Bottom label -->
+  <text x="400" y="920" text-anchor="middle" fill="#A89B7A" font-size="16" font-family="Arial, sans-serif" letter-spacing="2" font-weight="600">CHANEL</text>
+  <text x="400" y="950" text-anchor="middle" fill="#999" font-size="14" font-family="Arial, sans-serif">100ml · Eau de Parfum</text>
+  <text x="400" y="1030" text-anchor="middle" fill="#C5A55A" font-size="24" font-family="Arial, sans-serif" font-weight="700">110 000 FCFA</text>
+  <defs>
+    <radialGradient id="glow6" cx="0.5" cy="0.5" r="0.5">
+      <stop stop-color="#1A3A6A" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#F5F3EE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#1A3A6A" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#0A1628" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+</svg>

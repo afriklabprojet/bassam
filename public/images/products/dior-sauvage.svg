@@ -1,0 +1,29 @@
+<svg width="800" height="1067" viewBox="0 0 800 1067" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1067" fill="#F5F3EE"/>
+  <!-- Subtle radial glow -->
+  <circle cx="400" cy="500" r="300" fill="url(#glow1)" opacity="0.4"/>
+  <!-- Bottle body -->
+  <rect x="270" y="280" width="260" height="420" rx="12" fill="#1A1A2E"/>
+  <rect x="270" y="280" width="260" height="420" rx="12" stroke="#2A2A4A" stroke-width="2"/>
+  <!-- Glass reflection -->
+  <rect x="285" y="295" width="40" height="380" rx="6" fill="white" opacity="0.08"/>
+  <!-- Cap -->
+  <rect x="310" y="180" width="180" height="110" rx="6" fill="#0F0F1F"/>
+  <rect x="310" y="180" width="180" height="110" rx="6" stroke="#2A2A4A" stroke-width="1.5"/>
+  <!-- Neck -->
+  <rect x="340" y="250" width="120" height="40" fill="#1A1A2E"/>
+  <!-- Brand text -->
+  <text x="400" y="480" text-anchor="middle" fill="#C4C4C4" font-size="32" font-family="Georgia, serif" letter-spacing="8" font-weight="400">DIOR</text>
+  <text x="400" y="530" text-anchor="middle" fill="#8A8A9A" font-size="18" font-family="Georgia, serif" letter-spacing="4">SAUVAGE</text>
+  <!-- Bottom label -->
+  <text x="400" y="950" text-anchor="middle" fill="#A89B7A" font-size="16" font-family="Arial, sans-serif" letter-spacing="2" font-weight="600">EAU DE TOILETTE</text>
+  <text x="400" y="980" text-anchor="middle" fill="#999" font-size="14" font-family="Arial, sans-serif">100ml</text>
+  <!-- Price -->
+  <text x="400" y="1030" text-anchor="middle" fill="#C5A55A" font-size="24" font-family="Arial, sans-serif" font-weight="700">85 000 FCFA</text>
+  <defs>
+    <radialGradient id="glow1" cx="0.5" cy="0.5" r="0.5">
+      <stop stop-color="#C5A55A" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#F5F3EE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

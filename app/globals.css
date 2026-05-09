@@ -1,0 +1,831 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   VIP PARFUMERIE BAR — LUXURY DARK EDITORIAL DESIGN SYSTEM
+   Palette : Noir profond × Or chaud × Blanc cassé
+   Inspiration : Dior Parfums · Jo Malone · Maison Margiela
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Background levels ── */
+  --noir:         #080808;
+  --noir-soft:    #111111;
+  --noir-card:    #191919;
+  --noir-raised:  #222222;
+
+  /* ── Light surface ── */
+  --surface:      #FAFAF8;
+  --offwhite:     #F2F0EC;
+  --line-light:   #E8E5DF;
+
+  /* ── Text ── */
+  --text-primary: #181818;
+  --text-secondary: #777777;
+  --text-pale:    #AAAAAA;
+
+  /* ── Gold accent (unique) ── */
+  --gold:         #C5A55A;
+  --gold-light:   #D9BE80;
+  --gold-dark:    #9B7B38;
+  --gold-muted:   rgba(197,165,90,0.15);
+
+  /* ── Typography ── */
+  --font-serif: var(--font-cormorant, Georgia, 'Times New Roman', serif);
+  --font-sans:  var(--font-inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+
+  /* ── Layout ── */
+  --max-w: 1340px;
+  --r-sm:  4px;
+  --r-md:  10px;
+  --r-lg:  18px;
+}
+
+@theme inline {
+  --color-noir:        #080808;
+  --color-noir-soft:   #111111;
+  --color-noir-card:   #191919;
+  --color-surf:        #FAFAF8;
+  --color-offwhite:    #F2F0EC;
+  --color-line:        #E8E5DF;
+  --color-txt:         #181818;
+  --color-txt2:        #777777;
+  --color-gold:        #C5A55A;
+  --color-gold-light:  #D9BE80;
+}
+
+/* ─── Reset ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Container ───────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+@media (min-width: 768px)  { .container { padding: 0 2.5rem; } }
+@media (min-width: 1280px) { .container { padding: 0 3.5rem; } }
+
+/* ─── Section avec spacing premium ─────────────────────────── */
+.section     { padding: 8rem 0; }
+.section-sm  { padding: 5rem 0; }
+@media (max-width: 768px) {
+  .section   { padding: 5rem 0; }
+  .section-sm { padding: 3rem 0; }
+}
+
+/* ─── Section label (eyebrow above headings) ─────────────── */
+.label {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* ─── Typography helpers ──────────────────────────────────── */
+.serif {
+  font-family: var(--font-serif);
+}
+
+.heading-display {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.heading-lg {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
+}
+
+.heading-md {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* ─── Gold utilities ──────────────────────────────────────── */
+.text-gold   { color: var(--gold); }
+.bg-gold     { background: var(--gold); }
+
+.gold-line {
+  display: block;
+  width: 36px;
+  height: 1px;
+  background: var(--gold);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+
+/* Primary — dark fill */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--noir);
+  color: var(--surface);
+  padding: 0.8125rem 1.875rem;
+  border: 1px solid var(--noir);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.22s, color 0.22s, border-color 0.22s;
+  white-space: nowrap;
+}
+.btn-primary:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--noir);
+}
+
+/* Gold fill */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--gold);
+  color: var(--noir);
+  padding: 0.8125rem 1.875rem;
+  border: 1px solid var(--gold);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn-gold:hover {
+  background: var(--gold-light);
+  border-color: var(--gold-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(197,165,90,0.25);
+}
+
+/* Bouton gold animé avec gradient */
+.btn-gold-animated {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.btn-gold-animated:hover {
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+  background-size: 200% 200%;
+}
+
+/* Ghost on dark background */
+.btn-ghost-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  padding: 0.8125rem 1.875rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-ghost-light:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.35);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Ghost on light background */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0.8125rem 1.875rem;
+  border: 1px solid var(--line-light);
+  border-radius: var(--r-sm);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.22s, border-color 0.22s;
+}
+.btn-ghost:hover {
+  background: var(--offwhite);
+  border-color: #c0bbb2;
+}
+
+/* ─── Cards ───────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border: 1px solid var(--line-light);
+  border-radius: var(--r-md);
+  transition: box-shadow 0.25s, transform 0.25s;
+}
+.card:hover {
+  box-shadow: 0 16px 48px rgba(0,0,0,0.09);
+  transform: translateY(-2px);
+}
+
+/* Dark card (for dark sections) */
+.card-dark {
+  background: var(--noir-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--r-md);
+  transition: border-color 0.25s;
+}
+.card-dark:hover {
+  border-color: rgba(197,165,90,0.3);
+}
+
+/* ─── Input ───────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--line-light);
+  border-radius: var(--r-sm);
+  padding: 0.8125rem 1.125rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.input:focus { border-color: var(--gold); }
+.input::placeholder { color: var(--text-pale); }
+
+.input-dark {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--r-sm);
+  padding: 0.8125rem 1.125rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  color: rgba(255,255,255,0.9);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.input-dark:focus { border-color: var(--gold); }
+.input-dark::placeholder { color: rgba(255,255,255,0.3); }
+
+/* ─── Divider ─────────────────────────────────────────────── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--line-light);
+}
+.divider-dark {
+  width: 100%;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
+
+/* ─── Focus ring ──────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* ─── Loading skeleton ────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.skeleton {
+  background: #e8e5df;
+  border-radius: var(--r-sm);
+  animation: skeleton-pulse 1.6s ease infinite;
+}
+
+/* ─── Mobile safe area ────────────────────────────────────── */
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+/* ─── Premium Animations ═══════════════════════════════════ */
+
+/* Fade-in animation */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Gradient shift animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Pulse glow animation */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* ─── Glassmorphism & Premium Effects ═══════════════════════ */
+
+/* Glassmorphism utility */
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glassmorphism-dark {
+  background: rgba(8, 8, 8, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Product card hover avec glow doré */
+.product-card:hover > div:first-child {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 8px 32px rgba(0,0,0,0.08),
+    0 0 24px rgba(197,165,90,0.15);
+}
+
+/* Hero parallax layers */
+.hero-parallax {
+  perspective: 1000px;
+}
+
+.parallax-layer {
+  transform: translateZ(-20px) scale(1.02);
+  will-change: transform;
+}
+
+.parallax-glow {
+  transform: translateZ(-30px) scale(1.03);
+  will-change: transform, opacity;
+}
+
+.parallax-glow-2 {
+  transform: translateZ(-40px) scale(1.04);
+  will-change: transform, opacity;
+}
+
+/* Scroll reveal animations */
+@keyframes reveal-from-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scroll-reveal {
+  opacity: 0;
+  animation: reveal-from-bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.scroll-reveal-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.scroll-reveal-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.scroll-reveal-delay-3 {
+  animation-delay: 0.3s;
+}
+
+/* Gold glow hover effect */
+.gold-glow-hover {
+  transition: all 0.3s ease;
+}
+
+.gold-glow-hover:hover {
+  box-shadow: 
+    0 0 20px rgba(197,165,90,0.3),
+    0 0 40px rgba(197,165,90,0.15);
+  border-color: var(--gold) !important;
+}
+
+/* Collection card hover effect */
+.collection-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 
+    0 12px 40px rgba(0,0,0,0.15),
+    0 0 30px rgba(197,165,90,0.1);
+}
+
+/* ─── Phase 4: Header Premium Animations ═══════════════════ */
+
+@keyframes announcement-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+@keyframes header-shimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+/* Header icon hover */
+.header-monogram:hover {
+  border-color: rgba(197,165,90,0.8) !important;
+  box-shadow: 0 0 16px rgba(197,165,90,0.15);
+}
+
+/* Icon buttons hover gold */
+header button:hover,
+header a[aria-label]:hover {
+  color: var(--gold) !important;
+  transform: scale(1.08);
+}
+
+/* Mobile drawer links hover */
+[role="dialog"] a:hover {
+  color: var(--gold) !important;
+}
+
+/* ─── Footer premium styles ─── */
+.footer-link:hover {
+  color: var(--gold) !important;
+  padding-left: 4px;
+}
+.footer-social-icon:hover {
+  color: var(--gold) !important;
+  border-color: rgba(197,165,90,0.5) !important;
+  background: rgba(197,165,90,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(197,165,90,0.1);
+}
+
+/* ─── ProductCard premium styles ─── */
+.product-card-premium {
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.product-card-premium:hover {
+  transform: translateY(-4px);
+}
+.product-card-premium:hover .product-card-image {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.03);
+}
+.product-card-premium:hover .product-card-overlay {
+  opacity: 1 !important;
+}
+.product-card-premium:hover .product-card-cta {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+.product-card-premium:hover .product-card-name {
+  color: var(--gold) !important;
+}
+.product-card-premium:hover .product-card-underline {
+  transform: scaleX(1) !important;
+}
+/* Category badge reveal */
+.product-card-premium:hover span.absolute.top-3.right-3 {
+  opacity: 1 !important;
+}
+
+/* ─── CollectionCard premium styles ─── */
+.collection-card-premium {
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.collection-card-premium:hover {
+  transform: translateY(-4px);
+}
+.collection-card-premium:hover .collection-card-line {
+  transform: scaleX(1) !important;
+}
+.collection-card-premium:hover .collection-card-cta {
+  color: var(--gold) !important;
+}
+.collection-card-premium:hover .collection-card-arrow {
+  transform: translateX(4px);
+}
+
+/* ─── Phase 3: Cinematic Hero Animations ═══════════════════ */
+
+@keyframes hero-glow-drift {
+  0%, 100% { opacity: 0.8; transform: translate(0, 0) scale(1); }
+  33% { opacity: 1; transform: translate(10px, -15px) scale(1.04); }
+  66% { opacity: 0.9; transform: translate(-8px, 10px) scale(1.02); }
+}
+
+@keyframes hero-particle-float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.1; }
+  25% { transform: translateY(-20px) translateX(8px); opacity: 0.2; }
+  50% { transform: translateY(-35px) translateX(-5px); opacity: 0.08; }
+  75% { transform: translateY(-15px) translateX(12px); opacity: 0.18; }
+}
+
+@keyframes hero-line-draw {
+  from { height: 0; }
+  to { height: 30vh; }
+}
+
+@keyframes hero-ambient-pulse {
+  0%, 100% { opacity: 1; background-position: 0% 50%; }
+  50%       { opacity: 0.85; background-position: 100% 50%; }
+}
+
+/* ─── Video Hero — Cinéma Parfum ─────────────── */
+.hero-video-bg {
+  will-change: opacity, transform;
+  filter: brightness(0.6) saturate(1.15) contrast(1.05);
+  animation: hero-video-breathe 12s ease-in-out infinite;
+}
+@keyframes hero-video-breathe {
+  0%, 100% { filter: brightness(0.6) saturate(1.15) contrast(1.05); }
+  50%      { filter: brightness(0.55) saturate(1.25) contrast(1.08); }
+}
+@keyframes hero-video-ken-burns {
+  0%   { transform: scale(1) translate(0, 0); }
+  50%  { transform: scale(1.06) translate(-1%, -0.5%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-video-bg {
+    display: none;
+    animation: none;
+  }
+}
+/* Sound toggle */
+.hero-sound-toggle { transition: opacity 0.3s ease; }
+.hero-sound-toggle:hover { opacity: 0.7; }
+.hero-sound-toggle:hover svg { transform: scale(1.1); transition: transform 0.2s; }
+.hero-sound-toggle:active svg { transform: scale(0.92); }
+/* Video poster / fallback gradient when no video */
+section:has(.hero-video-bg) {
+  background: linear-gradient(135deg, #080808 0%, #0e0e0e 40%, #080808 100%);
+}
+
+/* Animated counter number effect */
+@keyframes count-up-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Section reveal with gold accent */
+@keyframes section-line-grow {
+  from { width: 0; }
+  to { width: 3rem; }
+}
+
+/* Univers card premium hover */
+.univers-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.univers-card:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 16px 48px rgba(0,0,0,0.1),
+    0 0 32px rgba(197,165,90,0.08);
+}
+
+.univers-card:hover .univers-card-visual {
+  transform: scale(1.02);
+}
+
+.univers-card .univers-card-visual {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Testimonial card float */
+.testimonial-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 36px rgba(0,0,0,0.06),
+    0 0 0 1px rgba(197,165,90,0.12);
+}
+
+/* Guarantee card hover */
+.garantie-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.garantie-card:hover {
+  transform: translateY(-4px);
+  border-top-color: var(--gold) !important;
+  box-shadow:
+    0 12px 32px rgba(0,0,0,0.06),
+    0 -3px 0 var(--gold);
+}
+
+.garantie-card:hover .garantie-icon {
+  transform: scale(1.1);
+  background: rgba(197,165,90,0.15);
+}
+
+.garantie-icon {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Stats number glow on hover */
+.stat-item {
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover .stat-value {
+  text-shadow: 0 0 20px rgba(197,165,90,0.3);
+}
+
+/* ─── Header Navigation ──────────────────────────────────────────────────── */
+/* Hover: gold underline scales in on desktop nav links */
+.nav-link-hover:hover .nav-underline,
+.nav-link-hover:focus-visible .nav-underline {
+  transform: scaleX(1) !important;
+}
+
+/* ─── Section Nos Univers — grille responsive ────────────────────────────── */
+/* Sur mobile la grille passe en 1 colonne, tablet en 2, desktop en 3       */
+.universe-card {
+  /* La grille parente gère les colonnes, mais le fond doit se comporter bien */
+  min-height: 360px;
+}
+
+/* Override grid-template-columns via media queries car le style inline
+   ne peut pas exprimer de breakpoints                                       */
+@media (max-width: 767px) {
+  /* Sélectionne la grille parente basée sur le contexte du composant         */
+  section [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  section [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Cart — Sidebar + Page Animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Staggered entrance for sidebar items */
+@keyframes cart-item-enter {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Qty +/- circular buttons */
+.cart-qty-btn:hover {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+  background: rgba(197, 165, 90, 0.06) !important;
+}
+
+/* "Retirer" / "Vider" text links */
+.cart-remove-btn:hover {
+  color: var(--text-primary) !important;
+}
+
+/* Cart page items — subtle lift on hover */
+.cart-page-item {
+  transition: background 0.2s ease;
+}
+.cart-page-item:hover {
+  background: rgba(197, 165, 90, 0.03);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Phase 4 — Pages Secondaires Premium Polish
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── À propos: Stat items hover ─────────────────────────────────────────── */
+.about-stat:hover {
+  background: rgba(197, 165, 90, 0.08);
+  border-color: var(--gold) !important;
+}
+
+/* ─── À propos: Valeur cards hover ───────────────────────────────────────── */
+.about-valeur:hover {
+  border-color: var(--gold) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── À propos: Engagement cards hover ───────────────────────────────────── */
+.about-engagement:hover {
+  border-color: var(--gold) !important;
+  transform: translateX(4px);
+  background: #fff;
+}
+
+/* ─── À propos: Brand tags hover ─────────────────────────────────────────── */
+.brand-tag:hover {
+  color: var(--gold) !important;
+  border-color: rgba(197, 165, 90, 0.4) !important;
+  background: rgba(197, 165, 90, 0.06);
+}
+
+/* ─── Contact: Channel cards hover ───────────────────────────────────────── */
+.contact-channel:hover {
+  border-color: var(--gold) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Contact: FAQ items hover ───────────────────────────────────────────── */
+.contact-faq:hover {
+  border-color: rgba(197, 165, 90, 0.35) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: translateX(4px);
+}
+
+/* ─── Contact: Submit button hover ───────────────────────────────────────── */
+.contact-submit:hover {
+  background: var(--gold) !important;
+  color: var(--noir) !important;
+  transform: translateY(-1px);
+}
+
+/* ─── Services: Stat items hover ─────────────────────────────────────────── */
+.svc-stat {
+  padding: 12px 16px;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+.svc-stat:hover {
+  background: rgba(197, 165, 90, 0.08);
+}
+.svc-stat:hover p:last-child {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* ─── Services: Visual card hover ────────────────────────────────────────── */
+.svc-card-premium .svc-card-inner:hover {
+  border-color: rgba(197, 165, 90, 0.35) !important;
+  box-shadow: 0 20px 60px rgba(197, 165, 90, 0.08);
+}
+
+/* ─── Services: Gold CTA hover ───────────────────────────────────────────── */
+.svc-cta-gold:hover {
+  background: var(--gold-dark) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(197, 165, 90, 0.2);
+}
+
+/* ─── Shared: Form input focus gold ──────────────────────────────────────── */
+.contact-channel input:focus,
+.contact-channel textarea:focus,
+.contact-channel select:focus,
+form input:focus,
+form textarea:focus,
+form select:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(197, 165, 90, 0.1);
+}

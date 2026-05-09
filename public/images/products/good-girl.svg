@@ -1,0 +1,28 @@
+<svg width="800" height="1067" viewBox="0 0 800 1067" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1067" fill="#F5F3EE"/>
+  <circle cx="400" cy="480" r="280" fill="url(#glow2)" opacity="0.35"/>
+  <!-- Stiletto bottle shape -->
+  <path d="M340 700 L340 350 Q340 280 400 260 Q460 280 460 350 L460 700 Z" fill="#0A0A14"/>
+  <path d="M340 700 L340 350 Q340 280 400 260 Q460 280 460 350 L460 700 Z" stroke="#1A1A30" stroke-width="2"/>
+  <!-- Heel/tip -->
+  <path d="M380 700 L400 780 L420 700" fill="#0A0A14"/>
+  <!-- Gold accent line -->
+  <line x1="340" y1="360" x2="460" y2="360" stroke="#C5A55A" stroke-width="1.5"/>
+  <!-- Glass reflection -->
+  <rect x="350" y="370" width="20" height="280" rx="4" fill="white" opacity="0.06"/>
+  <!-- Cap -->
+  <ellipse cx="400" cy="260" rx="40" ry="20" fill="#C5A55A"/>
+  <rect x="380" y="220" width="40" height="45" rx="4" fill="#0A0A14" stroke="#C5A55A" stroke-width="1"/>
+  <!-- Brand text -->
+  <text x="400" y="500" text-anchor="middle" fill="#C4C4C4" font-size="22" font-family="Georgia, serif" letter-spacing="3" transform="rotate(-90, 400, 500)">GOOD GIRL</text>
+  <!-- Bottom label -->
+  <text x="400" y="920" text-anchor="middle" fill="#A89B7A" font-size="16" font-family="Arial, sans-serif" letter-spacing="2" font-weight="600">CAROLINA HERRERA</text>
+  <text x="400" y="950" text-anchor="middle" fill="#999" font-size="14" font-family="Arial, sans-serif">80ml · Eau de Parfum</text>
+  <text x="400" y="1030" text-anchor="middle" fill="#C5A55A" font-size="24" font-family="Arial, sans-serif" font-weight="700">92 000 FCFA</text>
+  <defs>
+    <radialGradient id="glow2" cx="0.5" cy="0.5" r="0.5">
+      <stop stop-color="#C5A55A" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#F5F3EE" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

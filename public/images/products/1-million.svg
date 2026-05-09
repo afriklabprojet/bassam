@@ -1,0 +1,39 @@
+<svg width="800" height="1067" viewBox="0 0 800 1067" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1067" fill="#F5F3EE"/>
+  <circle cx="400" cy="480" r="250" fill="url(#glow7)" opacity="0.4"/>
+  <!-- Gold bar bottle -->
+  <rect x="290" y="280" width="220" height="400" rx="8" fill="url(#goldBar)"/>
+  <rect x="290" y="280" width="220" height="400" rx="8" stroke="#9B7B38" stroke-width="2"/>
+  <!-- Gold reflections -->
+  <rect x="300" y="295" width="25" height="360" rx="4" fill="white" opacity="0.15"/>
+  <rect x="340" y="295" width="8" height="360" rx="2" fill="white" opacity="0.08"/>
+  <!-- Cap -->
+  <rect x="330" y="210" width="140" height="80" rx="4" fill="url(#goldBar2)"/>
+  <rect x="330" y="210" width="140" height="80" rx="4" stroke="#9B7B38" stroke-width="1.5"/>
+  <!-- Diamond top -->
+  <path d="M380 210 L400 185 L420 210" fill="#D4AF60" stroke="#9B7B38" stroke-width="1"/>
+  <!-- Neck -->
+  <rect x="360" y="265" width="80" height="20" fill="#B8963E"/>
+  <!-- Brand text -->
+  <text x="400" y="470" text-anchor="middle" fill="#3A2800" font-size="36" font-family="Georgia, serif" font-weight="700" letter-spacing="2">1</text>
+  <text x="400" y="510" text-anchor="middle" fill="#3A2800" font-size="22" font-family="Georgia, serif" letter-spacing="4">MILLION</text>
+  <!-- Bottom label -->
+  <text x="400" y="920" text-anchor="middle" fill="#A89B7A" font-size="16" font-family="Arial, sans-serif" letter-spacing="2" font-weight="600">PACO RABANNE</text>
+  <text x="400" y="950" text-anchor="middle" fill="#999" font-size="14" font-family="Arial, sans-serif">100ml · Eau de Toilette</text>
+  <text x="400" y="1030" text-anchor="middle" fill="#C5A55A" font-size="24" font-family="Arial, sans-serif" font-weight="700">75 000 FCFA</text>
+  <defs>
+    <radialGradient id="glow7" cx="0.5" cy="0.5" r="0.5">
+      <stop stop-color="#C5A55A" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#F5F3EE" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="goldBar" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#D4AF60"/>
+      <stop offset="0.5" stop-color="#C5A55A"/>
+      <stop offset="1" stop-color="#B8963E"/>
+    </linearGradient>
+    <linearGradient id="goldBar2" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#E0C470"/>
+      <stop offset="1" stop-color="#B8963E"/>
+    </linearGradient>
+  </defs>
+</svg>

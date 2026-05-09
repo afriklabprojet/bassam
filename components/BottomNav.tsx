@@ -67,6 +67,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? 'page' : undefined}
               className="flex flex-col items-center justify-center gap-1 py-2.5 relative"
               style={{
                 color: isActive ? 'var(--gold)' : 'var(--text-pale)',

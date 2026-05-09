@@ -386,13 +386,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Product card hover avec glow doré */
-.product-card:hover > div:first-child {
-  transform: translateY(-4px);
-  box-shadow: 
-    0 8px 32px rgba(0,0,0,0.08),
-    0 0 24px rgba(197,165,90,0.15);
-}
+/* Product card hover — styles dans .product-card-premium (globals.css ligne ~510) */
 
 /* Hero parallax layers */
 .hero-parallax {
@@ -530,7 +524,7 @@ header a[aria-label]:hover {
   transform: scaleX(1) !important;
 }
 /* Category badge reveal */
-.product-card-premium:hover span.absolute.top-3.right-3 {
+.product-card-premium:hover .product-card-badge {
   opacity: 1 !important;
 }
 
@@ -828,4 +822,14 @@ form textarea:focus,
 form select:focus {
   border-color: var(--gold) !important;
   box-shadow: 0 0 0 3px rgba(197, 165, 90, 0.1);
+}
+
+/* ─── Accessibilité : Reduced Motion global ───────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

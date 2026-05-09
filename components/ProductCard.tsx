@@ -92,7 +92,7 @@ export default function ProductCard({
 
         {/* Category badge top-right */}
         <span
-          className="absolute top-3 right-3"
+          className="absolute top-3 right-3 product-card-badge"
           style={{
             fontSize: '0.5625rem',
             fontWeight: 500,

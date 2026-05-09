@@ -65,7 +65,7 @@ const IconChevron = ({ size = 12 }: { size?: number }) => (
 // ─── Shared icon-button style ─────────────────────────────────────────────────
 const iconBtnStyle = (light: boolean): React.CSSProperties => ({
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  width: 38, height: 38, cursor: 'pointer',
+  width: 44, height: 44, cursor: 'pointer',
   color: light ? 'var(--text-secondary)' : 'rgba(255,255,255,0.8)',
   transition: 'color 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s',
   background: 'none', border: 'none', padding: 0,

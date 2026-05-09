@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
-    url: "https://vip-parfumerie-bar.com",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://vip-parfumerie-bar.com",
     siteName: "VIP Parfumerie Bar",
     title: "VIP Parfumerie Bar - Parfums de Luxe Authentiques",
     description: "Découvrez les meilleurs parfums de luxe authentiques en Afrique de l'Ouest",

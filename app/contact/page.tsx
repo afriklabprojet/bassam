@@ -299,7 +299,7 @@ export default function ContactPage() {
               >
                 <input type="hidden" name="_subject" value="Nouveau message — VIP Parfumerie Bar" />
                 <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_next" value="https://vip-parfumerie-bar.com/contact?sent=1" />
+                <input type="hidden" name="_next" value={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vip-parfumerie-bar.com'}/contact?sent=1`} />
 
                 {/* Nom */}
                 <div>
@@ -372,7 +372,11 @@ export default function ContactPage() {
 
                 <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', textAlign: 'center', lineHeight: 1.5, margin: 0 }}>
                   Pour une réponse immédiate :{' '}
-                  <a href="https://wa.me/2250700000000" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>WhatsApp</a>
+                  {hasWhatsAppSupport() ? (
+                    <a href={buildWhatsAppHref('Bonjour, j\'ai une question suite à mon message de contact.')} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>WhatsApp</a>
+                  ) : (
+                    <span style={{ color: 'var(--gold)', fontWeight: 500 }}>email</span>
+                  )}
                 </p>
               </form>
             </div>

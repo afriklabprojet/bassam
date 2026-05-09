@@ -72,6 +72,46 @@ const iconBtnStyle = (light: boolean): React.CSSProperties => ({
   borderRadius: '50%',
 });
 
+// ─── Announcement Bar ─────────────────────────────────────────────────────────
+function AnnouncementBar({ scrolled }: Readonly<{ scrolled: boolean }>) {
+  return (
+    <div
+      className="announcement-bar"
+      style={{
+        background: 'var(--noir)',
+        borderBottom: '1px solid rgba(197,165,90,0.15)',
+        overflow: 'hidden',
+        maxHeight: scrolled ? 0 : 32,
+        opacity: scrolled ? 0 : 1,
+        transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s',
+      }}
+    >
+      <div className="announcement-marquee" style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: 32, gap: 48,
+        animation: 'announcement-scroll 30s linear infinite',
+        whiteSpace: 'nowrap',
+      }}>
+        {[...new Array<undefined>(3)].map((_, i) => (
+          <p key={`announcement-${i}`} style={{
+            fontSize: '0.6rem', letterSpacing: '0.24em',
+            color: 'var(--gold)', textTransform: 'uppercase',
+            margin: 0, display: 'flex', alignItems: 'center',
+            gap: 32, flexShrink: 0,
+          }}>
+            <span>Livraison offerte dès 50 000 XOF</span>
+            <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
+            <span>Abidjan &amp; International</span>
+            <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
+            <span>Authenticité garantie 100%</span>
+            <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Header() {
   const { totalItems, toggleCart } = useCart();
   const pathname = usePathname();
@@ -107,59 +147,21 @@ export default function Header() {
 
   const isHomepage = pathname === '/';
   const isLight = scrolled || !isHomepage;
+  const blurFilter = scrolled ? 'blur(24px) saturate(1.2)' : 'blur(16px)';
+  const cartItemSuffix = totalItems > 1 ? 's' : '';
+  const cartAriaLabel = totalItems > 0 ? `Panier — ${totalItems} article${cartItemSuffix}` : 'Panier';
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/produits?q=${encodeURIComponent(searchQuery.trim())}`;
+      globalThis.location.href = `/produits?q=${encodeURIComponent(searchQuery.trim())}`;
     }
   };
 
   return (
     <>
       {/* ─── ANNOUNCEMENT BAR ───────────────────────────────────────────────── */}
-      <div
-        className="announcement-bar"
-        style={{
-          background: 'var(--noir)',
-          borderBottom: '1px solid rgba(197,165,90,0.15)',
-          overflow: 'hidden',
-          maxHeight: scrolled ? 0 : 32,
-          opacity: scrolled ? 0 : 1,
-          transition: 'max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s',
-        }}
-      >
-        <div className="announcement-marquee" style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: 32,
-          gap: 48,
-          animation: 'announcement-scroll 30s linear infinite',
-          whiteSpace: 'nowrap',
-        }}>
-          {[...Array(3)].map((_, i) => (
-            <p key={i} style={{
-              fontSize: '0.6rem',
-              letterSpacing: '0.24em',
-              color: 'var(--gold)',
-              textTransform: 'uppercase',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 32,
-              flexShrink: 0,
-            }}>
-              <span>Livraison offerte dès 50 000 XOF</span>
-              <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
-              <span>Abidjan &amp; International</span>
-              <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
-              <span>Authenticité garantie 100%</span>
-              <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
-            </p>
-          ))}
-        </div>
-      </div>
+      <AnnouncementBar scrolled={scrolled} />
 
       {/* ─── HEADER BAR ─────────────────────────────────────────────────────── */}
       <header
@@ -168,8 +170,8 @@ export default function Header() {
           background: isLight
             ? 'rgba(250, 250, 248, 0.92)'
             : 'rgba(8, 8, 8, 0.55)',
-          backdropFilter: scrolled ? 'blur(24px) saturate(1.2)' : 'blur(16px)',
-          WebkitBackdropFilter: scrolled ? 'blur(24px) saturate(1.2)' : 'blur(16px)',
+          backdropFilter: blurFilter,
+          WebkitBackdropFilter: blurFilter,
           borderBottom: isLight
             ? '1px solid rgba(0,0,0,0.06)'
             : '1px solid rgba(197,165,90,0.08)',
@@ -326,7 +328,7 @@ export default function Header() {
               {/* Account */}
               <Link
                 href="/compte"
-                style={iconBtnStyle(isLight) as React.CSSProperties}
+                style={iconBtnStyle(isLight)}
                 className="hidden md:flex"
                 aria-label="Mon compte"
               >
@@ -337,7 +339,7 @@ export default function Header() {
               <button
                 onClick={toggleCart}
                 style={{ ...iconBtnStyle(isLight), position: 'relative' }}
-                aria-label={`Panier${totalItems > 0 ? ` — ${totalItems} article${totalItems > 1 ? 's' : ''}` : ''}`}
+                aria-label={cartAriaLabel}
               >
                 <IconBag size={18} />
                 {totalItems > 0 && (
@@ -376,7 +378,37 @@ export default function Header() {
         </div>
       </header>
 
-      {/* ─── MOBILE DRAWER ──────────────────────────────────────────────────── */}
+      <MobileDrawer
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        handleSearch={handleSearch}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        mobileExpanded={mobileExpanded}
+        setMobileExpanded={setMobileExpanded}
+        pathname={pathname}
+      />
+    </>
+  );
+}
+
+// ─── Mobile Drawer ────────────────────────────────────────────────────────────
+function MobileDrawer({
+  menuOpen, setMenuOpen, handleSearch, searchQuery, setSearchQuery,
+  mobileExpanded, setMobileExpanded, pathname,
+}: Readonly<{
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
+  handleSearch: (e: React.FormEvent<HTMLFormElement>) => void;
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  mobileExpanded: string | null;
+  setMobileExpanded: (v: string | null) => void;
+  pathname: string;
+}>) {
+  return (
+    <>
+      {/* Backdrop */}
       <div
         onClick={() => setMenuOpen(false)}
         aria-hidden="true"
@@ -390,12 +422,15 @@ export default function Header() {
           WebkitBackdropFilter: 'blur(8px)',
         }}
       />
-      <div
-        role="dialog"
-        aria-modal="true"
+      {/* Drawer */}
+      <dialog
+        open
+        aria-modal={menuOpen}
+        aria-hidden={!menuOpen}
         aria-label="Menu de navigation"
         style={{
           position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50,
+          margin: 0, border: 'none', padding: 0, maxWidth: 'none', maxHeight: 'none',
           width: 'min(320px, 88vw)',
           background: 'var(--noir)',
           transform: menuOpen ? 'translateX(0)' : 'translateX(-100%)',
@@ -536,13 +571,13 @@ export default function Header() {
             © VIP Parfumerie Bar
           </p>
         </div>
-      </div>
+      </dialog>
     </>
   );
 }
 
 // ─── Desktop nav item ────────────────────────────────────────────────────────
-function NavItem({ link, isLight, pathname }: { link: NavLink; isLight: boolean; pathname: string }) {
+function NavItem({ link, isLight, pathname }: Readonly<{ link: NavLink; isLight: boolean; pathname: string }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -550,9 +585,9 @@ function NavItem({ link, isLight, pathname }: { link: NavLink; isLight: boolean;
     ? pathname === '/'
     : pathname === link.href || pathname.startsWith(link.href + '/');
 
-  const textColor = isActive
-    ? (isLight ? 'var(--text-primary)' : '#fff')
-    : (isLight ? 'var(--text-secondary)' : 'rgba(255,255,255,0.68)');
+  const activeColor = isLight ? 'var(--text-primary)' : '#fff';
+  const inactiveColor = isLight ? 'var(--text-secondary)' : 'rgba(255,255,255,0.68)';
+  const textColor = isActive ? activeColor : inactiveColor;
 
   useEffect(() => {
     if (!open) return;
@@ -568,6 +603,7 @@ function NavItem({ link, isLight, pathname }: { link: NavLink; isLight: boolean;
   return (
     <div
       ref={ref}
+      role="presentation"
       style={{ position: 'relative' }}
       onMouseEnter={() => link.children && setOpen(true)}
       onMouseLeave={() => link.children && setOpen(false)}
@@ -663,7 +699,7 @@ function NavItem({ link, isLight, pathname }: { link: NavLink; isLight: boolean;
   );
 }
 
-function DropdownLink({ child, isLast }: { child: NavChild; isLast: boolean }) {
+function DropdownLink({ child, isLast }: Readonly<{ child: NavChild; isLast: boolean }>) {
   const [hovered, setHovered] = useState(false);
   return (
     <Link
@@ -674,7 +710,7 @@ function DropdownLink({ child, isLast }: { child: NavChild; isLast: boolean }) {
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '10px 18px',
         textDecoration: 'none',
-        borderBottom: !isLast ? '1px solid var(--line-light)' : 'none',
+        borderBottom: isLast ? 'none' : '1px solid var(--line-light)',
         background: hovered ? 'var(--offwhite)' : 'transparent',
         transition: 'background 0.12s',
       }}

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getDashboardStats, getRecentOrders } from '@/lib/supabase/admin';
-import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import {
+  getDashboardStats, getRecentOrders, getTopProducts,
+  getLowStockProducts, getPaymentMethodStats, getTopCustomers,
+  isCurrentUserAdmin,
+} from '@/lib/supabase/admin';
 
 export async function GET() {
   try {
@@ -8,12 +11,16 @@ export async function GET() {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const [stats, recentOrders] = await Promise.all([
+    const [stats, recentOrders, topProducts, lowStockProducts, paymentStats, topCustomers] = await Promise.all([
       getDashboardStats(),
       getRecentOrders(8),
+      getTopProducts(5),
+      getLowStockProducts(5),
+      getPaymentMethodStats(),
+      getTopCustomers(5),
     ]);
 
-    return NextResponse.json({ stats, recentOrders });
+    return NextResponse.json({ stats, recentOrders, topProducts, lowStockProducts, paymentStats, topCustomers });
   } catch (error) {
     console.error('[Admin /stats]', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });

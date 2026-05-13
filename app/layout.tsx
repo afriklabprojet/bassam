@@ -1,13 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
-import PWAInstaller from "@/components/PWAInstaller";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import CartSidebar from "@/components/CartSidebar";
-import WhatsAppFAB from "@/components/WhatsAppFAB";
-import BottomNav from "@/components/BottomNav";
-import { CartProvider } from "@/lib/cart-context";
+import { BrandingInjector } from "@/components/BrandingInjector";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -88,22 +82,13 @@ export default function RootLayout({
       className={`${cormorant.variable} ${inter.variable} h-full antialiased`}
     >
       <head>
+        <BrandingInjector />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#C5A55A" />
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
       </head>
       <body className="min-h-full flex flex-col">
-        <CartProvider>
-          <Header />
-          <main className="flex-1 pb-16 lg:pb-0">
-            {children}
-          </main>
-          <Footer />
-          <CartSidebar />
-          <WhatsAppFAB />
-          <BottomNav />
-          <PWAInstaller />
-        </CartProvider>
+        {children}
       </body>
     </html>
   );

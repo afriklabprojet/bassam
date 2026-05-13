@@ -181,7 +181,7 @@ export default function SignupPage() {
 
           <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.625rem', fontWeight: 300, color: '#fff', lineHeight: 1.4, letterSpacing: '0.02em', margin: '0 0 28px' }}>
             Rejoignez un cercle<br />
-            <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>d'exception.</em>
+            <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>d&apos;exception.</em>
           </p>
 
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>

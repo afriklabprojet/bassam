@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle, getOrderStatusLabel } from '@/lib/order-status-theme';
 
 /* ─── Types ────────────────────────────────────────────── */
@@ -11,6 +12,44 @@ interface Stats {
   totalRevenue: number;
   totalCustomers: number;
   totalNewsletter: number;
+  revenueToday: number;
+  revenueThisMonth: number;
+  revenueLastMonth: number;
+  monthGrowth: number;
+  averageOrderValue: number;
+  pendingOrdersCount: number;
+  lowStockCount: number;
+}
+
+interface TopProduct {
+  id: string;
+  name: string;
+  brand: string;
+  image: string;
+  stock: number;
+  revenue: number;
+  qty: number;
+}
+
+interface LowStockProduct {
+  id: string;
+  name: string;
+  brand: string;
+  stock: number;
+  image: string;
+}
+
+interface PaymentStat {
+  method: string;
+  count: number;
+  revenue: number;
+  pct: number;
+}
+
+interface TopCustomer {
+  email: string;
+  total: number;
+  orders: number;
 }
 
 interface RecentOrder {
@@ -25,6 +64,15 @@ interface RecentOrder {
   createdAt: string;
 }
 
+/* ─── Payment method labels ─────────────────────────────── */
+const PAYMENT_LABELS: Record<string, string> = {
+  wave: 'Wave',
+  orange_money: 'Orange Money',
+  card: 'Carte bancaire',
+  cash: 'Espèces',
+  unknown: 'Inconnu',
+};
+
 /* ─── Constants ────────────────────────────────────────── */
 /* ─── Helpers ──────────────────────────────────────────── */
 function formatCFA(amount: number) {
@@ -37,8 +85,26 @@ function formatDate(date: string) {
   });
 }
 
+function getGreeting(hour: number): string {
+  if (hour < 12) return 'Bonjour';
+  if (hour < 18) return 'Bon après-midi';
+  return 'Bonsoir';
+}
+
+function formatMonthGrowth(growth: number | null | undefined): string {
+  if (growth == null) return '—%';
+  const sign = growth >= 0 ? '+' : '';
+  return `${sign}${growth.toFixed(1)}%`;
+}
+
+function formatStockBadge(stock: number): string {
+  if (stock === 0) return 'Rupture';
+  const s = stock > 1 ? 's' : '';
+  return `${stock} restant${s}`;
+}
+
 /* ─── Sparkline SVG component ──────────────────────────── */
-function Sparkline({ color = '#C5A55A' }: { color?: string }) {
+function Sparkline({ color = '#C5A55A' }: Readonly<{ color?: string }>) {
   return (
     <svg width="100%" height="48" viewBox="0 0 120 48" fill="none" preserveAspectRatio="none">
       <defs>
@@ -79,27 +145,50 @@ const CARD_HOVER = 'bento-card';
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>([]);
+  const [paymentStats, setPaymentStats] = useState<PaymentStat[]>([]);
+  const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/stats');
+      if (!res.ok) {
+        setError(res.status === 403 ? 'Accès refusé — vous devez être administrateur' : 'Erreur de chargement');
+        return;
+      }
+      const data = await res.json();
+      setStats(data.stats);
+      setRecentOrders(data.recentOrders);
+      setTopProducts(data.topProducts ?? []);
+      setLowStockProducts(data.lowStockProducts ?? []);
+      setPaymentStats(data.paymentStats ?? []);
+      setTopCustomers(data.topCustomers ?? []);
+    } catch {
+      setError('Erreur de connexion');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch('/api/admin/stats');
-        if (!res.ok) {
-          setError(res.status === 403 ? 'Accès refusé — vous devez être administrateur' : 'Erreur de chargement');
-          return;
-        }
-        const data = await res.json();
-        setStats(data.stats);
-        setRecentOrders(data.recentOrders);
-      } catch {
-        setError('Erreur de connexion');
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    const el = containerRef.current;
+    if (!el) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const cards = el.querySelectorAll('.bento-card');
+      cards.forEach((card) => {
+        const rect = (card as HTMLElement).getBoundingClientRect();
+        (card as HTMLElement).style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        (card as HTMLElement).style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    };
+    el.addEventListener('mousemove', handleMouseMove);
+    return () => el.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   /* ── Loading state ── */
@@ -148,7 +237,8 @@ export default function AdminDashboard() {
   }
 
   const now = new Date();
-  const greeting = now.getHours() < 12 ? 'Bonjour' : now.getHours() < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const hour = now.getHours();
+  const greeting = getGreeting(hour);
 
   return (
     <>
@@ -196,17 +286,7 @@ export default function AdminDashboard() {
         }
       `}</style>
 
-      <div
-        className="space-y-5"
-        onMouseMove={(e) => {
-          const cards = e.currentTarget.querySelectorAll('.bento-card');
-          cards.forEach((card) => {
-            const rect = (card as HTMLElement).getBoundingClientRect();
-            (card as HTMLElement).style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-            (card as HTMLElement).style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-          });
-        }}
-      >
+      <div ref={containerRef} className="space-y-5">
         {/* ═══════════ ROW 1 — Hero Revenue (span 8) + Quick Actions (span 4) ═══════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
@@ -571,6 +651,413 @@ export default function AdminDashboard() {
                 {stats?.totalOrders ?? 0}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* ═══════════ ROW 4 — Revenue Details ═══════════ */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {[
+            {
+              label: "Aujourd'hui",
+              value: formatCFA(stats?.revenueToday ?? 0),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+              accent: '#C5A55A',
+            },
+            {
+              label: 'Ce mois',
+              value: formatCFA(stats?.revenueThisMonth ?? 0),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
+              accent: '#D9BE80',
+            },
+            {
+              label: 'Croissance mois',
+              value: formatMonthGrowth(stats?.monthGrowth),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>,
+              accent: (stats?.monthGrowth ?? 0) >= 0 ? '#6EE7B7' : '#F87171',
+              textColor: (stats?.monthGrowth ?? 0) >= 0 ? '#6EE7B7' : '#F87171',
+            },
+            {
+              label: 'Panier moyen',
+              value: formatCFA(stats?.averageOrderValue ?? 0),
+              icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>,
+              accent: '#E8D9C0',
+            },
+          ].map((card) => (
+            <div
+              key={card.label}
+              className={`${CARD_HOVER} relative`}
+              style={{ ...CARD_BASE, padding: '20px 24px' }}
+            >
+              <div style={{
+                position: 'absolute', top: 0, left: '20px', right: '20px', height: '1px',
+                background: `linear-gradient(90deg, transparent, ${card.accent}25, transparent)`,
+              }} />
+              <div className="flex items-center gap-2 mb-3">
+                <div style={{ color: card.accent }}>{card.icon}</div>
+                <span style={{ fontSize: '0.6875rem', color: '#555', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  {card.label}
+                </span>
+              </div>
+              <div className="stat-value" style={{
+                fontSize: '1.25rem', fontWeight: 700,
+                color: ('textColor' in card && card.textColor) ? card.textColor : '#F0ECE4',
+                fontFamily: 'var(--font-serif)',
+              }}>
+                {card.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ═══════════ ROW 5 — Top Products (8) + Payment Methods (4) ═══════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+          {/* ── Top Products ── */}
+          <div
+            className={`${CARD_HOVER} lg:col-span-8`}
+            style={{ ...CARD_BASE, padding: 0 }}
+          >
+            <div
+              className="flex items-center justify-between px-7 py-5"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+            >
+              <div>
+                <h2 style={{ fontSize: '1.0625rem', fontWeight: 600, color: '#F0ECE4', fontFamily: 'var(--font-serif)' }}>
+                  Top Produits
+                </h2>
+                <span style={{ fontSize: '0.75rem', color: '#444', display: 'block', marginTop: '2px' }}>
+                  Par chiffre d&apos;affaires généré
+                </span>
+              </div>
+              <Link
+                href="/admin/produits"
+                style={{ fontSize: '0.75rem', color: '#C5A55A', fontWeight: 500, padding: '7px 16px', borderRadius: '10px', background: 'rgba(197,165,90,0.06)', border: '1px solid rgba(197,165,90,0.1)' }}
+              >
+                Gérer →
+              </Link>
+            </div>
+
+            {topProducts.length === 0 ? (
+              <div className="px-7 py-16 text-center">
+                <p style={{ color: '#555', fontSize: '0.875rem' }}>Aucune donnée de vente disponible</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/3">
+                {topProducts.map((product, i) => {
+                  const maxRevenue = topProducts[0]?.revenue ?? 1;
+                  const pct = (product.revenue / maxRevenue) * 100;
+                  return (
+                    <div
+                      key={product.id}
+                      className="flex items-center gap-5 px-7 py-4 transition-colors duration-150 hover:bg-white/1.5"
+                    >
+                      {/* Rank */}
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold"
+                        style={{
+                          background: i === 0 ? 'rgba(197,165,90,0.12)' : 'rgba(255,255,255,0.04)',
+                          color: i === 0 ? '#C5A55A' : '#444',
+                          border: i === 0 ? '1px solid rgba(197,165,90,0.2)' : '1px solid transparent',
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+
+                      {/* Image */}
+                      <div
+                        className="w-10 h-10 rounded-xl shrink-0 overflow-hidden"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                      >
+                        {product.image ? (
+                          <Image src={product.image} alt={product.name} width={40} height={40} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth={1.5}>
+                              <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info + bar */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="min-w-0">
+                            <p style={{ fontSize: '0.875rem', color: '#e0ddd6', fontWeight: 500 }} className="truncate">{product.name}</p>
+                            <p style={{ fontSize: '0.6875rem', color: '#555' }}>{product.brand} · {product.qty} vendu{product.qty > 1 ? 's' : ''}</p>
+                          </div>
+                          <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#C5A55A', fontFamily: 'var(--font-serif)', flexShrink: 0, marginLeft: '12px' }}>
+                            {formatCFA(product.revenue)}
+                          </span>
+                        </div>
+                        <div className="w-full rounded-full overflow-hidden" style={{ height: '3px', background: 'rgba(255,255,255,0.04)' }}>
+                          <div
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${pct}%`,
+                              background: 'linear-gradient(90deg, rgba(197,165,90,0.6), rgba(197,165,90,0.2))',
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Stock badge */}
+                      <div
+                        className="shrink-0 px-2.5 py-1 rounded-full text-xs font-medium"
+                        style={{
+                          background: product.stock <= 5 ? 'rgba(239,68,68,0.08)' : 'rgba(110,231,183,0.06)',
+                          color: product.stock <= 5 ? '#F87171' : '#6EE7B7',
+                          border: `1px solid ${product.stock <= 5 ? 'rgba(239,68,68,0.12)' : 'rgba(110,231,183,0.1)'}`,
+                        }}
+                      >
+                        {product.stock} en stock
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ── Payment Methods ── */}
+          <div
+            className={`${CARD_HOVER} lg:col-span-4 flex flex-col`}
+            style={{ ...CARD_BASE, padding: '28px' }}
+          >
+            <span style={{
+              fontSize: '0.6875rem', fontWeight: 600, color: '#555',
+              textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '24px',
+            }}>
+              Méthodes de paiement
+            </span>
+
+            {paymentStats.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <p style={{ color: '#444', fontSize: '0.8125rem' }}>Aucune donnée</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5 flex-1">
+                {paymentStats.toSorted((a, b) => b.pct - a.pct).map((pm, i) => {
+                  const colors = ['#C5A55A', '#D9BE80', '#E8D9C0', '#9B7B38'];
+                  const color = colors[i % colors.length];
+                  return (
+                    <div key={pm.method}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                          <span style={{ fontSize: '0.8125rem', color: '#aaa' }}>
+                            {PAYMENT_LABELS[pm.method] ?? pm.method}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span style={{ fontSize: '0.8125rem', color: '#ccc', fontWeight: 600 }}>{pm.count}</span>
+                          <span style={{ fontSize: '0.6875rem', color: '#555', marginLeft: '6px' }}>{pm.pct.toFixed(0)}%</span>
+                        </div>
+                      </div>
+                      <div className="w-full rounded-full overflow-hidden" style={{ height: '4px', background: 'rgba(255,255,255,0.04)' }}>
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.max(pm.pct, 2)}%`,
+                            background: `linear-gradient(90deg, ${color}, ${color}60)`,
+                            boxShadow: `0 0 6px ${color}20`,
+                          }}
+                        />
+                      </div>
+                      <p style={{ fontSize: '0.6875rem', color: '#444', marginTop: '4px' }}>{formatCFA(pm.revenue)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ═══════════ ROW 6 — Top Customers (8) + Low Stock (4) ═══════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+          {/* ── Top Customers ── */}
+          <div
+            className={`${CARD_HOVER} lg:col-span-8`}
+            style={{ ...CARD_BASE, padding: 0 }}
+          >
+            <div
+              className="flex items-center justify-between px-7 py-5"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+            >
+              <div>
+                <h2 style={{ fontSize: '1.0625rem', fontWeight: 600, color: '#F0ECE4', fontFamily: 'var(--font-serif)' }}>
+                  Meilleurs Clients
+                </h2>
+                <span style={{ fontSize: '0.75rem', color: '#444', display: 'block', marginTop: '2px' }}>
+                  Par volume d&apos;achat total
+                </span>
+              </div>
+              <Link
+                href="/admin/clients"
+                style={{ fontSize: '0.75rem', color: '#C5A55A', fontWeight: 500, padding: '7px 16px', borderRadius: '10px', background: 'rgba(197,165,90,0.06)', border: '1px solid rgba(197,165,90,0.1)' }}
+              >
+                Tout voir →
+              </Link>
+            </div>
+
+            {topCustomers.length === 0 ? (
+              <div className="px-7 py-16 text-center">
+                <p style={{ color: '#555', fontSize: '0.875rem' }}>Aucun client enregistré</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/3">
+                {topCustomers.map((customer, i) => {
+                  const maxTotal = topCustomers[0]?.total ?? 1;
+                  const pct = (customer.total / maxTotal) * 100;
+                  const initials = customer.email.slice(0, 2).toUpperCase();
+                  const avatarColors = [
+                    { bg: 'rgba(197,165,90,0.12)', color: '#C5A55A', border: 'rgba(197,165,90,0.2)' },
+                    { bg: 'rgba(217,190,128,0.08)', color: '#D9BE80', border: 'rgba(217,190,128,0.15)' },
+                    { bg: 'rgba(232,217,192,0.06)', color: '#E8D9C0', border: 'rgba(232,217,192,0.12)' },
+                    { bg: 'rgba(155,123,56,0.08)', color: '#9B7B38', border: 'rgba(155,123,56,0.15)' },
+                    { bg: 'rgba(255,255,255,0.04)', color: '#666', border: 'rgba(255,255,255,0.06)' },
+                  ];
+                  const av = avatarColors[i % avatarColors.length];
+                  return (
+                    <div
+                      key={customer.email}
+                      className="flex items-center gap-4 px-7 py-4 transition-colors duration-150 hover:bg-white/1.5"
+                    >
+                      {/* Rank */}
+                      <span style={{ fontSize: '0.6875rem', color: '#444', fontWeight: 600, width: '16px', textAlign: 'center', flexShrink: 0 }}>
+                        {i + 1}
+                      </span>
+
+                      {/* Avatar */}
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold"
+                        style={{ background: av.bg, color: av.color, border: `1px solid ${av.border}` }}
+                      >
+                        {initials}
+                      </div>
+
+                      {/* Info + bar */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="min-w-0">
+                            <p style={{ fontSize: '0.875rem', color: '#ccc' }} className="truncate">{customer.email}</p>
+                            <p style={{ fontSize: '0.6875rem', color: '#555' }}>
+                              {customer.orders} commande{customer.orders > 1 ? 's' : ''}
+                            </p>
+                          </div>
+                          <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#C5A55A', fontFamily: 'var(--font-serif)', flexShrink: 0, marginLeft: '12px' }}>
+                            {formatCFA(customer.total)}
+                          </span>
+                        </div>
+                        <div className="w-full rounded-full overflow-hidden" style={{ height: '3px', background: 'rgba(255,255,255,0.04)' }}>
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${pct}%`, background: 'linear-gradient(90deg, rgba(197,165,90,0.5), rgba(197,165,90,0.15))' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* ── Low Stock Alerts ── */}
+          <div
+            className={`${CARD_HOVER} lg:col-span-4 flex flex-col`}
+            style={{ ...CARD_BASE, padding: 0 }}
+          >
+            <div
+              className="flex items-center justify-between px-6 py-5"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.12)' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth={2}>
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '0.9375rem', fontWeight: 600, color: '#F0ECE4' }}>Stock faible</h2>
+                  {(stats?.lowStockCount ?? 0) > 0 && (
+                    <span style={{ fontSize: '0.6875rem', color: '#F87171' }}>
+                      {stats?.lowStockCount} produit{(stats?.lowStockCount ?? 0) > 1 ? 's' : ''} critique{(stats?.lowStockCount ?? 0) > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Link
+                href="/admin/produits"
+                style={{ fontSize: '0.6875rem', color: '#F87171', fontWeight: 500, opacity: 0.7 }}
+              >
+                Gérer →
+              </Link>
+            </div>
+
+            {lowStockProducts.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-10 px-6">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+                  style={{ background: 'rgba(110,231,183,0.06)', border: '1px solid rgba(110,231,183,0.1)' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6EE7B7" strokeWidth={1.5}>
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <p style={{ color: '#6EE7B7', fontSize: '0.875rem', fontWeight: 500 }}>Stocks OK</p>
+                <p style={{ color: '#444', fontSize: '0.75rem', marginTop: '4px', textAlign: 'center' }}>Tous les produits sont bien approvisionnés</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/3 flex-1">
+                {lowStockProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-3 px-6 py-3.5 transition-colors duration-150 hover:bg-white/1.5"
+                  >
+                    {/* Image */}
+                    <div
+                      className="w-9 h-9 rounded-lg shrink-0 overflow-hidden"
+                      style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)' }}
+                    >
+                      {product.image ? (
+                        <Image src={product.image} alt={product.name} width={36} height={36} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth={1.5} strokeOpacity={0.5}>
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p style={{ fontSize: '0.8125rem', color: '#ccc', fontWeight: 500 }} className="truncate">{product.name}</p>
+                      <p style={{ fontSize: '0.6875rem', color: '#555' }}>{product.brand}</p>
+                    </div>
+
+                    {/* Stock count */}
+                    <div
+                      className="shrink-0 px-2.5 py-1 rounded-full text-xs font-bold"
+                      style={{
+                        background: product.stock === 0 ? 'rgba(239,68,68,0.12)' : 'rgba(251,146,60,0.08)',
+                        color: product.stock === 0 ? '#F87171' : '#FB923C',
+                        border: `1px solid ${product.stock === 0 ? 'rgba(239,68,68,0.15)' : 'rgba(251,146,60,0.12)'}`,
+                      }}
+                    >
+                      {formatStockBadge(product.stock)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

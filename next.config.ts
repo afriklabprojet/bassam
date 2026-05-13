@@ -1,5 +1,11 @@
 import type { NextConfig } from 'next';
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const cspScriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline'";
+
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -10,14 +16,18 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "style-src 'self' 'unsafe-inline'",
+      cspScriptSrc,
+      // Google Fonts stylesheets
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // Google Fonts font files + Supabase Storage
+      "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
-      "font-src 'self' data:",
+      // Pexels fallback video + Supabase Storage videos
+      "media-src 'self' blob: https://videos.pexels.com https://*.supabase.co https://*.supabase.in",
       "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.jeko.africa",
       "frame-ancestors 'none'",
       "base-uri 'self'",
-      "form-action 'self'",
+      "form-action 'self' https://formsubmit.co",
     ].join('; '),
   },
 ];

@@ -20,11 +20,11 @@ export default function ScrollReveal({
   delay = 0,
   as: Component = 'div'
 }: ScrollRevealProps) {
-  const ref = useScrollReveal<any>();
+  const ref = useScrollReveal<HTMLElement>();
 
   return (
     <Component 
-      ref={ref} 
+      ref={ref as unknown as React.RefObject<HTMLDivElement>} 
       className={`${className} ${delay > 0 ? `scroll-reveal-delay-${delay}` : ''}`}
     >
       {children}

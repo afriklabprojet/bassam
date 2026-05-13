@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { buildWhatsAppHref, hasWhatsAppSupport, supportConfig } from '@/lib/site-config';
+import { useSiteSettings } from '@/lib/site-settings-context';
+import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
 
 type FooterLink = {
   label: string;
@@ -40,10 +42,10 @@ const SERVICE_LINKS: FooterLink[] = [
   { label: 'Nous contacter', href: '/contact' },
 ];
 
-const SOCIALS: SocialLink[] = [
-  { label: 'Instagram', href: supportConfig.social.instagram, d: 'M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zM12 7a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z' },
-  { label: 'Facebook', href: supportConfig.social.facebook, d: 'M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z' },
-  { label: 'TikTok', href: supportConfig.social.tiktok, d: 'M9 12a4 4 0 104 4V4a5 5 0 005 5' },
+const SOCIALS_DEFS: { label: string; key: 'instagram_url' | 'facebook_url' | 'tiktok_url'; d: string }[] = [
+  { label: 'Instagram', key: 'instagram_url', d: 'M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6zm9.65 1.5a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0zM12 7a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z' },
+  { label: 'Facebook', key: 'facebook_url', d: 'M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z' },
+  { label: 'TikTok', key: 'tiktok_url', d: 'M9 12a4 4 0 104 4V4a5 5 0 005 5' },
 ];
 
 const LEGAL = [
@@ -53,16 +55,20 @@ const LEGAL = [
 ];
 
 export default function Footer() {
-  const socials = SOCIALS.filter((social) => social.href);
+  const settings = useSiteSettings();
+
+  const socials: SocialLink[] = SOCIALS_DEFS
+    .map((def) => ({ label: def.label, href: settings[def.key], d: def.d }))
+    .filter((s) => s.href);
   const footerColumns: Record<string, FooterLink[]> = {
     Collections: COLLECTION_LINKS,
     'Mon Compte': ACCOUNT_LINKS,
-    Services: hasWhatsAppSupport()
+    Services: hasWhatsApp(settings)
       ? [
           ...SERVICE_LINKS,
           {
             label: 'WhatsApp',
-            href: buildWhatsAppHref('Bonjour VIP Parfumerie Bar, je souhaite des informations sur vos parfums.'),
+            href: buildWhatsAppHref(settings, 'Bonjour VIP Parfumerie Bar, je souhaite des informations sur vos parfums.'),
             external: true,
           },
         ]
@@ -99,23 +105,14 @@ export default function Footer() {
               className="flex items-center gap-3"
               style={{ textDecoration: 'none', marginBottom: 24 }}
             >
-              <div style={{
-                width: 44, height: 44,
-                background: 'var(--noir)',
-                border: '1px solid rgba(197,165,90,0.4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: 4, flexShrink: 0,
-                position: 'relative', overflow: 'hidden',
-              }}>
-                <div aria-hidden="true" style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(110deg, transparent 30%, rgba(197,165,90,0.1) 50%, transparent 70%)',
-                  animation: 'header-shimmer 5s ease-in-out infinite',
-                }} />
-                <span style={{
-                  fontFamily: 'var(--font-serif)', color: 'var(--gold)',
-                  fontSize: 15, fontWeight: 300, letterSpacing: 3, position: 'relative', zIndex: 1,
-                }}>VB</span>
+              <div style={{ position: 'relative', width: 60, height: 60, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 0 0 1px rgba(197,165,90,0.3)' }}>
+                <Image
+                  src={settings.logo_url || '/images/logo.png'}
+                  alt=""
+                  fill
+                  sizes="60px"
+                  style={{ objectFit: 'cover', objectPosition: 'center 22%' }}
+                />
               </div>
               <div className="flex flex-col" style={{ gap: 2 }}>
                 <span style={{

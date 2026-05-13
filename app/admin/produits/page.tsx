@@ -1,6 +1,19 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import ImageUploadField from '@/components/admin/ImageUploadField';
+
+function getStockStyle(qty: number): { background: string; color: string } {
+  if (qty > 5) return { background: 'rgba(34,197,94,0.15)', color: '#22C55E' };
+  if (qty > 0) return { background: 'rgba(251,191,36,0.15)', color: '#FBBF24' };
+  return { background: 'rgba(239,68,68,0.15)', color: '#EF4444' };
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 interface Product {
   id: string;
@@ -14,9 +27,11 @@ interface Product {
   stockQuantity: number;
   isFeatured: boolean;
   images: string[];
+  categoryId: string | null;
   categoryName: string | null;
   concentration: string | null;
   volume: string | null;
+  notes: { top: string[]; heart: string[]; base: string[] } | null;
   createdAt: string;
 }
 
@@ -27,25 +42,31 @@ interface FormData {
   description: string;
   price: string;
   originalPrice: string;
+  categoryId: string;
   gender: string;
   stockQuantity: string;
   isFeatured: boolean;
   concentration: string;
   volume: string;
+  notesTete: string;
+  notesCoeur: string;
+  notesFond: string;
   images: string;
 }
 
 const EMPTY_FORM: FormData = {
   name: '', slug: '', brand: '', description: '',
-  price: '', originalPrice: '', gender: '', stockQuantity: '0',
-  isFeatured: false, concentration: '', volume: '', images: '',
+  price: '', originalPrice: '', categoryId: '', gender: '', stockQuantity: '0',
+  isFeatured: false, concentration: '', volume: '',
+  notesTete: '', notesCoeur: '', notesFond: '',
+  images: '',
 };
 
 function slugify(s: string) {
   return s.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .normalize('NFD').replaceAll(/[\u0300-\u036f]/gu, '')
+    .replaceAll(/[^a-z0-9]+/gu, '-')
+    .replaceAll(/^-+|-+$/gu, '');
 }
 
 function formatCFA(n: number) {
@@ -69,9 +90,16 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // Modal
   const [modalOpen, setModalOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el) return;
+    if (modalOpen) { el.showModal(); } else { el.close(); }
+  }, [modalOpen]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -100,6 +128,13 @@ export default function AdminProducts() {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    fetch('/api/admin/categories')
+      .then((r) => r.json())
+      .then((d) => { if (d.categories) setCategories(d.categories); })
+      .catch(() => {});
+  }, []);
+
   function openCreate() {
     setEditingProduct(null);
     setForm(EMPTY_FORM);
@@ -116,11 +151,15 @@ export default function AdminProducts() {
       description: p.description ?? '',
       price: String(p.price),
       originalPrice: p.originalPrice ? String(p.originalPrice) : '',
+      categoryId: p.categoryId ?? '',
       gender: p.gender ?? '',
       stockQuantity: String(p.stockQuantity),
       isFeatured: p.isFeatured,
       concentration: p.concentration ?? '',
       volume: p.volume ?? '',
+      notesTete: p.notes?.top?.join(', ') ?? '',
+      notesCoeur: p.notes?.heart?.join(', ') ?? '',
+      notesFond: p.notes?.base?.join(', ') ?? '',
       images: p.images.join('\n'),
     });
     setFormError(null);
@@ -141,11 +180,11 @@ export default function AdminProducts() {
     }));
   }
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.SyntheticEvent) {
     e.preventDefault();
     setFormError(null);
-    const price = parseFloat(form.price);
-    if (!form.name.trim() || !form.slug.trim() || !form.brand.trim() || isNaN(price) || price <= 0) {
+    const price = Number.parseFloat(form.price);
+    if (!form.name.trim() || !form.slug.trim() || !form.brand.trim() || Number.isNaN(price) || price <= 0) {
       setFormError('Nom, slug, marque et prix sont obligatoires.');
       return;
     }
@@ -155,12 +194,20 @@ export default function AdminProducts() {
       brand: form.brand.trim(),
       ...(form.description.trim() ? { description: form.description.trim() } : {}),
       price,
-      ...(form.originalPrice ? { originalPrice: parseFloat(form.originalPrice) } : {}),
+      ...(form.originalPrice ? { originalPrice: Number.parseFloat(form.originalPrice) } : {}),
+      ...(form.categoryId ? { categoryId: form.categoryId } : { categoryId: null }),
       ...(form.gender ? { gender: form.gender } : {}),
-      stockQuantity: parseInt(form.stockQuantity) || 0,
+      stockQuantity: Number.parseInt(form.stockQuantity, 10) || 0,
       isFeatured: form.isFeatured,
       ...(form.concentration.trim() ? { concentration: form.concentration.trim() } : {}),
       ...(form.volume.trim() ? { volume: form.volume.trim() } : {}),
+      ...((form.notesTete || form.notesCoeur || form.notesFond) ? {
+        notes: {
+          top: form.notesTete.split(',').map((s: string) => s.trim()).filter(Boolean),
+          heart: form.notesCoeur.split(',').map((s: string) => s.trim()).filter(Boolean),
+          base: form.notesFond.split(',').map((s: string) => s.trim()).filter(Boolean),
+        },
+      } : {}),
       images: form.images.split('\n').map((l) => l.trim()).filter(Boolean),
     };
     setSaving(true);
@@ -209,6 +256,131 @@ export default function AdminProducts() {
     load();
   }
 
+  function renderTableContent() {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-48">
+          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(197,165,90,0.2)', borderTopColor: 'var(--gold)' }} />
+        </div>
+      );
+    }
+    if (products.length === 0) {
+      return <div className="px-6 py-12 text-center" style={{ color: '#666' }}>Aucun produit trouvé</div>;
+    }
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full" style={{ fontSize: '0.8125rem' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              {['', 'Produit', 'Marque', 'Prix', 'Stock', 'Genre', 'Vedette', 'Actions'].map((h) => (
+                <th key={h} className="px-5 py-3 text-left" style={{ color: '#666', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((p) => {
+              const stockStyle = getStockStyle(p.stockQuantity);
+              const firstImg = p.images[0];
+              return (
+                <tr key={p.id} className="transition-colors duration-150" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  {/* Thumbnail */}
+                  <td className="px-3 py-2.5" style={{ width: '52px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                      <div
+                        style={{
+                          width: '44px', height: '44px', borderRadius: '6px', overflow: 'hidden',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {firstImg ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={firstImg} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        ) : (
+                          <span style={{ fontSize: '1.1rem', opacity: 0.25 }}>🖼</span>
+                        )}
+                      </div>
+                      {p.images.length > 1 && (
+                        <span style={{ fontSize: '0.6rem', color: '#555' }}>+{p.images.length - 1}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div style={{ color: '#fff', fontWeight: 500 }}>{p.name}</div>
+                    {p.categoryName && (
+                      <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '2px' }}>{p.categoryName}</div>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5" style={{ color: '#ccc' }}>{p.brand}</td>
+                  <td className="px-5 py-3.5">
+                    <span style={{ color: '#fff', fontWeight: 600 }}>{formatCFA(p.price)}</span>
+                    {p.originalPrice && (
+                      <span style={{ color: '#666', textDecoration: 'line-through', marginLeft: '6px', fontSize: '0.75rem' }}>
+                        {formatCFA(p.originalPrice)}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span
+                      className="inline-block px-2 py-0.5 rounded text-xs font-medium"
+                      style={stockStyle}
+                    >
+                      {p.stockQuantity}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5" style={{ color: '#999', textTransform: 'capitalize' }}>
+                    {p.gender ?? '—'}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <button
+                      onClick={() => toggleFeatured(p.id, p.isFeatured)}
+                      disabled={actionLoading === p.id}
+                      style={{ color: p.isFeatured ? 'var(--gold)' : '#444', cursor: 'pointer' }}
+                      title={p.isFeatured ? 'Retirer de la vedette' : 'Mettre en vedette'}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill={p.isFeatured ? 'var(--gold)' : 'none'} stroke="currentColor" strokeWidth={1.5}>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    </button>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openEdit(p)}
+                        style={{ color: '#60A5FA', cursor: 'pointer' }}
+                        title="Modifier"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(p.id, p.name)}
+                        disabled={actionLoading === p.id}
+                        style={{ color: '#EF4444', opacity: 0.7, cursor: 'pointer' }}
+                        title="Supprimer"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -218,6 +390,8 @@ export default function AdminProducts() {
       </div>
     );
   }
+
+  const saveLabel = editingProduct ? 'Enregistrer' : 'Créer le produit';
 
   return (
     <div>
@@ -265,99 +439,7 @@ export default function AdminProducts() {
         className="rounded-xl overflow-hidden"
         style={{ background: 'var(--noir-card)', border: '1px solid rgba(255,255,255,0.06)' }}
       >
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'rgba(197,165,90,0.2)', borderTopColor: 'var(--gold)' }} />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="px-6 py-12 text-center" style={{ color: '#666' }}>Aucun produit trouvé</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full" style={{ fontSize: '0.8125rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  {['Produit', 'Marque', 'Prix', 'Stock', 'Genre', 'Vedette', 'Actions'].map((h) => (
-                    <th key={h} className="px-5 py-3 text-left" style={{ color: '#666', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((p) => (
-                  <tr key={p.id} className="transition-colors duration-150" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td className="px-5 py-3.5">
-                      <div style={{ color: '#fff', fontWeight: 500 }}>{p.name}</div>
-                      {p.categoryName && (
-                        <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '2px' }}>{p.categoryName}</div>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5" style={{ color: '#ccc' }}>{p.brand}</td>
-                    <td className="px-5 py-3.5">
-                      <span style={{ color: '#fff', fontWeight: 600 }}>{formatCFA(p.price)}</span>
-                      {p.originalPrice && (
-                        <span style={{ color: '#666', textDecoration: 'line-through', marginLeft: '6px', fontSize: '0.75rem' }}>
-                          {formatCFA(p.originalPrice)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span
-                        className="inline-block px-2 py-0.5 rounded text-xs font-medium"
-                        style={{
-                          background: p.stockQuantity > 5 ? 'rgba(34,197,94,0.15)' : p.stockQuantity > 0 ? 'rgba(251,191,36,0.15)' : 'rgba(239,68,68,0.15)',
-                          color: p.stockQuantity > 5 ? '#22C55E' : p.stockQuantity > 0 ? '#FBBF24' : '#EF4444',
-                        }}
-                      >
-                        {p.stockQuantity}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5" style={{ color: '#999', textTransform: 'capitalize' }}>
-                      {p.gender ?? '—'}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <button
-                        onClick={() => toggleFeatured(p.id, p.isFeatured)}
-                        disabled={actionLoading === p.id}
-                        style={{ color: p.isFeatured ? 'var(--gold)' : '#444', cursor: 'pointer' }}
-                        title={p.isFeatured ? 'Retirer de la vedette' : 'Mettre en vedette'}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill={p.isFeatured ? 'var(--gold)' : 'none'} stroke="currentColor" strokeWidth={1.5}>
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      </button>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => openEdit(p)}
-                          style={{ color: '#60A5FA', cursor: 'pointer' }}
-                          title="Modifier"
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(p.id, p.name)}
-                          disabled={actionLoading === p.id}
-                          style={{ color: '#EF4444', opacity: 0.7, cursor: 'pointer' }}
-                          title="Supprimer"
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {renderTableContent()}
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -388,12 +470,14 @@ export default function AdminProducts() {
       </div>
 
       {/* ── Create / Edit panel ── */}
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-end"
-          style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-        >
+      <dialog
+        ref={dialogRef}
+        aria-label={editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
+        className="fixed inset-y-0 right-0 m-0 h-full p-0 border-0 bg-transparent z-50"
+        style={{ maxWidth: '520px', width: '100%' }}
+        onClose={closeModal}
+      >
+        {modalOpen && (
           <div
             className="h-full overflow-y-auto"
             style={{
@@ -422,8 +506,9 @@ export default function AdminProducts() {
             <form onSubmit={handleSave} className="px-6 py-6 space-y-5">
               {/* Name */}
               <div>
-                <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Nom *</label>
+                <label htmlFor="field-name" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Nom *</label>
                 <input
+                  id="field-name"
                   type="text" required value={form.name}
                   onChange={(e) => handleNameChange(e.target.value)}
                   placeholder="Ex: Bleu de Chanel"
@@ -433,8 +518,9 @@ export default function AdminProducts() {
 
               {/* Slug */}
               <div>
-                <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Slug *</label>
+                <label htmlFor="field-slug" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Slug *</label>
                 <input
+                  id="field-slug"
                   type="text" required value={form.slug}
                   onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
                   placeholder="bleu-de-chanel"
@@ -444,8 +530,9 @@ export default function AdminProducts() {
 
               {/* Brand */}
               <div>
-                <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Marque *</label>
+                <label htmlFor="field-brand" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Marque *</label>
                 <input
+                  id="field-brand"
                   type="text" required value={form.brand}
                   onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))}
                   placeholder="Ex: Chanel"
@@ -456,16 +543,18 @@ export default function AdminProducts() {
               {/* Price + Original */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Prix (XOF) *</label>
+                  <label htmlFor="field-price" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Prix (XOF) *</label>
                   <input
+                    id="field-price"
                     type="number" required min={0} step={500} value={form.price}
                     onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
                     style={INPUT_STYLE}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Prix barré (XOF)</label>
+                  <label htmlFor="field-original-price" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Prix barré (XOF)</label>
                   <input
+                    id="field-original-price"
                     type="number" min={0} step={500} value={form.originalPrice}
                     onChange={(e) => setForm((f) => ({ ...f, originalPrice: e.target.value }))}
                     style={INPUT_STYLE}
@@ -476,8 +565,9 @@ export default function AdminProducts() {
               {/* Gender + Stock */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Genre</label>
+                  <label htmlFor="field-gender" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Genre</label>
                   <select
+                    id="field-gender"
                     value={form.gender}
                     onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))}
                     style={{ ...INPUT_STYLE, cursor: 'pointer' }}
@@ -489,8 +579,9 @@ export default function AdminProducts() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Stock</label>
+                  <label htmlFor="field-stock" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Stock</label>
                   <input
+                    id="field-stock"
                     type="number" min={0} step={1} value={form.stockQuantity}
                     onChange={(e) => setForm((f) => ({ ...f, stockQuantity: e.target.value }))}
                     style={INPUT_STYLE}
@@ -498,11 +589,28 @@ export default function AdminProducts() {
                 </div>
               </div>
 
+              {/* Collection */}
+              <div>
+                <label htmlFor="field-category" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Collection</label>
+                <select
+                  id="field-category"
+                  value={form.categoryId}
+                  onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
+                  style={{ ...INPUT_STYLE, cursor: 'pointer' }}
+                >
+                  <option value="">— Aucune collection —</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* Concentration + Volume */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Concentration</label>
+                  <label htmlFor="field-concentration" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Concentration</label>
                   <input
+                    id="field-concentration"
                     type="text" value={form.concentration}
                     onChange={(e) => setForm((f) => ({ ...f, concentration: e.target.value }))}
                     placeholder="Eau de Parfum"
@@ -510,14 +618,40 @@ export default function AdminProducts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Volume</label>
+                  <label htmlFor="field-volume" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Volume</label>
                   <input
+                    id="field-volume"
                     type="text" value={form.volume}
                     onChange={(e) => setForm((f) => ({ ...f, volume: e.target.value }))}
                     placeholder="100ml"
                     style={INPUT_STYLE}
                   />
                 </div>
+              </div>
+
+              {/* Notes olfactives */}
+              <div>
+                <p className="block text-xs font-medium uppercase tracking-wide mb-2" style={{ color: '#888' }}>Notes olfactives</p>
+                <div className="space-y-3">
+                  {([
+                    { key: 'notesTete', label: '🌸 Tête', placeholder: 'bergamote, citron, mandarine' },
+                    { key: 'notesCoeur', label: '❤️ Cœur', placeholder: 'rose, jasmin, iris' },
+                    { key: 'notesFond', label: '🌿 Fond', placeholder: 'musc, vanille, santal' },
+                  ] as const).map(({ key, label, placeholder }) => (
+                    <div key={key}>
+                      <label htmlFor={`field-notes-${key}`} className="block" style={{ color: '#666', fontSize: '0.75rem', marginBottom: '0.375rem' }}>{label}</label>
+                      <input
+                        id={`field-notes-${key}`}
+                        type="text"
+                        placeholder={placeholder}
+                        value={form[key]}
+                        onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                        style={INPUT_STYLE}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p style={{ color: '#555', fontSize: '0.7rem', marginTop: '0.5rem' }}>Séparez chaque note par une virgule</p>
               </div>
 
               {/* Featured toggle */}
@@ -545,8 +679,9 @@ export default function AdminProducts() {
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Description</label>
+                <label htmlFor="field-description" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Description</label>
                 <textarea
+                  id="field-description"
                   rows={3} value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Description du parfum…"
@@ -555,18 +690,11 @@ export default function AdminProducts() {
               </div>
 
               {/* Images */}
-              <div>
-                <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>
-                  URLs images{' '}
-                  <span style={{ color: '#555', textTransform: 'none', letterSpacing: 0, fontWeight: 400 }}>(une par ligne)</span>
-                </label>
-                <textarea
-                  rows={3} value={form.images}
-                  onChange={(e) => setForm((f) => ({ ...f, images: e.target.value }))}
-                  placeholder={'https://…/image1.jpg\nhttps://…/image2.jpg'}
-                  style={{ ...INPUT_STYLE, resize: 'vertical', fontFamily: 'monospace', fontSize: '0.75rem', lineHeight: 1.7 }}
-                />
-              </div>
+              <ImageUploadField
+                key={editingProduct?.id ?? 'new'}
+                value={form.images}
+                onChange={(v) => setForm((f) => ({ ...f, images: v }))}
+              />
 
               {/* Form error */}
               {formError && (
@@ -589,13 +717,14 @@ export default function AdminProducts() {
                   className="flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
                   style={{ background: saving ? 'rgba(197,165,90,0.5)' : 'var(--gold)', color: 'var(--noir)', cursor: saving ? 'not-allowed' : 'pointer' }}
                 >
-                  {saving ? 'Sauvegarde…' : editingProduct ? 'Enregistrer' : 'Créer le produit'}
+                  {saving ? 'Sauvegarde…' : saveLabel}
                 </button>
               </div>
             </form>
           </div>
-        </div>
-      )}
+
+        )}
+      </dialog>
     </div>
   );
 }

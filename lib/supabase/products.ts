@@ -22,6 +22,9 @@ function mapRow(row: Record<string, unknown>): Product {
     isFeatured: Boolean(row.is_featured),
     images: (row.images as string[]) ?? [],
     createdAt: row.created_at as string,
+    notes: (row.notes as { top: string[]; heart: string[]; base: string[] } | null) ?? null,
+    concentration: (row.concentration as string) ?? null,
+    volume: (row.volume as string) ?? null,
   };
 }
 

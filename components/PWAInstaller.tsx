@@ -17,14 +17,7 @@ export default function PWAInstaller() {
     // Register service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('Service Worker registered:', registration);
-          })
-          .catch((error) => {
-            console.log('Service Worker registration failed:', error);
-          });
+        navigator.serviceWorker.register('/sw.js');
       });
     }
 
@@ -44,7 +37,6 @@ export default function PWAInstaller() {
 
     // Handle app installed
     window.addEventListener('appinstalled', () => {
-      console.log('PWA installed successfully');
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
     });
@@ -62,8 +54,6 @@ export default function PWAInstaller() {
 
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
-
-    console.log(`User response to the install prompt: ${outcome}`);
 
     // Clear the deferredPrompt
     setDeferredPrompt(null);

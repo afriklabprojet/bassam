@@ -172,7 +172,7 @@ body {
   border: 1px solid var(--gold);
   border-radius: var(--r-sm);
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;

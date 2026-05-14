@@ -6,6 +6,8 @@ import { getProducts } from '@/lib/supabase/products';
 import type { Product } from '@/types/product.types';
 import type { Review } from '@/lib/supabase/reviews';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Parfums Femme | VIP Parfumerie Bar',
   description: 'Collection femme \u2014 Floraux enivrants, orientaux profonds, muscs sensuels. Les plus grandes maisons de parfumerie s\u00e9lectionn\u00e9es pour la femme moderne. Livraison Abidjan.',

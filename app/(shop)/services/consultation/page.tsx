@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { supportConfig } from '@/lib/site-config';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Consultation Priv\u00e9e \u2014 VIP Parfumerie Bar',
   description:

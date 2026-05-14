@@ -116,7 +116,7 @@ export default function Newsletter() {
                 type="submit"
                 disabled={status === 'loading'}
                 className="btn-gold mt-4"
-                style={{ width: '100%', height: '52px', fontSize: '0.8125rem' }}
+                style={{ width: '100%', height: '52px' }}
               >
                 {status === 'loading' ? 'Inscription...' : "Rejoindre le cercle"}
               </button>

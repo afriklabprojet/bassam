@@ -8,8 +8,7 @@ import { getProducts, getProductCountsByGender } from '@/lib/supabase/products';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getHomeUnivers } from '@/lib/supabase/home-content';
 
-// ISR — revalide toutes les 5 minutes
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 // ─── Contenu éditorial (statique) — descriptions, palettes, notes olfactives
 const UNIVERS_META = [

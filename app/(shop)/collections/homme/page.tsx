@@ -4,6 +4,8 @@ import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Parfums Homme | VIP Parfumerie Bar',
   description: 'Collection homme \u2014 Bois\u00e9s \u00e9l\u00e9gants, orientaux intenses, signatures fraiches. Sauvage, Bleu de Chanel, Tom Ford. Livraison Abidjan et Afrique de l\u2019Ouest.',

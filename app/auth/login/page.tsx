@@ -131,7 +131,7 @@ export default function LoginPage() {
               letterSpacing: '0.02em',
               marginBottom: 20,
             }}>
-              L'art de sentir<br />
+              L&apos;art de sentir<br />
               <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>ce qui vous définit.</em>
             </p>
             <p style={{
@@ -142,7 +142,7 @@ export default function LoginPage() {
               textTransform: 'uppercase',
               margin: 0,
             }}>
-              Abidjan · Côte d'Ivoire
+              Abidjan · Côte d&apos;Ivoire
             </p>
           </blockquote>
 

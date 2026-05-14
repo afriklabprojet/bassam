@@ -13,11 +13,10 @@ const STATIC_CACHE_URLS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
       return cache.addAll(STATIC_CACHE_URLS);
     })
   );
-  self.skipWaiting();
+  globalThis.skipWaiting();
 });
 
 // Activate event - clean up old caches
@@ -27,14 +26,13 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
-  self.clients.claim();
+  globalThis.clients.claim();
 });
 
 // Fetch event - serve from cache, fallback to network
@@ -46,6 +44,18 @@ self.addEventListener('fetch', (event) => {
 
   // Skip chrome extension requests
   if (event.request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
+  // Skip video/audio streams — Range requests return partial (206) responses
+  // that cannot be cloned or cached by the SW without a full media cache strategy.
+  const dest = event.request.destination;
+  if (dest === 'video' || dest === 'audio') {
+    return;
+  }
+
+  // Skip cross-origin requests (fonts.googleapis.com, pexels, supabase storage…)
+  if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
 
@@ -62,26 +72,17 @@ self.addEventListener('fetch', (event) => {
       // Try network request
       return fetch(fetchRequest)
         .then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response
-          const responseToCache = response.clone();
-
-          // Cache the new response
-          caches.open(CACHE_NAME).then((cache) => {
-            // Only cache same-origin requests
-            if (event.request.url.startsWith(self.location.origin)) {
+          // Only cache valid same-origin 200 responses (not opaque, not partial)
+          if (response?.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
-            }
-          });
-
+            });
+          }
           return response;
         })
         .catch(() => {
-          // If network fails, try to serve offline page for navigation requests
+          // If network fails, serve offline page for navigation requests
           if (event.request.destination === 'document') {
             return caches.match(OFFLINE_URL);
           }
@@ -92,8 +93,6 @@ self.addEventListener('fetch', (event) => {
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
-  console.log('Background sync:', event.tag);
-  
   if (event.tag === 'sync-newsletter') {
     event.waitUntil(syncNewsletterSubscriptions());
   }
@@ -177,7 +176,7 @@ self.addEventListener('push', (event) => {
   };
   
   event.waitUntil(
-    self.registration.showNotification(data.title || 'VIP Parfumerie Bar', options)
+    globalThis.registration.showNotification(data.title || 'VIP Parfumerie Bar', options)
   );
 });
 

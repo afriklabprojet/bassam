@@ -14,6 +14,9 @@ export interface Product {
   isFeatured: boolean;
   images: string[];
   createdAt: string;
+  notes?: { top: string[]; heart: string[]; base: string[] } | null;
+  concentration?: string | null;
+  volume?: string | null;
 }
 
 export interface Category {

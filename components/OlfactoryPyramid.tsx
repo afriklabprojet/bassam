@@ -17,7 +17,7 @@ interface OlfactoryPyramidProps {
  * - Animations de révélation
  * - Design premium
  */
-export default function OlfactoryPyramid({ notes }: OlfactoryPyramidProps) {
+export default function OlfactoryPyramid({ notes }: Readonly<OlfactoryPyramidProps>) {
   const [activeLevel, setActiveLevel] = useState<'top' | 'heart' | 'base' | null>(null);
 
   const levels = [
@@ -85,9 +85,12 @@ export default function OlfactoryPyramid({ notes }: OlfactoryPyramidProps) {
             return (
               <div
                 key={level.key}
+                role="button"
+                tabIndex={0}
                 className="pyramid-level"
                 onMouseEnter={() => setActiveLevel(level.key)}
                 onMouseLeave={() => setActiveLevel(null)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveLevel(level.key); }}
                 style={{
                   width,
                   margin: '0 auto',

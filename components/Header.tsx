@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
+import { useSiteSettings } from '@/lib/site-settings-context';
 
 // ─── Navigation data ────────────────────────────────────────────────────────
 type NavChild = { label: string; href: string; description?: string };
@@ -92,8 +94,8 @@ function AnnouncementBar({ scrolled }: Readonly<{ scrolled: boolean }>) {
         animation: 'announcement-scroll 30s linear infinite',
         whiteSpace: 'nowrap',
       }}>
-        {[...new Array<undefined>(3)].map((_, i) => (
-          <p key={`announcement-${i}`} style={{
+        {(['first', 'second', 'third'] as const).map((id) => (
+          <p key={id} style={{
             fontSize: '0.6rem', letterSpacing: '0.24em',
             color: 'var(--gold)', textTransform: 'uppercase',
             margin: 0, display: 'flex', alignItems: 'center',
@@ -112,8 +114,14 @@ function AnnouncementBar({ scrolled }: Readonly<{ scrolled: boolean }>) {
   );
 }
 
+function getCartAriaLabel(totalItems: number): string {
+  if (totalItems === 0) return 'Panier';
+  return `Panier — ${totalItems} article${totalItems > 1 ? 's' : ''}`;
+}
+
 export default function Header() {
   const { totalItems, toggleCart } = useCart();
+  const settings = useSiteSettings();
   const pathname = usePathname();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -131,8 +139,7 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  // ── Close mobile on navigation ───────────────────────────────────────────
-  useEffect(() => { setMenuOpen(false); setMobileExpanded(null); }, [pathname]);
+  // ── Close mobile on navigation ───────────────────────────────────────────  // eslint-disable-next-line react-hooks/set-state-in-effect  useEffect(() => { setMenuOpen(false); setMobileExpanded(null); }, [pathname]);
 
   // ── Trap scroll when mobile is open ─────────────────────────────────────
   useEffect(() => {
@@ -148,10 +155,9 @@ export default function Header() {
   const isHomepage = pathname === '/';
   const isLight = scrolled || !isHomepage;
   const blurFilter = scrolled ? 'blur(24px) saturate(1.2)' : 'blur(16px)';
-  const cartItemSuffix = totalItems > 1 ? 's' : '';
-  const cartAriaLabel = totalItems > 0 ? `Panier — ${totalItems} article${cartItemSuffix}` : 'Panier';
+  const cartAriaLabel = getCartAriaLabel(totalItems);
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       globalThis.location.href = `/produits?q=${encodeURIComponent(searchQuery.trim())}`;
@@ -206,30 +212,24 @@ export default function Header() {
               aria-label="VIP Parfumerie Bar — accueil"
               style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}
             >
-              {/* Monogram */}
+              {/* Logo */}
               <div className="header-monogram" style={{
-                width: 42, height: 42,
-                background: 'var(--noir)',
-                border: '1px solid rgba(197,165,90,0.5)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                borderRadius: 4, flexShrink: 0,
-                position: 'relative', overflow: 'hidden',
-                transition: 'border-color 0.3s, box-shadow 0.3s',
+                position: 'relative',
+                width: 48, height: 48,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                flexShrink: 0,
+                transition: 'box-shadow 0.3s',
+                boxShadow: '0 0 0 1px rgba(197,165,90,0.35)',
               }}>
-                {/* Shimmer overlay */}
-                <div aria-hidden="true" style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(110deg, transparent 30%, rgba(197,165,90,0.12) 50%, transparent 70%)',
-                  animation: 'header-shimmer 4s ease-in-out infinite',
-                }} />
-                <span style={{
-                  fontFamily: 'var(--font-serif)',
-                  color: 'var(--gold)',
-                  fontSize: 15,
-                  fontWeight: 300,
-                  letterSpacing: 3,
-                  position: 'relative', zIndex: 1,
-                }}>VB</span>
+                <Image
+                  src={settings.logo_url || '/images/logo.png'}
+                  alt=""
+                  fill
+                  priority
+                  sizes="48px"
+                  style={{ objectFit: 'cover', objectPosition: 'center 22%' }}
+                />
               </div>
               {/* Brand wordmark */}
               <div className="hidden md:flex flex-col" style={{ gap: 1 }}>
@@ -399,13 +399,14 @@ function MobileDrawer({
 }: Readonly<{
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
-  handleSearch: (e: React.FormEvent<HTMLFormElement>) => void;
+  handleSearch: (e: React.SyntheticEvent<HTMLFormElement>) => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   mobileExpanded: string | null;
   setMobileExpanded: (v: string | null) => void;
   pathname: string;
 }>) {
+  const settings = useSiteSettings();
   return (
     <>
       {/* Backdrop */}
@@ -448,8 +449,14 @@ function MobileDrawer({
           background: 'transparent',
         }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <div style={{ width: 34, height: 34, background: 'transparent', border: '1px solid rgba(197,165,90,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2 }}>
-              <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)', fontSize: 13, fontWeight: 300, letterSpacing: 2 }}>VB</span>
+            <div style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 0 0 1px rgba(197,165,90,0.4)' }}>
+              <Image
+                src={settings.logo_url || '/images/logo.png'}
+                alt=""
+                fill
+                sizes="36px"
+                style={{ objectFit: 'cover', objectPosition: 'center 22%' }}
+              />
             </div>
             <span style={{ fontFamily: 'var(--font-serif)', color: '#fff', fontSize: '0.875rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
               VIP Parfumerie
@@ -603,10 +610,11 @@ function NavItem({ link, isLight, pathname }: Readonly<{ link: NavLink; isLight:
   return (
     <div
       ref={ref}
-      role="presentation"
       style={{ position: 'relative' }}
       onMouseEnter={() => link.children && setOpen(true)}
       onMouseLeave={() => link.children && setOpen(false)}
+      onFocus={() => link.children && setOpen(true)}
+      onBlur={(e) => { if (link.children && !ref.current?.contains(e.relatedTarget as Node)) setOpen(false); }}
     >
       <Link
         href={link.href}

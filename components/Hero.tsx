@@ -29,9 +29,12 @@ const FLOATING_DOTS = [
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
+const PEXELS_VIDEO = 'https://videos.pexels.com/video-files/3769697/3769697-uhd_2560_1440_25fps.mp4';
+
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoSrc, setVideoSrc] = useState('/videos/hero-bg.webm');
   const heroRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -100,12 +103,20 @@ export default function Hero() {
 
         <video
           ref={videoRef}
+          key={videoSrc}
           autoPlay
           muted
           loop
           playsInline
           preload="auto"
           onCanPlayThrough={handleVideoReady}
+          onError={() => {
+            if (videoSrc === '/videos/hero-bg.webm') {
+              setVideoSrc('/videos/hero-bg.mp4');
+            } else if (videoSrc === '/videos/hero-bg.mp4') {
+              setVideoSrc(PEXELS_VIDEO);
+            }
+          }}
           className="hero-video-bg"
           style={{
             position: 'absolute',
@@ -117,14 +128,7 @@ export default function Hero() {
             transition: 'opacity 1.5s cubic-bezier(0.4,0,0.2,1)',
           }}
         >
-          {/* Fichiers locaux — priorité haute */}
-          <source src="/videos/hero-bg.webm" type="video/webm" />
-          <source src="/videos/hero-bg.mp4"  type="video/mp4" />
-          {/* Vidéo de démo Pexels — chargée si aucun fichier local n'existe */}
-          <source
-            src="https://videos.pexels.com/video-files/3769697/3769697-uhd_2560_1440_25fps.mp4"
-            type="video/mp4"
-          />
+          <source src={videoSrc} type={videoSrc.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
         </video>
       </div>
 

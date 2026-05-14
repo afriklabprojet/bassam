@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -323,7 +324,7 @@ export default function AdminLoginPage() {
 
         {/* Back link */}
         <div style={{ textAlign: 'center', marginTop: '24px' }}>
-          <a
+          <Link
             href="/"
             style={{
               color: '#666',
@@ -333,7 +334,7 @@ export default function AdminLoginPage() {
             }}
           >
             ← Retour à la boutique
-          </a>
+          </Link>
         </div>
       </div>
 

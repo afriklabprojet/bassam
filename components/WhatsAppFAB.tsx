@@ -1,16 +1,19 @@
 'use client';
 
 import React from 'react';
-import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { useSiteSettings } from '@/lib/site-settings-context';
+import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
 
 export default function WhatsAppFAB() {
-  if (!hasWhatsAppSupport()) {
+  const settings = useSiteSettings();
+
+  if (!hasWhatsApp(settings)) {
     return null;
   }
 
   return (
     <a
-      href={buildWhatsAppHref('Bonjour VIP Parfumerie Bar! Je souhaite des informations sur vos parfums.')}
+      href={buildWhatsAppHref(settings, 'Bonjour VIP Parfumerie Bar! Je souhaite des informations sur vos parfums.')}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contacter VIP Parfumerie Bar sur WhatsApp"

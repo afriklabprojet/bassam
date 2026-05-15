@@ -63,6 +63,22 @@ const DEV_MOCK_PRODUCTS = process.env.NODE_ENV === 'development' ? [
   { id: 'mock-16', name: 'Miss Dior Chérie', slug: 'miss-dior-cherie', brand: 'Dior', description: null, price: 79000, originalPrice: null, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 17, isFeatured: false, images: [], createdAt: new Date().toISOString() },
 ] : [];
 
+function ProductSectionEmptyState() {
+  return (
+    <div style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem 1rem' }}>
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+        La sélection arrive très vite.
+      </p>
+      <p style={{ marginBottom: '1.5rem' }}>
+        Contactez-nous pour connaître les parfums disponibles aujourd&apos;hui.
+      </p>
+      <Link href="/contact" className="btn-ghost">
+        Contacter la boutique
+      </Link>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
   const [{ products: rawBestSellers }, genderCounts, reviews, universDB] = await Promise.all([
@@ -221,9 +237,7 @@ export default async function HomePage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
             {bestSellers.length === 0 ? (
-              <p style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem 0' }}>
-                Catalogue en cours de chargement&hellip;
-              </p>
+              <ProductSectionEmptyState />
             ) : (
               bestSellers.map((p) => (
                 <ProductCard
@@ -266,9 +280,7 @@ export default async function HomePage() {
           {/* Grille produits */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
             {newArrivals.length === 0 ? (
-              <p style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem 0' }}>
-                Catalogue en cours de chargement&hellip;
-              </p>
+              <ProductSectionEmptyState />
             ) : (
               newArrivals.map((p) => (
                 <ProductCard

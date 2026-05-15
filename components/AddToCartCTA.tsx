@@ -27,7 +27,7 @@ export default function AddToCartCTA({
   stockQuantity,
   price,
   isAdded,
-}: AddToCartCTAProps) {
+}: Readonly<AddToCartCTAProps>) {
   const [isPulsing, setIsPulsing] = useState(false);
 
   const handleAdd = () => {
@@ -48,13 +48,13 @@ export default function AddToCartCTA({
   return (
     <div className="add-to-cart-cta space-y-5">
       {/* Quantity selector premium */}
-      <div>
-        <label
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend
           className="block mb-2 text-sm font-medium"
           style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em' }}
         >
           Quantité
-        </label>
+        </legend>
         <div
           className="quantity-selector"
           style={{
@@ -68,6 +68,7 @@ export default function AddToCartCTA({
           }}
         >
           <button
+            type="button"
             onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
             disabled={quantity <= 1}
             className="qty-btn"
@@ -100,6 +101,7 @@ export default function AddToCartCTA({
             {quantity}
           </div>
           <button
+            type="button"
             onClick={() => onQuantityChange(Math.min(stockQuantity, quantity + 1))}
             disabled={quantity >= stockQuantity}
             className="qty-btn"
@@ -126,7 +128,7 @@ export default function AddToCartCTA({
         >
           {stockQuantity} unités disponibles
         </p>
-      </div>
+      </fieldset>
 
       {/* Total price */}
       {quantity > 1 && (
@@ -165,6 +167,7 @@ export default function AddToCartCTA({
 
       {/* Add to cart button */}
       <button
+        type="button"
         onClick={handleAdd}
         className={`btn-gold-animated w-full ${isPulsing ? 'pulse-animation' : ''}`}
         style={{
@@ -199,6 +202,7 @@ export default function AddToCartCTA({
 
       {/* Buy now button */}
       <button
+        type="button"
         onClick={onBuyNow}
         className="btn-ghost w-full"
         style={{

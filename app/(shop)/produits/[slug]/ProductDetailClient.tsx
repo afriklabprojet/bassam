@@ -7,6 +7,7 @@ import { useCart } from '@/lib/cart-context';
 import ProductGallery from '@/components/ProductGallery';
 import OlfactoryPyramid from '@/components/OlfactoryPyramid';
 import AddToCartCTA from '@/components/AddToCartCTA';
+import ProductCard from '@/components/ProductCard';
 import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
 import { normalizeProductImage } from '@/lib/product-images';
 import type { Product } from '@/types/product.types';
@@ -20,6 +21,7 @@ type ProductDetail = Product & {
 interface ProductDetailClientProps {
   slug: string;
   initialProduct?: ProductDetail | null;
+  relatedProducts?: Product[];
 }
 
 function getTabLabel(tab: string): string {
@@ -28,7 +30,25 @@ function getTabLabel(tab: string): string {
   return 'Description';
 }
 
-export default function ProductDetailClient({ slug, initialProduct }: Readonly<ProductDetailClientProps>) {
+function getGenderLabel(gender: Product['gender']): string {
+  if (gender === 'homme') return 'Homme';
+  if (gender === 'femme') return 'Femme';
+  if (gender === 'mixte') return 'Mixte';
+  return 'Signature';
+}
+
+function getNotePreview(product: ProductDetail): string[] {
+  const notes = product.notes;
+  if (!notes) return [];
+
+  return [...notes.top, ...notes.heart, ...notes.base].filter(Boolean).slice(0, 5);
+}
+
+export default function ProductDetailClient({
+  slug,
+  initialProduct,
+  relatedProducts = [],
+}: Readonly<ProductDetailClientProps>) {
   const router = useRouter();
   const { addItem } = useCart();
   const [product, setProduct] = useState<ProductDetail | null>(initialProduct ?? null);
@@ -146,6 +166,18 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
+  const notePreview = getNotePreview(product);
+  const profileItems = [
+    { label: 'Univers', value: getGenderLabel(product.gender) },
+    { label: 'Concentration', value: product.concentration ?? 'Eau de parfum' },
+    { label: 'Format', value: product.volume ?? 'Flacon signature' },
+  ];
+  const purchaseBenefits = [
+    { label: 'Authenticité', value: 'Produit vérifié avant expédition' },
+    { label: 'Livraison', value: '24h à Abidjan selon disponibilité' },
+    { label: 'Paiement', value: 'Orange Money, MTN, Wave' },
+    { label: 'Conseil', value: 'Assistance WhatsApp avant achat' },
+  ];
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--surface)' }}>
@@ -259,13 +291,25 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
               className="heading-lg"
               style={{
                 fontSize: 'clamp(2rem, 5vw, 3rem)',
-                marginBottom: '1rem',
+                marginBottom: '0.75rem',
                 lineHeight: 1.1,
                 color: 'var(--text-primary)',
               }}
             >
               {product.name}
             </h1>
+
+            <p
+              style={{
+                maxWidth: '40rem',
+                color: 'var(--text-secondary)',
+                fontSize: '1rem',
+                lineHeight: 1.75,
+                marginBottom: '1.5rem',
+              }}
+            >
+              {product.description || 'Une fragrance sélectionnée pour son équilibre, sa tenue et son caractère.'}
+            </p>
 
             {/* Concentration + Volume */}
             {product.concentration && (
@@ -281,6 +325,43 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
                 {product.volume && ` — ${product.volume}`}
               </p>
             )}
+
+            <div
+              className="product-profile-card"
+              style={{
+                display: 'grid',
+                gap: '1rem',
+                padding: '1.25rem',
+                marginBottom: '2rem',
+                background: '#fff',
+                border: '1px solid var(--line-light)',
+                borderRadius: 'var(--r-md)',
+                boxShadow: '0 14px 35px rgba(0,0,0,0.04)',
+              }}
+            >
+              <div className="product-profile-grid">
+                {profileItems.map((item) => (
+                  <div key={item.label}>
+                    <p className="product-profile-label">{item.label}</p>
+                    <p className="product-profile-value">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              {notePreview.length > 0 && (
+                <div style={{ borderTop: '1px solid var(--line-light)', paddingTop: '1rem' }}>
+                  <p className="product-profile-label" style={{ marginBottom: '0.625rem' }}>
+                    Notes clés
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {notePreview.map((note) => (
+                      <span key={note} className="product-note-chip">
+                        {note}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Price premium */}
             <div
@@ -374,16 +455,27 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
 
             {/* CTA premium */}
             {product.stockQuantity > 0 && (
-              <AddToCartCTA
-                onAddToCart={handleAddToCart}
-                onBuyNow={handleBuyNow}
-                quantity={quantity}
-                onQuantityChange={setQuantity}
-                stockQuantity={product.stockQuantity}
-                price={product.price}
-                isAdded={added}
-              />
+              <div className="purchase-panel">
+                <AddToCartCTA
+                  onAddToCart={handleAddToCart}
+                  onBuyNow={handleBuyNow}
+                  quantity={quantity}
+                  onQuantityChange={setQuantity}
+                  stockQuantity={product.stockQuantity}
+                  price={product.price}
+                  isAdded={added}
+                />
+              </div>
             )}
+
+            <div className="purchase-benefits-grid" aria-label="Garanties d'achat">
+              {purchaseBenefits.map((benefit) => (
+                <div key={benefit.label} className="purchase-benefit-card">
+                  <p className="purchase-benefit-label">{benefit.label}</p>
+                  <p className="purchase-benefit-value">{benefit.value}</p>
+                </div>
+              ))}
+            </div>
 
             {/* Advantages grid premium */}
             <div
@@ -508,11 +600,12 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
                 fontWeight: 600,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
-                borderBottom:
-                  activeTab === tab ? '3px solid var(--gold)' : '3px solid transparent',
+                borderWidth: 0,
+                borderBottomWidth: '3px',
+                borderBottomStyle: 'solid',
+                borderBottomColor: activeTab === tab ? 'var(--gold)' : 'transparent',
                 color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-secondary)',
                 background: 'none',
-                border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 marginBottom: '-2px',
@@ -598,6 +691,63 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
         </div>
       </section>
 
+      {relatedProducts.length > 0 && (
+        <section
+          className="container mx-auto py-12 lg:py-16 related-products-section"
+          aria-labelledby="related-products-title"
+        >
+          <div className="related-products-header">
+            <div>
+              <p className="eyebrow related-products-eyebrow">Sélection VIP</p>
+              <h2 id="related-products-title" className="heading-lg related-products-title">
+                Vous aimerez peut-être aussi
+              </h2>
+              <p className="related-products-copy">
+                Des parfums choisis dans le même esprit pour comparer les signatures, les notes et les occasions.
+              </p>
+            </div>
+            <Link href="/produits" className="related-products-link">
+              Voir tout le catalogue
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="related-products-grid">
+            {relatedProducts.map((relatedProduct) => (
+              <ProductCard
+                key={relatedProduct.id}
+                id={relatedProduct.slug}
+                name={relatedProduct.name}
+                brand={relatedProduct.brand}
+                price={relatedProduct.price}
+                originalPrice={relatedProduct.originalPrice ?? undefined}
+                image={relatedProduct.images[0] || '/images/products/product-placeholder.svg'}
+                category={relatedProduct.gender ?? 'mixte'}
+                inStock={relatedProduct.stockQuantity > 0}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {product.stockQuantity > 0 && (
+        <div className="mobile-product-bar" aria-label="Achat rapide">
+          <div>
+            <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', lineHeight: 1 }}>
+              {product.brand}
+            </p>
+            <p style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+              {formatPrice(product.price)}
+            </p>
+          </div>
+          <button type="button" onClick={handleAddToCart} className="mobile-product-bar-button">
+            {added ? 'Ajouté' : 'Ajouter'}
+          </button>
+        </div>
+      )}
+
       <style jsx>{`
         .breadcrumb-link:hover {
           color: var(--gold) !important;
@@ -617,6 +767,185 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
 
         .tab-button:hover {
           color: var(--gold);
+        }
+
+        .related-products-section {
+          border-top: 1px solid var(--line-light);
+        }
+
+        .related-products-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 2rem;
+          margin-bottom: 2rem;
+        }
+
+        .related-products-eyebrow {
+          margin-bottom: 0.75rem;
+          color: var(--gold);
+        }
+
+        .related-products-title {
+          margin: 0;
+          font-size: clamp(1.75rem, 4vw, 2.5rem);
+          color: var(--text-primary);
+        }
+
+        .related-products-copy {
+          max-width: 42rem;
+          margin-top: 0.75rem;
+          color: var(--text-secondary);
+          font-size: 0.975rem;
+          line-height: 1.7;
+        }
+
+        .related-products-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex: 0 0 auto;
+          min-height: 2.75rem;
+          padding: 0 1rem;
+          border: 1px solid var(--line-light);
+          border-radius: var(--r-sm);
+          color: var(--text-primary);
+          text-decoration: none;
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          transition: border-color 0.25s, color 0.25s, background 0.25s;
+        }
+
+        .related-products-link:hover {
+          border-color: var(--gold);
+          background: var(--gold-muted);
+          color: var(--gold-dark);
+        }
+
+        .related-products-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 1.5rem;
+        }
+
+        .product-profile-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 1rem;
+        }
+
+        .product-profile-label,
+        .purchase-benefit-label {
+          margin: 0 0 0.25rem;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--gold-dark);
+        }
+
+        .product-profile-value,
+        .purchase-benefit-value {
+          margin: 0;
+          color: var(--text-primary);
+          font-size: 0.9rem;
+          line-height: 1.45;
+        }
+
+        .product-note-chip {
+          display: inline-flex;
+          align-items: center;
+          min-height: 2rem;
+          padding: 0.35rem 0.75rem;
+          border: 1px solid var(--line-light);
+          border-radius: 999px;
+          background: var(--offwhite);
+          color: var(--text-secondary);
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+
+        .purchase-panel {
+          padding: 1.25rem;
+          background: #fff;
+          border: 1px solid var(--line-light);
+          border-radius: var(--r-md);
+          box-shadow: 0 18px 45px rgba(0,0,0,0.06);
+        }
+
+        .purchase-benefits-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.75rem;
+          margin-top: 1rem;
+          margin-bottom: 2rem;
+        }
+
+        .purchase-benefit-card {
+          min-height: 6rem;
+          padding: 1rem;
+          background: #fff;
+          border: 1px solid var(--line-light);
+          border-radius: var(--r-md);
+        }
+
+        .mobile-product-bar {
+          display: none;
+        }
+
+        .mobile-product-bar-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 8.5rem;
+          min-height: 2.75rem;
+          padding: 0 1rem;
+          border: 1px solid var(--gold);
+          border-radius: var(--r-sm);
+          background: var(--gold);
+          color: var(--noir);
+          font-size: 0.75rem;
+          font-weight: 800;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+
+        @media (max-width: 767px) {
+          .related-products-header {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 1.25rem;
+          }
+
+          .related-products-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+          }
+
+          .product-profile-grid,
+          .purchase-benefits-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .mobile-product-bar {
+            position: fixed;
+            left: 0.75rem;
+            right: 0.75rem;
+            bottom: 5rem;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.96);
+            border: 1px solid var(--line-light);
+            border-radius: var(--r-md);
+            box-shadow: 0 18px 50px rgba(0,0,0,0.14);
+            backdrop-filter: blur(14px);
+          }
         }
 
         @keyframes spin {

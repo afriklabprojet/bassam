@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { normalizeProductImage } from '@/lib/product-images';
 
@@ -23,8 +23,17 @@ export default function ProductGallery({ images, productName, brand, discount }:
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
 
-  const normalizedImages = images.map((image) => normalizeProductImage(image));
+  const normalizedImages = useMemo(() => {
+    const resolvedImages = images.map((image) => normalizeProductImage(image));
+    return resolvedImages.length > 0 ? resolvedImages : [normalizeProductImage()];
+  }, [images]);
   const activeImage = normalizedImages[activeIndex] || normalizeProductImage();
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   const openFullscreen = () => {
     setIsFullscreen(true);

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getProductBySlug, getProducts } from '@/lib/supabase/products';
+import { getProductBySlug } from '@/lib/supabase/products';
 import ProductDetailClient from './ProductDetailClient';
 
 interface PageProps {
@@ -9,17 +9,7 @@ interface PageProps {
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
 
-// ISR: pre-generate known product slugs at build time, revalidate every hour
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-  try {
-    const { products } = await getProducts({ limit: 200 });
-    return products.map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
-}
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -48,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ProductPage({ params }: PageProps) {
+export default async function ProductPage({ params }: Readonly<PageProps>) {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 

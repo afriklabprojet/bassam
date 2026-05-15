@@ -65,13 +65,18 @@ const IconChevron = ({ size = 12 }: { size?: number }) => (
 );
 
 // ─── Shared icon-button style ─────────────────────────────────────────────────
-const iconBtnStyle = (light: boolean): React.CSSProperties => ({
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
+const iconBtnBaseStyle = (light: boolean): React.CSSProperties => ({
+  alignItems: 'center', justifyContent: 'center',
   width: 44, height: 44, cursor: 'pointer',
   color: light ? 'var(--text-secondary)' : 'rgba(255,255,255,0.8)',
   transition: 'color 0.25s cubic-bezier(0.4,0,0.2,1), transform 0.25s',
   background: 'none', border: 'none', padding: 0,
   borderRadius: '50%',
+});
+
+const iconBtnStyle = (light: boolean): React.CSSProperties => ({
+  display: 'flex',
+  ...iconBtnBaseStyle(light),
 });
 
 // ─── Announcement Bar ─────────────────────────────────────────────────────────
@@ -270,10 +275,10 @@ export default function Header() {
             </nav>
 
             {/* ── RIGHT: actions ────────────────────────────────────────────── */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', justifySelf: 'end', gap: 2, flexShrink: 0 }}>
               {/* Search */}
               {searchOpen ? (
-                <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center' }}>
+                <form onSubmit={handleSearch} className="hidden lg:flex" style={{ alignItems: 'center' }}>
                   <input
                     ref={searchInputRef}
                     type="search"
@@ -317,8 +322,8 @@ export default function Header() {
               ) : (
                 <button
                   onClick={() => setSearchOpen(true)}
-                  style={iconBtnStyle(isLight)}
-                  className="hidden md:flex"
+                  style={iconBtnBaseStyle(isLight)}
+                  className="hidden lg:flex"
                   aria-label="Rechercher"
                 >
                   <IconSearch size={18} />
@@ -328,8 +333,8 @@ export default function Header() {
               {/* Account */}
               <Link
                 href="/compte"
-                style={iconBtnStyle(isLight)}
-                className="hidden md:flex"
+                style={iconBtnBaseStyle(isLight)}
+                className="hidden lg:flex"
                 aria-label="Mon compte"
               >
                 <IconUser size={18} />
@@ -362,8 +367,8 @@ export default function Header() {
               {/* Mobile hamburger */}
               <button
                 onClick={() => setMenuOpen(true)}
-                style={{ ...iconBtnStyle(isLight), marginLeft: 4 }}
-                className="lg:hidden"
+                style={{ ...iconBtnBaseStyle(isLight), marginLeft: 4 }}
+                className="flex lg:hidden"
                 aria-label="Ouvrir le menu"
               >
                 <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
@@ -610,11 +615,12 @@ function NavItem({ link, isLight, pathname }: Readonly<{ link: NavLink; isLight:
   return (
     <div
       ref={ref}
+      role="none"
       style={{ position: 'relative' }}
       onMouseEnter={() => link.children && setOpen(true)}
       onMouseLeave={() => link.children && setOpen(false)}
       onFocus={() => link.children && setOpen(true)}
-      onBlur={(e) => { if (link.children && !ref.current?.contains(e.relatedTarget as Node)) setOpen(false); }}
+      onBlur={(e) => { if (link.children && !ref.current?.contains(e.relatedTarget)) setOpen(false); }}
     >
       <Link
         href={link.href}

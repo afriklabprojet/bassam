@@ -4,16 +4,16 @@ import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
 
 export const metadata: Metadata = {
-  title: 'Nouveaut\u00e9s | VIP Parfumerie Bar',
-  description: 'D\u00e9couvrez les derni\u00e8res arriv\u00e9es chez VIP Parfumerie Bar — fragrances de luxe et soins premium disponibles \u00e0 Abidjan et livraison Afrique de l\u2019Ouest.',
+  title: 'Nouveautés | VIP Parfumerie Bar',
+  description: 'Découvrez les dernières arrivées chez VIP Parfumerie Bar — fragrances de luxe et soins premium disponibles à Abidjan et livraison Afrique de l’Ouest.',
 };
 
 // ─── Featured arrivals ────────────────────────────────────────────────────────
 const FEATURED: { num: string; nom: string; maison: string; famille: string; note: string }[] = [
-  { num: '01', nom: 'Sauvage Elixir', maison: 'Christian Dior', famille: 'Bois\u00e9 Aromatique', note: 'Lavande, Bois de Santal, Ambre' },
-  { num: '02', nom: 'Baccarat Rouge 540', maison: 'Maison Francis Kurkdjian', famille: 'Floral Ambr\u00e9', note: 'Safran, C\u00e8dre, Musc' },
+  { num: '01', nom: 'Sauvage Elixir', maison: 'Christian Dior', famille: 'Boisé Aromatique', note: 'Lavande, Bois de Santal, Ambre' },
+  { num: '02', nom: 'Baccarat Rouge 540', maison: 'Maison Francis Kurkdjian', famille: 'Floral Ambré', note: 'Safran, Cèdre, Musc' },
   { num: '03', nom: 'Black Phantom', maison: 'Kilian Paris', famille: 'Oriental Gourmand', note: 'Rhum, Caramel, Vanille' },
-  { num: '04', nom: 'Oud Satin Mood', maison: 'Maison Francis Kurkdjian', famille: 'Oriental Bois\u00e9', note: 'Oud, Rose, Vanille' },
+  { num: '04', nom: 'Oud Satin Mood', maison: 'Maison Francis Kurkdjian', famille: 'Oriental Boisé', note: 'Oud, Rose, Vanille' },
 ];
 
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
@@ -34,6 +34,10 @@ async function getNewArrivals(): Promise<Product[]> {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function NouveautesPage() {
   const products = await getNewArrivals();
+  const referencePluralSuffix = products.length > 1 ? 's' : '';
+  const referencesLabel = products.length > 0
+    ? `${products.length} référence${referencePluralSuffix}`
+    : 'Collection en cours de chargement';
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
@@ -50,7 +54,7 @@ export default async function NouveautesPage() {
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
             <Link href="/collections" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none' }}>Collections</Link>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>/</span>
-            <span style={{ color: 'var(--gold)' }}>Nouveaut\u00e9s</span>
+            <span style={{ color: 'var(--gold)' }}>Nouveautés</span>
           </nav>
 
           <div style={{ maxWidth: 680 }}>
@@ -59,7 +63,7 @@ export default async function NouveautesPage() {
                 <path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="#C5A55A" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
               </svg>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                Derni\u00e8res arriv\u00e9es
+                Dernières arrivées
               </span>
             </div>
             <h1 style={{
@@ -71,15 +75,15 @@ export default async function NouveautesPage() {
               letterSpacing: '-0.01em',
               marginBottom: '1.25rem',
             }}>
-              Nouveaut\u00e9s
+              Nouveautés
             </h1>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, maxWidth: 520, marginBottom: '2rem' }}>
-              Ce qui vient de poser ses valises chez nous \u2014 les lancements mondiaux les plus exclusifs, disponibles d\u00e8s aujourd&rsquo;hui \u00e0 Abidjan.
+              Ce qui vient de poser ses valises chez nous — les lancements mondiaux les plus exclusifs, disponibles dès aujourd&apos;hui à Abidjan.
             </p>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block' }} />
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>Mis \u00e0 jour chaque semaine</span>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>Mis à jour chaque semaine</span>
               </div>
             </div>
           </div>
@@ -92,7 +96,7 @@ export default async function NouveautesPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2rem' }}>
             <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              S\u00e9lection de la semaine
+              Sélection de la semaine
             </span>
           </div>
           <div className="nov-feat-grid">
@@ -126,11 +130,11 @@ export default async function NouveautesPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.5rem' }}>
               <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                Toutes les nouveaut\u00e9s
+                Toutes les nouveautés
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-              {products.length > 0 ? `${products.length} r\u00e9f\u00e9rence${products.length > 1 ? 's' : ''}` : 'Collection en cours de chargement'}
+              {referencesLabel}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -157,7 +161,7 @@ export default async function NouveautesPage() {
         {products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
-              Nos nouvelles acquisitions arrivent tr\u00e8s bient\u00f4t.
+              Nos nouvelles acquisitions arrivent très bientôt.
             </p>
             <Link href="/produits" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -193,7 +197,7 @@ export default async function NouveautesPage() {
         <div className="container mx-auto" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1rem, 1.8vw, 1.25rem)', color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-              Recevez les nouveaut\u00e9s en avant-premi\u00e8re.
+              Recevez les nouveautés en avant-première.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>

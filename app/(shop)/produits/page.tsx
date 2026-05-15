@@ -277,13 +277,6 @@ function ProduitsContent() {
             )}
           </>
         )}
-
-        {/* Price range info */}
-        {products.length > 0 && !loading && (
-          <p className="text-center text-xs mt-8" style={{ color: 'var(--text-pale)' }}>
-            Prix affichés en Franc CFA (XOF) — Paiement à la livraison disponible
-          </p>
-        )}
       </div>
     </div>
   );

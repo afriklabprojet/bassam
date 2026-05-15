@@ -9,10 +9,10 @@ export interface CollectionContent {
 
 const DEFAULT_CONTENT: Record<string, Omit<CollectionContent, 'slug'>> = {
   nouveautes: {
-    eyebrow: 'Dernières arrivées',
-    tagline: 'Ce qui vient de poser ses valises',
+    eyebrow: 'Mis à jour chaque semaine',
+    tagline: 'Ce qui vient de poser ses valises chez nous',
     description:
-      'Parcourez les toutes dernières créations des maisons que nous sélectionnons avec soin — des lancements mondiaux disponibles à Abidjan.',
+      'Les lancements mondiaux les plus exclusifs, disponibles dès aujourd\'hui à Abidjan.',
   },
   femme: {
     eyebrow: 'Collection féminine',

@@ -10,15 +10,15 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Parfums Femme | VIP Parfumerie Bar',
-  description: 'Collection femme \u2014 Floraux enivrants, orientaux profonds, muscs sensuels. Les plus grandes maisons de parfumerie s\u00e9lectionn\u00e9es pour la femme moderne. Livraison Abidjan.',
+  description: 'Collection femme — Floraux enivrants, orientaux profonds, muscs sensuels. Les plus grandes maisons de parfumerie sélectionnées pour la femme moderne. Livraison Abidjan.',
 };
 
 // ─── Olfactive families ───────────────────────────────────────────────────────
 const FAMILIES = [
-  { nom: 'Floral', icon: '\u2726', description: 'Rose, pivoine, jasmin, fleur d\u2019oranger', exemples: ['Chanel N\u00b05', 'Miss Dior', 'La Vie est Belle'] },
-  { nom: 'Oriental', icon: '\u25c6', description: 'Ambre, vanille, musc chaud, r\u00e9sines pr\u00e9cieuses', exemples: ['Black Opium YSL', 'Hypn\u00f4se Lanc\u00f4me', 'Guilty Gucci'] },
-  { nom: 'Bois\u00e9 Floral', icon: '\u25cb', description: 'C\u00e8dre, santal, rose, iris', exemples: ['Mon Guerlain', 'Coco Mademoiselle', 'Flora Gucci'] },
-  { nom: 'Fruité', icon: '\u25b3', description: 'P\u00eache, framboise, litchi, fruit de la passion', exemples: ['Si Armani', 'Chance Eau Vive', 'Irresistible Givenchy'] },
+  { nom: 'Floral', icon: '✦', description: 'Rose, pivoine, jasmin, fleur d’oranger', exemples: ['Chanel N°5', 'Miss Dior', 'La Vie est Belle'] },
+  { nom: 'Oriental', icon: '◆', description: 'Ambre, vanille, musc chaud, résines précieuses', exemples: ['Black Opium YSL', 'Hypnôse Lancôme', 'Guilty Gucci'] },
+  { nom: 'Boisé Floral', icon: '○', description: 'Cèdre, santal, rose, iris', exemples: ['Mon Guerlain', 'Coco Mademoiselle', 'Flora Gucci'] },
+  { nom: 'Fruité', icon: '△', description: 'Pêche, framboise, litchi, fruit de la passion', exemples: ['Si Armani', 'Chance Eau Vive', 'Irresistible Givenchy'] },
 ];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export default async function FemmePage() {
                   <path d="M20 25v10M15 30h10" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                  Collection f\u00e9minine
+                  Collection féminine
                 </span>
               </div>
               <h1 style={{
@@ -72,10 +72,10 @@ export default async function FemmePage() {
                 Femme
               </h1>
               <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1rem, 2vw, 1.3rem)', color: 'rgba(255,255,255,0.45)', lineHeight: 1.65, marginBottom: '1.5rem', maxWidth: 440 }}>
-                &ldquo;Un parfum est un v\u00eatement invisible, la plus belle robe que vous puissiez porter.&rdquo;
+                &ldquo;Un parfum est un vêtement invisible, la plus belle robe que vous puissiez porter.&rdquo;
               </p>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, maxWidth: 420, marginBottom: '2.5rem' }}>
-                Des floraux enivrants aux orientaux profonds, chaque fragrance de notre s\u00e9lection f\u00e9minine a \u00e9t\u00e9 choisie pour son aura, sa tenue et son caracт\u00e8re.
+                Des floraux enivrants aux orientaux profonds, chaque fragrance de notre sélection féminine a été choisie pour son aura, sa tenue et son caracтère.
               </p>
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <Link href="#produits" style={{
@@ -112,13 +112,13 @@ export default async function FemmePage() {
                     <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.55rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', marginBottom: '0.25rem' }}>Collection</div>
                     <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', color: 'var(--surface)' }}>Femme 2026</div>
                   </div>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '3rem', fontWeight: 300, color: 'rgba(197,165,90,0.12)', lineHeight: 1 }}>\u2640</div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '3rem', fontWeight: 300, color: 'rgba(197,165,90,0.12)', lineHeight: 1 }}>♀</div>
                 </div>
                 <div style={{ borderTop: '1px solid rgba(197,165,90,0.12)', paddingTop: '2rem' }}>
                   {[
-                    { label: 'Maisons repr\u00e9sent\u00e9es', val: '24' },
+                    { label: 'Maisons représentées', val: '24' },
                     { label: 'Familles olfactives', val: '8' },
-                    { label: 'Concentration', val: 'EDP \u00b7 EDP Intense \u00b7 Extrait' },
+                    { label: 'Concentration', val: 'EDP · EDP Intense · Extrait' },
                   ].map((row) => (
                     <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid rgba(197,165,90,0.07)' }}>
                       <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em' }}>{row.label}</span>
@@ -150,7 +150,7 @@ export default async function FemmePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {fam.exemples.map((ex) => (
                     <span key={ex} style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em' }}>
-                      \u2014 {ex}
+                      — {ex}
                     </span>
                   ))}
                 </div>
@@ -171,21 +171,21 @@ export default async function FemmePage() {
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-              {products.length > 0 ? `${products.length} r\u00e9f\u00e9rence${products.length > 1 ? 's' : ''}` : 'S\u00e9lection disponible en boutique'}
+              {products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
             </p>
           </div>
           <Link href="/produits?gender=femme" style={{
             fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
           }}>
-            Filtres avanc\u00e9s \u2192
+            Filtres avancés →
           </Link>
         </div>
 
         {products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
-              Chargement de la collection en cours\u2026
+              Chargement de la collection en cours…
             </p>
             <Link href="/produits?gender=femme" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -222,14 +222,14 @@ export default async function FemmePage() {
                 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
                 textDecoration: 'none',
               }}>
-                Voir tous les parfums femme \u2192
+                Voir tous les parfums femme →
               </Link>
             </div>
           </>
         )}
       </section>
 
-      {/* ── T\u00e9moignages ──────────────────────────────────────────────────── */}
+      {/* ── Témoignages ──────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '5rem 0' }}>
         <div className="container mx-auto">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
@@ -261,7 +261,7 @@ export default async function FemmePage() {
         <div className="container mx-auto" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1rem, 1.8vw, 1.2rem)', color: 'rgba(255,255,255,0.45)' }}>
-              Pas s\u00fbre de votre choix ? Une experte vous guide.
+              Pas sûre de votre choix ? Une experte vous guide.
             </p>
           </div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -272,7 +272,7 @@ export default async function FemmePage() {
               fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600,
               textDecoration: 'none',
             }}>
-              D\u00e9couvrir mon parfum
+              Découvrir mon parfum
             </Link>
             <Link href="/services/consultation" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -281,7 +281,7 @@ export default async function FemmePage() {
               fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
               textDecoration: 'none',
             }}>
-              Consultation priv\u00e9e
+              Consultation privée
             </Link>
           </div>
         </div>

@@ -5,45 +5,45 @@ import type { Product } from '@/types/product.types';
 
 export const metadata: Metadata = {
   title: 'Parfums Mixtes | VIP Parfumerie Bar',
-  description: 'Collection mixte \u2014 Fragrances unisexes qui transcendent les genres. Baccarat Rouge, Oud Wood, Bvlgari Man. Pour ceux qui choisissent \u00e0 l\u2019instinct.',
+  description: 'Collection mixte — Fragrances unisexes qui transcendent les genres. Baccarat Rouge, Oud Wood, Bvlgari Man. Pour ceux qui choisissent à l’instinct.',
 };
 
 // ─── Manifesto sections ───────────────────────────────────────────────────────
 const PHILOSOPHIE = [
   {
     num: '01',
-    titre: 'Au-del\u00e0 des codes',
-    texte: 'La parfumerie unisexe refuse la cat\u00e9gorisation binaire. Elle valorise l\u2019essence pure de la fragrance, sans contexte de genre.',
+    titre: 'Au-delà des codes',
+    texte: 'La parfumerie unisexe refuse la catégorisation binaire. Elle valorise l’essence pure de la fragrance, sans contexte de genre.',
   },
   {
     num: '02',
     titre: 'La peau comme territoire',
-    texte: 'Sur chaque peau, un parfum mixte donne un r\u00e9sultat diff\u00e9rent. C\u2019est ce qui rend ces compositions si intimes.',
+    texte: 'Sur chaque peau, un parfum mixte donne un résultat différent. C’est ce qui rend ces compositions si intimes.',
   },
   {
     num: '03',
-    titre: 'S\u00e9lectionn\u00e9 \u00e0 la main',
-    texte: 'Nous choisissons uniquement les mixtes de caract\u00e8re \u2014 ceux qui ont leur propre signature, reconnaissables entre mille.',
+    titre: 'Sélectionné à la main',
+    texte: 'Nous choisissons uniquement les mixtes de caractère — ceux qui ont leur propre signature, reconnaissables entre mille.',
   },
 ];
 
 // ─── Signature accords ────────────────────────────────────────────────────────
 const ACCORDS = [
-  { accord: 'Oud & Vanille', profil: 'Chaud \u00b7 Enveloppant \u00b7 Sensuel', repere: 'Baccarat Rouge 540' },
-  { accord: 'Bois\u00e9 Sec', profil: 'Austere \u00b7 Moderne \u00b7 Durable', repere: 'Oud Wood TF' },
-  { accord: 'Iris & Musc', profil: 'Poudré \u00b7 D\u00e9licat \u00b7 Signature', repere: 'Infusion d\u2019Iris Prada' },
-  { accord: 'Agrumes & Ambre', profil: 'Vivant \u00b7 Solaire \u00b7 \u00c9l\u00e9gant', repere: 'Neroli Portofino TF' },
-  { accord: 'Cuir & Rose', profil: 'Fort \u00b7 Dramatique \u00b7 Contrasté', repere: 'Portrait of a Lady Frederic Malle' },
-  { accord: 'C\u00e9dre & Musc', profil: 'Propre \u00b7 Minimal \u00b7 In\u00e9dit', repere: 'Escentric 01' },
+  { accord: 'Oud & Vanille', profil: 'Chaud · Enveloppant · Sensuel', repere: 'Baccarat Rouge 540' },
+  { accord: 'Boisé Sec', profil: 'Austere · Moderne · Durable', repere: 'Oud Wood TF' },
+  { accord: 'Iris & Musc', profil: 'Poudré · Délicat · Signature', repere: 'Infusion d’Iris Prada' },
+  { accord: 'Agrumes & Ambre', profil: 'Vivant · Solaire · Élégant', repere: 'Neroli Portofino TF' },
+  { accord: 'Cuir & Rose', profil: 'Fort · Dramatique · Contrasté', repere: 'Portrait of a Lady Frederic Malle' },
+  { accord: 'Cédre & Musc', profil: 'Propre · Minimal · Inédit', repere: 'Escentric 01' },
 ];
 
 // ─── Marques mixtes phares ────────────────────────────────────────────────────
 const MAISONS = [
-  { nom: 'Maison Francis Kurkdjian', specialite: 'L\u2019avant-garde olfactive' },
-  { nom: 'Tom Ford', specialite: 'Luxe h\u00e9doniste' },
+  { nom: 'Maison Francis Kurkdjian', specialite: 'L’avant-garde olfactive' },
+  { nom: 'Tom Ford', specialite: 'Luxe hédoniste' },
   { nom: 'Le Labo', specialite: 'Minimalisme signature' },
-  { nom: 'Byredo', specialite: 'Identit\u00e9 sensorielle' },
-  { nom: 'Initio Parfums', specialite: 'Aphrodi\u00e9siaques scientifiques' },
+  { nom: 'Byredo', specialite: 'Identité sensorielle' },
+  { nom: 'Initio Parfums', specialite: 'Aphrodiésiaques scientifiques' },
   { nom: 'Frederic Malle', specialite: 'Haute couture olfactive' },
 ];
 
@@ -91,7 +91,7 @@ export default async function MixtePage() {
                 <path d="M10 10l5 5M30 10l-5 5M10 30l5-5M30 30l-5-5" stroke="#C5A55A" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                Au-del\u00e0 des genres
+                Au-delà des genres
               </span>
             </div>
             <h1 style={{
@@ -106,10 +106,10 @@ export default async function MixtePage() {
               Mixte
             </h1>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1rem, 2vw, 1.35rem)', color: 'rgba(255,255,255,0.42)', lineHeight: 1.65, marginBottom: '1.5rem' }}>
-              &ldquo;Un parfum n&rsquo;a pas de genre. Il a une \u00e2me.&rdquo;
+              &ldquo;Un parfum n&rsquo;a pas de genre. Il a une âme.&rdquo;
             </p>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '2.5rem' }}>
-              Des compositions olfactives qui transcendent les cat\u00e9gories. Pour ceux qui choisissent leur parfum \u00e0 l\u2019instinct, sans compromis, sans convention.
+              Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l’instinct, sans compromis, sans convention.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="#produits" style={{
@@ -119,7 +119,7 @@ export default async function MixtePage() {
                 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600,
                 textDecoration: 'none',
               }}>
-                D\u00e9couvrir la collection
+                Découvrir la collection
               </Link>
               <Link href="/services/quiz-olfactif" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -181,7 +181,7 @@ export default async function MixtePage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
             <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              Maisons repr\u00e9sent\u00e9es
+              Maisons représentées
             </span>
           </div>
           <div className="mixte-maisons-grid">
@@ -206,21 +206,21 @@ export default async function MixtePage() {
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-              {products.length > 0 ? `${products.length} r\u00e9f\u00e9rence${products.length > 1 ? 's' : ''}` : 'S\u00e9lection disponible en boutique'}
+              {products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
             </p>
           </div>
           <Link href="/produits?gender=mixte" style={{
             fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
           }}>
-            Filtres avanc\u00e9s \u2192
+            Filtres avancés →
           </Link>
         </div>
 
         {products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
-              Chargement de la collection mixte\u2026
+              Chargement de la collection mixte…
             </p>
             <Link href="/produits?gender=mixte" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -257,7 +257,7 @@ export default async function MixtePage() {
                 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
                 textDecoration: 'none',
               }}>
-                Voir tous les parfums mixtes \u2192
+                Voir tous les parfums mixtes →
               </Link>
             </div>
           </>
@@ -271,14 +271,14 @@ export default async function MixtePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1rem' }}>
               <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                La cr\u00e9ation sur-mesure
+                La création sur-mesure
               </span>
             </div>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 300, color: 'var(--surface)', lineHeight: 1.25, marginBottom: '1rem' }}>
-              Votre fragrance mixte unique, con\u00e7ue rien que pour vous
+              Votre fragrance mixte unique, conçue rien que pour vous
             </h2>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.8, marginBottom: '1.75rem' }}>
-              Avec notre service de cr\u00e9ation personnalis\u00e9e, nos parfumeurs composent un accord exclusif sur votre peau, pour une signature vraiment unique.
+              Avec notre service de création personnalisée, nos parfumeurs composent un accord exclusif sur votre peau, pour une signature vraiment unique.
             </p>
             <Link href="/services/creation-personnalisee" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -287,14 +287,14 @@ export default async function MixtePage() {
               fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600,
               textDecoration: 'none',
             }}>
-              Cr\u00e9ation personnalis\u00e9e
+              Création personnalisée
             </Link>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {[
-              { label: 'Brief cr\u00e9atif', desc: 'Vous d\u00e9crivez votre univers' },
+              { label: 'Brief créatif', desc: 'Vous décrivez votre univers' },
               { label: 'Formulation', desc: 'Nos parfumeurs composent' },
-              { label: 'Livraison', desc: 'Votre flacon gravu\u00e9' },
+              { label: 'Livraison', desc: 'Votre flacon gravué' },
             ].map((s) => (
               <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', border: '1px solid rgba(197,165,90,0.10)', background: 'var(--noir)' }}>
                 <div style={{ width: 4, height: 4, background: 'var(--gold)', borderRadius: '50%', flexShrink: 0 }} />

@@ -7,7 +7,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Collections | VIP Parfumerie Bar',
-  description: 'Explorez nos collections de parfums de luxe — Femme, Homme, Mixte et les dernières nouveautés. Livraison en Afrique de l\u2019Ouest.',
+  description: 'Explorez nos collections de parfums de luxe — Femme, Homme, Mixte et les dernières nouveautés. Livraison en Afrique de l’Ouest.',
 };
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 const COLLECTIONS = [
   {
     slug: 'nouveautes',
-    label: 'Nouveaut\u00e9s',
-    eyebrow: 'Derni\u00e8res arriv\u00e9es',
+    label: 'Nouveautés',
+    eyebrow: 'Dernières arrivées',
     tagline: 'Ce qui vient de poser ses valises',
-    description: 'Parcourez les toutes derni\u00e8res cr\u00e9ations des maisons que nous s\u00e9lectionnons avec soin — des lancements mondiaux disponibles \u00e0 Abidjan.',
+    description: 'Parcourez les toutes dernières créations des maisons que nous sélectionnons avec soin — des lancements mondiaux disponibles à Abidjan.',
     accent: 'rgba(197,165,90,0.18)',
     textLight: false,
     icon: (
@@ -32,9 +32,9 @@ const COLLECTIONS = [
   {
     slug: 'femme',
     label: 'Femme',
-    eyebrow: 'Collection f\u00e9minine',
+    eyebrow: 'Collection féminine',
     tagline: 'Floraux enivrants, orientaux profonds',
-    description: 'De la rose de Grasse aux muscs orientaux, une s\u00e9lection de fragrances f\u00e9minines qui incarnent l\u2019\u00e9l\u00e9gance \u00e0 son sommet.',
+    description: 'De la rose de Grasse aux muscs orientaux, une sélection de fragrances féminines qui incarnent l’élégance à son sommet.',
     accent: 'rgba(197,165,90,0.12)',
     textLight: true,
     icon: (
@@ -50,8 +50,8 @@ const COLLECTIONS = [
     slug: 'homme',
     label: 'Homme',
     eyebrow: 'Collection masculine',
-    tagline: 'Bois\u00e9s \u00e9l\u00e9gants, signatures puissantes',
-    description: 'Des sillages qui affirment sans imposer. De l\u2019oud pur aux accords bois\u00e9s contemporains, des parfums qui d\u00e9finissent le gentleman moderne.',
+    tagline: 'Boisés élégants, signatures puissantes',
+    description: 'Des sillages qui affirment sans imposer. De l’oud pur aux accords boisés contemporains, des parfums qui définissent le gentleman moderne.',
     accent: 'rgba(197,165,90,0.10)',
     textLight: true,
     icon: (
@@ -66,9 +66,9 @@ const COLLECTIONS = [
   {
     slug: 'mixte',
     label: 'Mixte',
-    eyebrow: 'Au-del\u00e0 des genres',
-    tagline: 'La fragrance ne conna\u00eet pas de fronti\u00e8res',
-    description: 'Des compositions olfactives qui transcendent les cat\u00e9gories. Pour ceux qui choisissent leur parfum \u00e0 l\u2019instinct, sans convention.',
+    eyebrow: 'Au-delà des genres',
+    tagline: 'La fragrance ne connaît pas de frontières',
+    description: 'Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l’instinct, sans convention.',
     accent: 'rgba(197,165,90,0.10)',
     textLight: true,
     icon: (
@@ -144,7 +144,7 @@ export default async function CollectionsPage() {
             Nos Collections
           </h1>
           <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1.0625rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.75, maxWidth: 540, margin: '0 auto 2.5rem' }}>
-            Des s\u00e9lections pens\u00e9es pour chaque personnali\u00e9, chaque moment, chaque \u00e9motion. Choisissez votre univers olfactif.
+            Des sélections pensées pour chaque personnalié, chaque moment, chaque émotion. Choisissez votre univers olfactif.
           </p>
           <Link href="/services/quiz-olfactif" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -152,7 +152,7 @@ export default async function CollectionsPage() {
             letterSpacing: '0.2em', textTransform: 'uppercase',
             color: 'var(--gold)', textDecoration: 'none', fontWeight: 500,
           }}>
-            Pas s\u00fbr(e) de votre collection ? Faites le quiz olfactif
+            Pas sûr(e) de votre collection ? Faites le quiz olfactif
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </Link>
         </div>
@@ -206,7 +206,7 @@ export default async function CollectionsPage() {
               {/* CTA */}
               <div style={{ position: 'relative', zIndex: 1, marginTop: '2rem', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span className="coll-discover" style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                  D\u00e9couvrir
+                  Découvrir
                 </span>
                 <span className="coll-arrow" style={{ display: 'flex', alignItems: 'center', color: 'var(--gold)' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
@@ -225,7 +225,7 @@ export default async function CollectionsPage() {
         <div className="container mx-auto">
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              Maisons s\u00e9lectionn\u00e9es
+              Maisons sélectionnées
             </p>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem 0' }}>
@@ -249,13 +249,13 @@ export default async function CollectionsPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
               <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>Notre s\u00e9lection</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>Notre sélection</span>
             </div>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', fontWeight: 300, color: 'var(--surface)', lineHeight: 1.2, marginBottom: '1.25rem' }}>
-              Un acc\u00e8s privil\u00e9gi\u00e9<br />aux plus grandes maisons
+              Un accès privilégié<br />aux plus grandes maisons
             </h2>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '2rem' }}>
-              Chaque r\u00e9f\u00e9rence est s\u00e9lectionn\u00e9e \u00e0 la main par notre \u00e9quipe de sp\u00e9cialistes. Authenticit\u00e9 garantie, livraison s\u00e9curis\u00e9e partout en Afrique de l\u2019Ouest.
+              Chaque référence est sélectionnée à la main par notre équipe de spécialistes. Authenticité garantie, livraison sécurisée partout en Afrique de l’Ouest.
             </p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link href="/collections/nouveautes" style={{
@@ -265,7 +265,7 @@ export default async function CollectionsPage() {
                 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600,
                 textDecoration: 'none',
               }}>
-                Voir les nouveaut\u00e9s
+                Voir les nouveautés
               </Link>
               <Link href="/services/consultation" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -280,10 +280,10 @@ export default async function CollectionsPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             {[
-              { val: '500+', label: 'R\u00e9f\u00e9rences' },
-              { val: '100%', label: 'Authenticit\u00e9' },
+              { val: '500+', label: 'Références' },
+              { val: '100%', label: 'Authenticité' },
               { val: '48h', label: 'Livraison Abidjan' },
-              { val: '5\u2605', label: 'Service client' },
+              { val: '5★', label: 'Service client' },
             ].map(stat => (
               <div key={stat.val} className="coll-stat" style={{
                 padding: '1.5rem',
@@ -303,14 +303,14 @@ export default async function CollectionsPage() {
       <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.10)', padding: '4rem 0' }}>
         <div className="container mx-auto" style={{ textAlign: 'center' }}>
           <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1.1rem, 2vw, 1.4rem)', color: 'rgba(255,255,255,0.55)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-            &ldquo;Un parfum, c&rsquo;est avant tout une \u00e9motion. Laissez-nous vous aider \u00e0 trouver la v\u00f4tre.&rdquo;
+            &ldquo;Un parfum, c&rsquo;est avant tout une émotion. Laissez-nous vous aider à trouver la vôtre.&rdquo;
           </p>
           <Link href="/services/quiz-olfactif" style={{
             display: 'inline-flex', alignItems: 'center', gap: 10,
             fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase',
             color: 'var(--gold)', textDecoration: 'none', fontWeight: 500,
           }}>
-            D\u00e9couvrez votre signature olfactive \u2014 Quiz gratuit
+            Découvrez votre signature olfactive — Quiz gratuit
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </Link>
         </div>

@@ -8,43 +8,43 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Parfums Homme | VIP Parfumerie Bar',
-  description: 'Collection homme \u2014 Bois\u00e9s \u00e9l\u00e9gants, orientaux intenses, signatures fraiches. Sauvage, Bleu de Chanel, Tom Ford. Livraison Abidjan et Afrique de l\u2019Ouest.',
+  description: 'Collection homme — Boisés élégants, orientaux intenses, signatures fraiches. Sauvage, Bleu de Chanel, Tom Ford. Livraison Abidjan et Afrique de l’Ouest.',
 };
 
 // ─── Fragrance guides ─────────────────────────────────────────────────────────
 const GUIDES = [
   {
-    titre: 'Le Boisé \u00c9l\u00e9gant',
-    description: 'C\u00e8dre, v\u00e9tiver, santal \u2014 l\u2019arche temp\u00e9r\u00e9le du gentleman contemporain. Tenue 8-12h.',
-    icone: '\u25a1',
-    rep: ['Bleu de Chanel', 'Terre d\u2019Herm\u00e8s', 'Wood & Fresh TF'],
+    titre: 'Le Boisé Élégant',
+    description: 'Cèdre, vétiver, santal — l’arche tempéréle du gentleman contemporain. Tenue 8-12h.',
+    icone: '□',
+    rep: ['Bleu de Chanel', 'Terre d’Hermès', 'Wood & Fresh TF'],
   },
   {
-    titre: 'L\u2019Oriental Puissant',
-    description: 'Oud, ambre, r\u00e9sine \u2014 pour ceux qui assument leur pr\u00e9sence et laissent un sillage m\u00e9morable.',
-    icone: '\u25c6',
+    titre: 'L’Oriental Puissant',
+    description: 'Oud, ambre, résine — pour ceux qui assument leur présence et laissent un sillage mémorable.',
+    icone: '◆',
     rep: ['Oud Wood TF', 'Sauvage Elixir Dior', 'Roja Enigma'],
   },
   {
-    titre: 'Le Fra\u00eecs Aquatique',
-    description: 'Bergamote, c\u00e9drat, notes marines \u2014 l\u00e9ger, d\u2019une modernit\u00e9 imp\u00e9ccable. Id\u00e9al au bureau.',
-    icone: '\u25cb',
-    rep: ['Acqua di Gi\u00f2', 'L\u2019Homme YSL', 'Gentleman Givenchy'],
+    titre: 'Le Fraîcs Aquatique',
+    description: 'Bergamote, cédrat, notes marines — léger, d’une modernité impéccable. Idéal au bureau.',
+    icone: '○',
+    rep: ['Acqua di Giò', 'L’Homme YSL', 'Gentleman Givenchy'],
   },
   {
     titre: 'La Signature Chaude',
-    description: 'Vanille, cuir, tabac \u2014 une chaleur sensuelle qui s\u2019intensifie sur la peau.',
-    icone: '\u25b2',
+    description: 'Vanille, cuir, tabac — une chaleur sensuelle qui s’intensifie sur la peau.',
+    icone: '▲',
     rep: ['Spicebomb TF', 'A*Men Mugler', 'Dior Homme Intense'],
   },
 ];
 
 // ─── Code vestimentaire ───────────────────────────────────────────────────────
 const OCCASIONS = [
-  { oc: 'Bureau', conseil: 'Pr\u00e9f\u00e9rer les frais et bois\u00e9s l\u00e9gers. Discrets mais pr\u00e9sents.', ex: 'Bleu de Chanel EDP' },
-  { oc: 'Soir\u00e9e', conseil: 'Les orientaux et bois\u00e9s intenses dominent la nuit et les \u00e9v\u00e9nements.', ex: 'Sauvage Elixir' },
-  { oc: 'Voyage', conseil: 'Un flacon de 50ml EDP dans votre bagage. Discret, polyvalent.', ex: 'Terre d\u2019Herm\u00e8s' },
-  { oc: 'Quotidien', conseil: 'Un eau de toilette frais \u2014 rafraichissant sans sur-saturer l\u2019espace.', ex: 'Acqua di Gi\u00f2' },
+  { oc: 'Bureau', conseil: 'Préférer les frais et boisés légers. Discrets mais présents.', ex: 'Bleu de Chanel EDP' },
+  { oc: 'Soirée', conseil: 'Les orientaux et boisés intenses dominent la nuit et les événements.', ex: 'Sauvage Elixir' },
+  { oc: 'Voyage', conseil: 'Un flacon de 50ml EDP dans votre bagage. Discret, polyvalent.', ex: 'Terre d’Hermès' },
+  { oc: 'Quotidien', conseil: 'Un eau de toilette frais — rafraichissant sans sur-saturer l’espace.', ex: 'Acqua di Giò' },
 ];
 async function getHommeProducts(): Promise<Product[]> {
   try {
@@ -109,10 +109,10 @@ export default async function HommePage() {
                 Homme
               </h1>
               <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1rem, 2vw, 1.3rem)', color: 'rgba(255,255,255,0.42)', lineHeight: 1.65, marginBottom: '1.5rem', maxWidth: 440 }}>
-                &ldquo;Le parfum, c&rsquo;est la premi\u00e8re chose que l&rsquo;on remarque et la derni\u00e8re dont on se souvient.&rdquo;
+                &ldquo;Le parfum, c&rsquo;est la première chose que l&rsquo;on remarque et la dernière dont on se souvient.&rdquo;
               </p>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, maxWidth: 420, marginBottom: '2.5rem' }}>
-                Bois\u00e9s \u00e9l\u00e9gants, orientaux intenses, fragrances fraiches \u2014 des signatures masculines qui affirment sans imposer, pour chaque occasion.
+                Boisés élégants, orientaux intenses, fragrances fraiches — des signatures masculines qui affirment sans imposer, pour chaque occasion.
               </p>
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <Link href="#produits" style={{
@@ -148,8 +148,8 @@ export default async function HommePage() {
                   Programme olfactif
                 </div>
                 {[
-                  { step: '01', label: 'D\u00e9finissez votre style' },
-                  { step: '02', label: 'Choisissez l\u2019intensit\u00e9' },
+                  { step: '01', label: 'Définissez votre style' },
+                  { step: '02', label: 'Choisissez l’intensité' },
                   { step: '03', label: 'Faites le quiz' },
                   { step: '04', label: 'Commandez' },
                 ].map((s) => (
@@ -193,7 +193,7 @@ export default async function HommePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {g.rep.map((r) => (
                     <span key={r} style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em' }}>
-                      \u2014 {r}
+                      — {r}
                     </span>
                   ))}
                 </div>
@@ -233,21 +233,21 @@ export default async function HommePage() {
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-              {products.length > 0 ? `${products.length} r\u00e9f\u00e9rence${products.length > 1 ? 's' : ''}` : 'S\u00e9lection disponible en boutique'}
+              {products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
             </p>
           </div>
           <Link href="/produits?gender=homme" style={{
             fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
           }}>
-            Filtres avanc\u00e9s \u2192
+            Filtres avancés →
           </Link>
         </div>
 
         {products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
-              Chargement de la collection en cours\u2026
+              Chargement de la collection en cours…
             </p>
             <Link href="/produits?gender=homme" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -284,14 +284,14 @@ export default async function HommePage() {
                 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
                 textDecoration: 'none',
               }}>
-                Voir tous les parfums homme \u2192
+                Voir tous les parfums homme →
               </Link>
             </div>
           </>
         )}
       </section>
 
-      {/* ── T\u00e9moignages ──────────────────────────────────────────────────── */}
+      {/* ── Témoignages ──────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
         <div className="container mx-auto">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2rem' }}>
@@ -322,7 +322,7 @@ export default async function HommePage() {
       <section style={{ background: 'var(--noir)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
         <div className="container mx-auto" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1rem, 1.8vw, 1.2rem)', color: 'rgba(255,255,255,0.4)' }}>
-            Besoin d&rsquo;un conseil personnalis\u00e9 pour trouver votre signature ?
+            Besoin d&rsquo;un conseil personnalisé pour trouver votre signature ?
           </p>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <Link href="/services/quiz-olfactif" style={{
@@ -341,7 +341,7 @@ export default async function HommePage() {
               fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
               textDecoration: 'none',
             }}>
-              Consultation priv\u00e9e
+              Consultation privée
             </Link>
           </div>
         </div>

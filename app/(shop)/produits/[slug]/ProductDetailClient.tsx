@@ -8,6 +8,7 @@ import ProductGallery from '@/components/ProductGallery';
 import OlfactoryPyramid from '@/components/OlfactoryPyramid';
 import AddToCartCTA from '@/components/AddToCartCTA';
 import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { normalizeProductImage } from '@/lib/product-images';
 import type { Product } from '@/types/product.types';
 
 type ProductDetail = Product & {
@@ -63,7 +64,7 @@ export default function ProductDetailClient({ slug, initialProduct }: Readonly<P
         name: product.name,
         brand: product.brand,
         price: product.price,
-        image: product.images[0] || '/images/products/product-placeholder.svg',
+        image: normalizeProductImage(product.images[0]),
         slug: product.slug,
       });
     }

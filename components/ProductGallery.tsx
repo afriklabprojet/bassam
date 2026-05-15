@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { normalizeProductImage } from '@/lib/product-images';
 
 interface ProductGalleryProps {
   images: string[];
@@ -17,12 +18,13 @@ interface ProductGalleryProps {
  * - Rotation 3D au hover
  * - Animations fluides
  */
-export default function ProductGallery({ images, productName, brand, discount }: ProductGalleryProps) {
+export default function ProductGallery({ images, productName, brand, discount }: Readonly<ProductGalleryProps>) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
 
-  const activeImage = images[activeIndex] || '/images/products/product-placeholder.svg';
+  const normalizedImages = images.map((image) => normalizeProductImage(image));
+  const activeImage = normalizedImages[activeIndex] || normalizeProductImage();
 
   const openFullscreen = () => {
     setIsFullscreen(true);
@@ -39,8 +41,9 @@ export default function ProductGallery({ images, productName, brand, discount }:
       {/* Main gallery */}
       <div className="product-gallery">
         {/* Image principale avec 3D hover */}
-        <div
-          className={`relative overflow-hidden ${isRotating ? 'rotating-3d' : ''}`}
+        <button
+          type="button"
+          className={`group relative block w-full overflow-hidden ${isRotating ? 'rotating-3d' : ''}`}
           style={{
             aspectRatio: '3/4',
             borderRadius: 'var(--r-md)',
@@ -48,6 +51,7 @@ export default function ProductGallery({ images, productName, brand, discount }:
             border: '1px solid var(--line-light)',
             marginBottom: '1rem',
             cursor: 'zoom-in',
+            padding: 0,
             transformStyle: 'preserve-3d',
             transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
           }}
@@ -109,15 +113,17 @@ export default function ProductGallery({ images, productName, brand, discount }:
             </svg>
             ZOOM
           </div>
-        </div>
+        </button>
 
         {/* Thumbnails */}
-        {images.length > 1 && (
+        {normalizedImages.length > 1 && (
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {images.map((img, i) => (
+            {normalizedImages.map((image, index) => (
               <button
-                key={i}
-                onClick={() => setActiveIndex(i)}
+                key={`${image}-${index}`}
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Afficher la vue ${index + 1}`}
                 className="thumbnail-btn"
                 style={{
                   width: '80px',
@@ -125,16 +131,16 @@ export default function ProductGallery({ images, productName, brand, discount }:
                   flexShrink: 0,
                   borderRadius: 'var(--r-sm)',
                   overflow: 'hidden',
-                  border: `2px solid ${i === activeIndex ? 'var(--gold)' : 'var(--line-light)'}`,
+                  border: `2px solid ${index === activeIndex ? 'var(--gold)' : 'var(--line-light)'}`,
                   cursor: 'pointer',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  opacity: i === activeIndex ? 1 : 0.6,
-                  transform: i === activeIndex ? 'scale(1.05)' : 'scale(1)',
+                  opacity: index === activeIndex ? 1 : 0.6,
+                  transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
                 }}
               >
                 <Image
-                  src={img}
-                  alt={`Vue ${i + 1}`}
+                  src={image}
+                  alt={`Vue ${index + 1}`}
                   width={80}
                   height={80}
                   className="object-cover w-full h-full"
@@ -147,16 +153,26 @@ export default function ProductGallery({ images, productName, brand, discount }:
 
       {/* Fullscreen modal */}
       {isFullscreen && (
-        <div
+        <dialog
+          open
           className="fixed inset-0 z-50 flex items-center justify-center animate-fade-up"
+          aria-label={`${brand} ${productName} en plein écran`}
           style={{
+            width: '100vw',
+            height: '100vh',
+            maxWidth: 'none',
+            maxHeight: 'none',
+            margin: 0,
+            padding: 0,
+            border: 0,
             background: 'rgba(0,0,0,0.95)',
             backdropFilter: 'blur(8px)',
           }}
-          onClick={closeFullscreen}
+          onCancel={closeFullscreen}
         >
           {/* Close button */}
           <button
+            type="button"
             onClick={closeFullscreen}
             style={{
               position: 'absolute',
@@ -185,7 +201,6 @@ export default function ProductGallery({ images, productName, brand, discount }:
           {/* Image fullscreen */}
           <div
             className="relative max-w-5xl max-h-[90vh] aspect-3/4"
-            onClick={(e) => e.stopPropagation()}
           >
             <Image
               src={activeImage}
@@ -197,12 +212,13 @@ export default function ProductGallery({ images, productName, brand, discount }:
           </div>
 
           {/* Navigation arrows */}
-          {images.length > 1 && (
+          {normalizedImages.length > 1 && (
             <>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveIndex((i) => (i - 1 + images.length) % images.length);
+                type="button"
+                aria-label="Image précédente"
+                onClick={() => {
+                  setActiveIndex((currentIndex) => (currentIndex - 1 + normalizedImages.length) % normalizedImages.length);
                 }}
                 className="absolute left-8 top-1/2 -translate-y-1/2"
                 style={{
@@ -220,9 +236,10 @@ export default function ProductGallery({ images, productName, brand, discount }:
                 ←
               </button>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveIndex((i) => (i + 1) % images.length);
+                type="button"
+                aria-label="Image suivante"
+                onClick={() => {
+                  setActiveIndex((currentIndex) => (currentIndex + 1) % normalizedImages.length);
                 }}
                 className="absolute right-8 top-1/2 -translate-y-1/2"
                 style={{
@@ -256,9 +273,9 @@ export default function ProductGallery({ images, productName, brand, discount }:
               fontWeight: 500,
             }}
           >
-            {activeIndex + 1} / {images.length}
+            {activeIndex + 1} / {normalizedImages.length}
           </div>
-        </div>
+        </dialog>
       )}
 
       <style jsx>{`

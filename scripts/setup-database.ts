@@ -7,9 +7,9 @@
 
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -61,7 +61,7 @@ const DEMO_PRODUCTS = [
     gender: 'homme',
     stock_quantity: 25,
     is_featured: true,
-    images: ['/images/products/sauvage-edp.jpg'],
+    images: ['/images/products/dior-sauvage.svg'],
     notes: { top: ['Bergamote de Calabre'], heart: ['Poivre de Sichuan', 'Lavande'], base: ['Ambroxan', 'Cèdre'] },
     concentration: 'Eau de Parfum',
     volume: '100 ml',
@@ -76,7 +76,7 @@ const DEMO_PRODUCTS = [
     gender: 'femme',
     stock_quantity: 18,
     is_featured: true,
-    images: ['/images/products/jadore-infinissime.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Rose Centifolia', 'Rose de Grasse'], heart: ['Jasmin Sambac', 'Tubéreuse'], base: ['Bois de Santal', 'Musc'] },
     concentration: 'Eau de Parfum Intense',
     volume: '100 ml',
@@ -91,7 +91,7 @@ const DEMO_PRODUCTS = [
     gender: 'homme',
     stock_quantity: 30,
     is_featured: true,
-    images: ['/images/products/bleu-de-chanel.jpg'],
+    images: ['/images/products/bleu-de-chanel.svg'],
     notes: { top: ['Citron', 'Menthe', 'Pamplemousse rose'], heart: ['Géranium', 'Jasmin'], base: ['Cèdre', 'Bois de Santal', 'Encens'] },
     concentration: 'Eau de Parfum',
     volume: '100 ml',
@@ -106,7 +106,7 @@ const DEMO_PRODUCTS = [
     gender: 'femme',
     stock_quantity: 22,
     is_featured: true,
-    images: ['/images/products/la-vie-est-belle.jpg'],
+    images: ['/images/products/la-vie-est-belle.svg'],
     notes: { top: ['Cassis noir', 'Poire'], heart: ['Iris', 'Jasmin Sambac', 'Fleur d\'Oranger'], base: ['Patchouli', 'Praline', 'Vanille'] },
     concentration: 'Eau de Parfum',
     volume: '75 ml',
@@ -121,7 +121,7 @@ const DEMO_PRODUCTS = [
     gender: 'homme',
     stock_quantity: 8,
     is_featured: true,
-    images: ['/images/products/aventus.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Ananas', 'Pomme', 'Bergamote', 'Cassis noir'], heart: ['Rose', 'Bouleau', 'Jasmin', 'Patchouli'], base: ['Musc', 'Ambre gris', 'Vanille', 'Mousse de chêne'] },
     concentration: 'Eau de Parfum',
     volume: '100 ml',
@@ -136,7 +136,7 @@ const DEMO_PRODUCTS = [
     gender: 'femme',
     stock_quantity: 20,
     is_featured: false,
-    images: ['/images/products/coco-mademoiselle.jpg'],
+    images: ['/images/products/coco-mademoiselle.svg'],
     notes: { top: ['Orange', 'Bergamote'], heart: ['Litchi', 'Rose', 'Jasmin'], base: ['Musc blanc', 'Patchouli', 'Vetiver'] },
     concentration: 'Eau de Parfum',
     volume: '100 ml',
@@ -151,7 +151,7 @@ const DEMO_PRODUCTS = [
     gender: 'mixte',
     stock_quantity: 12,
     is_featured: true,
-    images: ['/images/products/oud-wood.jpg'],
+    images: ['/images/products/oud-wood.svg'],
     notes: { top: ['Bois de rose', 'Cardamome'], heart: ['Oud', 'Bois de santal', 'Palissandre'], base: ['Tonka', 'Vetiver', 'Ambre'] },
     concentration: 'Eau de Parfum',
     volume: '50 ml',
@@ -166,7 +166,7 @@ const DEMO_PRODUCTS = [
     gender: 'mixte',
     stock_quantity: 15,
     is_featured: false,
-    images: ['/images/products/black-orchid.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Truffe noire', 'Ylang-ylang', 'Jasmin'], heart: ['Orchidée noire', 'Lotus', 'Fruité'], base: ['Chocolat noir', 'Patchouli', 'Vanille', 'Encens'] },
     concentration: 'Eau de Parfum',
     volume: '100 ml',
@@ -181,7 +181,7 @@ const DEMO_PRODUCTS = [
     gender: 'homme',
     stock_quantity: 28,
     is_featured: false,
-    images: ['/images/products/acqua-di-gio-profondo.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Bergamote', 'Mandarine verte', 'Aquatique'], heart: ['Cyprès', 'Lavande', 'Romarin'], base: ['Musc', 'Patchouli', 'Ambre'] },
     concentration: 'Eau de Parfum',
     volume: '75 ml',
@@ -196,7 +196,7 @@ const DEMO_PRODUCTS = [
     gender: 'mixte',
     stock_quantity: 5,
     is_featured: true,
-    images: ['/images/products/baccarat-rouge-540.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Safran', 'Jasmin'], heart: ['Ambroxan', 'Bois de cèdre'], base: ['Musc', 'Ambre gris'] },
     concentration: 'Eau de Parfum',
     volume: '70 ml',
@@ -211,7 +211,7 @@ const DEMO_PRODUCTS = [
     gender: 'femme',
     stock_quantity: 35,
     is_featured: false,
-    images: ['/images/products/miss-dior-blooming.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Mandarine de Sicile', 'Pivoine'], heart: ['Rose de Damas', 'Fleur d\'abricot'], base: ['Musc blanc'] },
     concentration: 'Eau de Toilette',
     volume: '100 ml',
@@ -226,7 +226,7 @@ const DEMO_PRODUCTS = [
     gender: 'mixte',
     stock_quantity: 10,
     is_featured: false,
-    images: ['/images/products/tobacco-vanille.jpg'],
+    images: ['/images/products/product-placeholder.svg'],
     notes: { top: ['Tabac', 'Épices'], heart: ['Vanille', 'Cacao', 'Tonka'], base: ['Fruits secs', 'Bois fumé'] },
     concentration: 'Eau de Parfum',
     volume: '50 ml',

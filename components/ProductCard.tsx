@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { normalizeProductImage } from '@/lib/product-images';
 
 interface ProductCardProps {
   id: string;
@@ -24,12 +25,18 @@ export default function ProductCard({
   image,
   category,
   inStock,
-}: ProductCardProps) {
+}: Readonly<ProductCardProps>) {
   const discount = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
-  const catLabel = category === 'homme' ? 'Homme' : category === 'femme' ? 'Femme' : 'Mixte';
+  const categoryLabels = {
+    homme: 'Homme',
+    femme: 'Femme',
+    mixte: 'Mixte',
+  } as const;
+  const catLabel = categoryLabels[category];
+  const productImage = normalizeProductImage(image);
 
   return (
     <Link
@@ -48,7 +55,7 @@ export default function ProductCard({
         }}
       >
         <Image
-          src={image}
+          src={productImage}
           alt={`${brand} ${name}`}
           fill
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"

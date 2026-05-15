@@ -28,7 +28,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-async function runSQL(sql: string, label: string) {
+async function _runSQL(sql: string, label: string) {
   const { error } = await supabase.rpc('exec_sql', { sql_query: sql }).maybeSingle();
   if (error) {
     // Try via REST pg_query fallback — use fetch directly
@@ -238,11 +238,11 @@ async function main() {
 
   // ── 1. Appliquer le schéma ──
   console.log('📋 1/4 — Application du schéma principal…');
-  const schemaSQL = readFileSync(resolve(__dirname, '..', 'supabase', 'schema.sql'), 'utf-8');
+  const _schemaSQL = readFileSync(resolve(__dirname, '..', 'supabase', 'schema.sql'), 'utf-8');
   
   // Split by statements and execute via supabase client
   // We'll use the raw REST endpoint for SQL execution
-  const execSQL = async (sql: string) => {
+  const _execSQL = async (_sql: string) => {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/`, {
       method: 'POST',
       headers: {
@@ -265,7 +265,7 @@ async function main() {
 
   // ── 2. Vérifier si les tables existent ──
   console.log('📋 2/4 — Vérification des tables…');
-  const { data: catCheck, error: catError } = await supabase.from('categories').select('id').limit(1);
+  const { error: catError } = await supabase.from('categories').select('id').limit(1);
   
   if (catError) {
     console.error(`\n❌ La table 'categories' n'existe pas.`);

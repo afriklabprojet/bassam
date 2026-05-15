@@ -53,7 +53,7 @@ export default function PWAInstaller() {
     deferredPrompt.prompt();
 
     // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
+    await deferredPrompt.userChoice;
 
     // Clear the deferredPrompt
     setDeferredPrompt(null);

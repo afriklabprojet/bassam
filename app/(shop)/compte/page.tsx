@@ -114,7 +114,6 @@ export default function AccountPage() {
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
 
     if (isTabValue(requestedTab)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(requestedTab);
     }
   }, []);

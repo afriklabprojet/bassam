@@ -174,7 +174,7 @@ export default function AdminAccueilPage() {
 
       {/* Info banner */}
       <div style={{ padding: '12px 16px', borderRadius: 8, marginBottom: 28, fontSize: 12, background: 'rgba(197,165,90,0.08)', border: '1px solid rgba(197,165,90,0.2)', color: 'rgba(197,165,90,0.8)' }}>
-        💡 Les couleurs de fond et les noms d'univers (Femme / Homme / Mixte) sont fixes. Seuls le tagline, la description et les notes olfactives sont modifiables ici.
+        💡 Les couleurs de fond et les noms d&apos;univers (Femme / Homme / Mixte) sont fixes. Seuls le tagline, la description et les notes olfactives sont modifiables ici.
       </div>
 
       {loading && (

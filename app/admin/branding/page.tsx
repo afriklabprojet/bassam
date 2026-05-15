@@ -24,8 +24,8 @@ export default async function BrandingPage() {
           <span style={{ color: GOLD, fontWeight: 600 }}>Branding</span>
         </h1>
         <p style={{ color: '#666', fontSize: 13 }}>
-          Personnalisez les couleurs, les polices et l'identité visuelle du site.
-          Les changements s'appliquent immédiatement après sauvegarde.
+          Personnalisez les couleurs, les polices et l&apos;identité visuelle du site.
+          Les changements s&apos;appliquent immédiatement après sauvegarde.
         </p>
       </div>
 

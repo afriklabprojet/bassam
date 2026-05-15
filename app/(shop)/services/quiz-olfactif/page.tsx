@@ -212,14 +212,20 @@ export default function QuizOlfactifPage() {
 
   useEffect(() => {
     if (!done) return;
-    setLoadingResults(true);
-    const params = buildApiParams(answers);
-    fetch(`/api/products?${params.toString()}`)
-      .then((r) => r.json())
-      .then((d) => setProducts(d.products ?? []))
-      .catch(() => setProducts([]))
-      .finally(() => setLoadingResults(false));
-  }, [done]);
+    void (async () => {
+      setLoadingResults(true);
+      const params = buildApiParams(answers);
+      try {
+        const r = await fetch(`/api/products?${params.toString()}`);
+        const d = await r.json();
+        setProducts(d.products ?? []);
+      } catch {
+        setProducts([]);
+      } finally {
+        setLoadingResults(false);
+      }
+    })();
+  }, [done, answers]);
 
   const canAdvance = currentAnswers.length > 0;
 

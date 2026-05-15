@@ -256,6 +256,7 @@ export default function CategoriesAdminPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, []);
 
   function showToast(ok: boolean, msg: string) {
@@ -562,7 +563,7 @@ export default function CategoriesAdminPage() {
                 style={{ ...inputStyle(), fontFamily: 'monospace', fontSize: 13 }}
               />
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>
-                Utilisé dans l'URL : /collections/<strong>{form.slug || '…'}</strong>
+                Utilisé dans l&apos;URL : /collections/<strong>{form.slug || '…'}</strong>
               </p>
             </div>
 
@@ -580,7 +581,7 @@ export default function CategoriesAdminPage() {
 
             {/* Ordre d'affichage */}
             <div style={{ marginBottom: 24 }}>
-              <label style={LABEL}>Ordre d'affichage</label>
+              <label style={LABEL}>Ordre d&apos;affichage</label>
               <input
                 type="number"
                 min={0}
@@ -589,7 +590,7 @@ export default function CategoriesAdminPage() {
                 style={{ ...inputStyle(), width: 100 }}
               />
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 4 }}>
-                Les collections s'affichent du plus petit au plus grand
+                Les collections s&apos;affichent du plus petit au plus grand
               </p>
             </div>
 

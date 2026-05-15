@@ -324,7 +324,7 @@ export default function BrandingPanel() {
               margin: 0,
               lineHeight: 1.2,
             }}>
-              L'Art du Parfum
+              L&apos;Art du Parfum
             </p>
             <p style={{
               fontFamily: current.fontSansFamily,
@@ -332,7 +332,7 @@ export default function BrandingPanel() {
               color: '#999',
               margin: '0.4rem 0 0',
             }}>
-              Découvrez notre collection de fragrances d'exception.
+              Découvrez notre collection de fragrances d&apos;exception.
             </p>
           </div>
         </div>

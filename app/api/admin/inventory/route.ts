@@ -9,7 +9,7 @@ function adminError(msg: string, status = 403) {
 }
 
 // GET  /api/admin/inventory  — list all items
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const supabase = await createClient();
   if (!(await isCurrentUserAdmin())) return adminError('Accès interdit');
 

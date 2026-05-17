@@ -4,7 +4,7 @@ Boutique e-commerce de parfums de luxe — Côte d'Ivoire.
 
 ## Stack
 
-- **Next.js 15** (App Router, ISR)
+- **Next.js 16** (App Router, ISR)
 - **Supabase** (auth, base de données, storage)
 - **TailwindCSS 4**
 - **Jeko Africa** (paiement Mobile Money — Orange, MTN, Wave)

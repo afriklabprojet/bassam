@@ -49,7 +49,7 @@ test.describe('Page panier', () => {
 
   test('affiche le message "panier vide" si aucun article', async ({ page }) => {
     await page.goto('/panier');
-    const empty = page.locator('text=/panier est vide/i');
+    const empty = page.getByRole('heading', { name: /panier est vide/i });
     await expect(empty).toBeVisible({ timeout: 8000 });
   });
 
@@ -73,7 +73,7 @@ test.describe('Page services', () => {
 
   test('contient un lien vers le quiz olfactif', async ({ page }) => {
     await page.goto('/services');
-    const link = page.locator('a[href*="quiz"]').first();
+    const link = page.locator('main a[href="/services/quiz-olfactif"]').first();
     await expect(link).toBeVisible({ timeout: 5000 });
   });
 });
@@ -127,9 +127,10 @@ test.describe('Consultation privée', () => {
 
   test('contient les 3 formules tarifaires', async ({ page }) => {
     await page.goto('/services/consultation');
-    await expect(page.locator('text=Découverte').first()).toBeVisible({ timeout: 8000 });
-    await expect(page.locator('text=Signature').first()).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('text=Cadeau').first()).toBeVisible({ timeout: 5000 });
+    const formules = page.locator('#formules');
+    await expect(formules.getByRole('heading', { name: 'Découverte' })).toBeVisible({ timeout: 8000 });
+    await expect(formules.getByRole('heading', { name: 'Signature' })).toBeVisible({ timeout: 5000 });
+    await expect(formules.getByRole('heading', { name: 'Cadeau' })).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -172,8 +173,8 @@ test.describe('Navigation Header', () => {
 
   test('le lien panier est présent dans le header', async ({ page }) => {
     await page.goto('/');
-    const cartLink = page.locator('a[href="/panier"]').first();
-    await expect(cartLink).toBeVisible({ timeout: 5000 });
+    const cartButton = page.getByRole('button', { name: /^Panier/ }).first();
+    await expect(cartButton).toBeVisible({ timeout: 5000 });
   });
 
   test('le footer est visible sur la page d\'accueil', async ({ page }) => {

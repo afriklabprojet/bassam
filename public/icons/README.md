@@ -2,6 +2,8 @@
 
 Ce directory contient les icônes pour la Progressive Web App.
 
+Les icônes sont générées depuis `public/images/logo.png` en recadrant l'emblème du logo.
+
 ## Icônes requises
 
 - `icon-72x72.png` - Petite icône Android
@@ -9,9 +11,13 @@ Ce directory contient les icônes pour la Progressive Web App.
 - `icon-128x128.png` - Icône Android large
 - `icon-144x144.png` - Icône Windows Tile
 - `icon-152x152.png` - Apple Touch Icon
+- `icon-180x180.png` - Apple Touch Icon standard iOS
 - `icon-192x192.png` - Icône Android standard
 - `icon-384x384.png` - Icône Android XL
 - `icon-512x512.png` - Icône splash screen
+- `maskable-icon-192x192.png` - Icône Android maskable avec marge de sécurité
+- `maskable-icon-512x512.png` - Icône Android maskable splash screen
+- `favicon.ico` - Favicon navigateur multi-tailles
 
 ## Comment générer les icônes
 
@@ -32,15 +38,21 @@ Ce directory contient les icônes pour la Progressive Web App.
 brew install imagemagick  # macOS
 sudo apt install imagemagick  # Linux
 
-# Depuis une image source 512x512
-convert logo-512.png -resize 72x72 icon-72x72.png
-convert logo-512.png -resize 96x96 icon-96x96.png
-convert logo-512.png -resize 128x128 icon-128x128.png
-convert logo-512.png -resize 144x144 icon-144x144.png
-convert logo-512.png -resize 152x152 icon-152x152.png
-convert logo-512.png -resize 192x192 icon-192x192.png
-convert logo-512.png -resize 384x384 icon-384x384.png
-cp logo-512.png icon-512x512.png
+# Depuis la racine du projet
+for size in 16 32 72 96 128 144 152 180 192 384 512; do
+   magick public/images/logo.png -crop 1100x1100+231+80 +repage \
+      -resize ${size}x${size} public/icons/icon-${size}x${size}.png
+done
+
+for size in 192 512; do
+   inner=$((size * 74 / 100))
+   magick public/images/logo.png -crop 1100x1100+231+80 +repage \
+      -resize ${inner}x${inner} -background black -gravity center \
+      -extent ${size}x${size} public/icons/maskable-icon-${size}x${size}.png
+done
+
+magick public/icons/icon-16x16.png public/icons/icon-32x32.png \
+   public/icons/icon-180x180.png public/icons/favicon.ico
 ```
 
 ### Option 3: Avec Node.js (sharp)
@@ -54,11 +66,11 @@ node generate-icons.js
 
 ## Design Guidelines
 
-- **Background**: Gradient `#4A5FFF` → `#F5E84D` → `#FF9F45` (diagonal 135deg)
-- **Logo**: VIP Parfumerie Bar logo en blanc au centre
-- **Border Radius**: 16px pour un look moderne
-- **Padding**: 10% de marge intérieure
-- **Format**: PNG avec transparence pour maskable
+- **Source**: logo officiel `public/images/logo.png`
+- **Recadrage**: emblème circulaire pour rester lisible en favicon
+- **Background**: noir du logo officiel
+- **Maskable**: marge de sécurité de 26% pour éviter le rognage Android
+- **Format**: PNG pour PWA et ICO pour favicon navigateur
 
 ## Testing
 

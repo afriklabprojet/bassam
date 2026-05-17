@@ -22,7 +22,7 @@ const PUBLIC_ROUTES = [
   '/admin/login',
   '/api/health',
   '/api/newsletter',
-  '/api/webhook',
+  '/api/payment/webhook',
   '/api/products',
   '/api/promo-codes',
   '/api/reviews',
@@ -84,6 +84,7 @@ function handleMissingSupabaseConfig(isPublicRoute: boolean, request: NextReques
 
 function handleAdminRoute(pathname: string, user: AuthUser, request: NextRequest, response: NextResponse) {
   const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
+  const isAdminApiRoute = pathname.startsWith('/api/admin')
   const isAdminLogin = pathname === '/admin/login'
 
   if (isAdminLogin && getUserRole(user) === 'admin') {
@@ -95,6 +96,13 @@ function handleAdminRoute(pathname: string, user: AuthUser, request: NextRequest
   }
 
   if (!user || getUserRole(user) !== 'admin') {
+    if (isAdminApiRoute) {
+      return NextResponse.json(
+        { error: user ? 'Accès refusé' : 'Authentification requise' },
+        { status: user ? 403 : 401 }
+      )
+    }
+
     return redirectTo('/admin/login', request)
   }
 

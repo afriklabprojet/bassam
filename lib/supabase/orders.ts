@@ -11,6 +11,7 @@ export interface OrderItem {
 }
 
 export interface CreateOrderInput {
+  /** Client-provided value kept for API compatibility. Server recomputes the actual total. */
   totalAmount: number;
   paymentMethod: 'mobile_money' | 'card' | 'cash_on_delivery';
   shippingAddress: {
@@ -47,16 +48,124 @@ export interface Order {
   }>;
 }
 
-/** Create a new order with items (transactional) */
+type ProductPricingRow = {
+  id: string;
+  price: number | string;
+  stock_quantity: number | null;
+};
+
+type AggregateQuantitiesResult =
+  | { ok: true; quantities: Map<string, number> }
+  | { ok: false; error: string };
+
+type VerifiedOrderData = {
+  items: OrderItem[];
+  totalAmount: number;
+};
+
+type BuildVerifiedOrderResult =
+  | { ok: true; data: VerifiedOrderData }
+  | { ok: false; error: string };
+
+const FREE_SHIPPING_THRESHOLD = 50000;
+const STANDARD_SHIPPING_FEE = 2500;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function getShippingFee(subtotal: number) {
+  return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
+}
+
+function aggregateQuantities(items: OrderItem[]): AggregateQuantitiesResult {
+  const quantities = new Map<string, number>();
+
+  for (const item of items) {
+    if (!UUID_RE.test(item.productId)) {
+      return { ok: false, error: 'Produit invalide' };
+    }
+
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      return { ok: false, error: 'Quantité invalide' };
+    }
+
+    quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+  }
+
+  return { ok: true, quantities };
+}
+
+async function buildVerifiedOrder(
+  input: CreateOrderInput,
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<BuildVerifiedOrderResult> {
+  const aggregated = aggregateQuantities(input.items);
+  if (!aggregated.ok) return { ok: false, error: aggregated.error };
+
+  const productIds = [...aggregated.quantities.keys()];
+  if (productIds.length === 0) return { ok: false, error: 'Au moins un article requis' };
+
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, price, stock_quantity')
+    .in('id', productIds);
+
+  if (error || !data) {
+    console.error('[createOrder products]', error?.message);
+    return { ok: false, error: 'Impossible de vérifier les produits' };
+  }
+
+  const productsById = new Map(
+    (data as ProductPricingRow[]).map((product) => [product.id, product])
+  );
+  const verifiedItems: OrderItem[] = [];
+
+  for (const productId of productIds) {
+    const product = productsById.get(productId);
+    const quantity = aggregated.quantities.get(productId) ?? 0;
+
+    if (!product) {
+      return { ok: false, error: 'Produit introuvable' };
+    }
+
+    const unitPrice = Number(product.price);
+    const stockQuantity = Number(product.stock_quantity ?? 0);
+
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+      return { ok: false, error: 'Prix produit invalide' };
+    }
+
+    if (stockQuantity < quantity) {
+      return { ok: false, error: 'Stock insuffisant pour un ou plusieurs produits' };
+    }
+
+    verifiedItems.push({ productId, quantity, unitPrice });
+  }
+
+  const subtotal = verifiedItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+  return {
+    ok: true,
+    data: {
+      items: verifiedItems,
+      totalAmount: subtotal + getShippingFee(subtotal),
+    },
+  };
+}
+
+/** Create a new order with items. */
 export async function createOrder(userId: string, input: CreateOrderInput): Promise<{ order: Order | null; error: string | null }> {
   const supabase = await createClient();
+  const verifiedOrder = await buildVerifiedOrder(input, supabase);
+
+  if (!verifiedOrder.ok) {
+    return { order: null, error: verifiedOrder.error };
+  }
 
   // Insert the order
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
       user_id: userId,
-      total_amount: input.totalAmount,
+      total_amount: verifiedOrder.data.totalAmount,
       payment_method: input.paymentMethod,
       shipping_address: input.shippingAddress,
       phone: input.phone,
@@ -72,7 +181,7 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
   }
 
   // Insert order items
-  const itemsToInsert = input.items.map((item) => ({
+  const itemsToInsert = verifiedOrder.data.items.map((item) => ({
     order_id: order.id,
     product_id: item.productId,
     quantity: item.quantity,

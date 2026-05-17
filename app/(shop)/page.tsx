@@ -302,7 +302,7 @@ export default async function HomePage() {
       </section>
 
       {/* ══ TÉMOIGNAGES — fond crème, humain ══ */}
-      <section style={{ background: 'var(--offwhite)', padding: '6rem 0' }}>
+      <section className="testimonials-section" style={{ background: 'var(--offwhite)' }}>
         <div className="container mx-auto">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <span className="label">Avis clients</span>
@@ -313,11 +313,11 @@ export default async function HomePage() {
               Ils nous font confiance
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="testimonials-track grid md:grid-cols-3 gap-5" aria-label="Avis clients">
             {reviews.map((t) => (
               <div
                 key={t.id}
-                className="testimonial-card"
+                className="testimonial-card testimonial-slide"
                 style={{ background: '#fff', borderRadius: 'var(--r-lg)', padding: '2rem', border: '1px solid var(--line-light)', display: 'flex', flexDirection: 'column', gap: '1.125rem' }}
               >
                 {/* Étoiles */}

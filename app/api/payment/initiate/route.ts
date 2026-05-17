@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const shortRef = `VIP-${order.id.substring(0, 8).toUpperCase()}`;
 
     const jekoRes = await initiatePayment({
-      amount: d.totalAmount,
+      amount: order.totalAmount,
       currency: 'XOF',
       phone: d.mobileNumber,
       provider: mapProvider(d.paymentMethod),

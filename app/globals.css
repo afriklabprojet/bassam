@@ -712,6 +712,42 @@ section:has(.hero-video-bg) {
   font-style: italic;
 }
 
+
+.testimonials-section {
+  padding: 6rem 0;
+}
+
+.testimonials-track {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .testimonials-section {
+    padding: 3.75rem 0;
+  }
+
+  .testimonials-track {
+    display: flex;
+    gap: 1rem;
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+    padding-bottom: 0.75rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 1.25rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .testimonials-track::-webkit-scrollbar {
+    height: 0;
+  }
+
+  .testimonial-slide {
+    flex: 0 0 min(82vw, 21rem);
+    scroll-snap-align: start;
+  }
+}
 .hero-description {
   max-width: 58ch;
   margin-top: 2rem;

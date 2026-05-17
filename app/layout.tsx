@@ -36,8 +36,12 @@ export const metadata: Metadata = {
     title: "VIP Parfumerie Bar",
   },
   icons: {
-    icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/icons/icon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/icons/favicon.ico", sizes: "any" },
+      { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" }],
   },
   openGraph: {
     type: "website",
@@ -85,7 +89,8 @@ export default function RootLayout({
         <BrandingInjector />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#C5A55A" />
-        <link rel="apple-touch-icon" href="/icons/icon.svg" />
+        <link rel="icon" href="/icons/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/icons/icon-180x180.png" />
       </head>
       <body className="min-h-full flex flex-col">
         {children}

@@ -192,7 +192,7 @@ function AssetCard({
               sizes={`${imgSize}px`}
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = fallbackSrc;
+                e.currentTarget.src = fallbackSrc;
               }}
             />
           )}
@@ -311,7 +311,7 @@ export default function LogoPanel({
         accept="image/png,image/svg+xml,image/x-icon"
         formats="PNG, SVG, ICO"
         currentUrl={initialFaviconUrl}
-        fallbackSrc="/favicon.ico"
+        fallbackSrc="/icons/favicon.ico"
         circular={false}
       />
     </div>

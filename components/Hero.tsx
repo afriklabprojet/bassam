@@ -3,56 +3,25 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { HomeHeroContent } from '@/lib/supabase/home-hero';
 
-const TRUST_ITEMS = [
-  'Authenticité vérifiée',
-  'Livraison 24 h à Abidjan',
-  'Paiement Orange Money, MTN, Wave',
-  'Conseil olfactif personnalisé',
+const PRODUCT_VISUAL_CLASSES = [
+  'hero-product hero-product-main',
+  'hero-product hero-product-side hero-product-side-left',
+  'hero-product hero-product-side hero-product-side-right',
 ];
 
-const HERO_STATS = [
-  { value: '300+', label: 'Fragrances' },
-  { value: '40+', label: 'Maisons' },
-  { value: '100%', label: 'Authentique' },
+const PRODUCT_VISUAL_SIZES = [
+  { width: 260, height: 347 },
+  { width: 164, height: 219 },
+  { width: 164, height: 219 },
 ];
 
-const COLLECTION_LINKS = [
-  { href: '/collections/femme', name: 'Femme', count: 'Floraux, ambrés, poudrés', tone: '#C5A55A' },
-  { href: '/collections/homme', name: 'Homme', count: 'Boisés, frais, cuirés', tone: '#7896B2' },
-  { href: '/collections/mixte', name: 'Mixte', count: 'Oud, santal, muscs', tone: '#A89B7A' },
-];
+interface HeroProps {
+  content: HomeHeroContent;
+}
 
-const PRODUCT_VISUALS = [
-  {
-    src: '/images/products/dior-sauvage.svg',
-    alt: 'Flacon Dior Sauvage disponible chez VIP Parfumerie Bar',
-    className: 'hero-product hero-product-main',
-  },
-  {
-    src: '/images/products/oud-wood.svg',
-    alt: 'Flacon Tom Ford Oud Wood disponible chez VIP Parfumerie Bar',
-    className: 'hero-product hero-product-side hero-product-side-left',
-  },
-  {
-    src: '/images/products/black-opium.svg',
-    alt: 'Flacon Black Opium disponible chez VIP Parfumerie Bar',
-    className: 'hero-product hero-product-side hero-product-side-right',
-  },
-];
-
-const BRAND_TICKER = [
-  'Dior',
-  'Chanel',
-  'Creed',
-  'Tom Ford',
-  'Maison Francis Kurkdjian',
-  'Le Labo',
-  'Guerlain',
-  'Jo Malone',
-];
-
-export default function Hero() {
+export default function Hero({ content }: Readonly<HeroProps>) {
   const [isVisible, setIsVisible] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
 
@@ -107,30 +76,29 @@ export default function Hero() {
         >
           <div className="hero-eyebrow" style={revealStyle(0.08)}>
             <span className="hero-eyebrow-line" aria-hidden="true" />
-            <span>Haute parfumerie authentique</span>
+            <span>{content.eyebrow}</span>
           </div>
 
           <h1 className="hero-title" style={revealStyle(0.18)}>
-            <span>Votre parfum signature,</span>
-            <span className="hero-title-accent">choisi avec précision.</span>
+            <span>{content.title}</span>
+            <span className="hero-title-accent">{content.titleAccent}</span>
           </h1>
 
           <p className="hero-description" style={revealStyle(0.3)}>
-            Une sélection premium de maisons iconiques et de fragrances rares, livrée rapidement
-            en Côte d&apos;Ivoire avec accompagnement personnalisé.
+            {content.description}
           </p>
 
           <div className="hero-actions" style={revealStyle(0.42)}>
-            <Link href="/#top-ventes" className="btn-gold hero-primary-action">
-              Voir les best-sellers
+            <Link href={content.primaryCtaHref} className="btn-gold hero-primary-action">
+              {content.primaryCtaLabel}
             </Link>
-            <Link href="/services/quiz-olfactif" className="btn-ghost-light hero-secondary-action">
-              Trouver mon parfum
+            <Link href={content.secondaryCtaHref} className="btn-ghost-light hero-secondary-action">
+              {content.secondaryCtaLabel}
             </Link>
           </div>
 
           <ul className="hero-trust-list" aria-label="Garanties VIP Parfumerie Bar" style={revealStyle(0.54)}>
-            {TRUST_ITEMS.map((item) => (
+            {content.trustItems.map((item) => (
               <li key={item}>
                 <span aria-hidden="true" />
                 {item}
@@ -139,7 +107,7 @@ export default function Hero() {
           </ul>
 
           <dl className="hero-stats" aria-label="Chiffres clés" style={revealStyle(0.66)}>
-            {HERO_STATS.map((stat) => (
+            {content.stats.map((stat) => (
               <div key={stat.label}>
                 <dt>{stat.label}</dt>
                 <dd>{stat.value}</dd>
@@ -157,28 +125,28 @@ export default function Hero() {
           aria-label="Sélection de parfums mise en avant"
         >
           <div className="hero-showcase-header" style={revealStyle(0.36)}>
-            <span>Édition 2026</span>
-            <strong>VIP Selection</strong>
+            <span>{content.showcaseEyebrow}</span>
+            <strong>{content.showcaseTitle}</strong>
           </div>
 
           <div className="hero-product-stage" style={revealStyle(0.48)}>
             <div className="hero-stage-line hero-stage-line-left" aria-hidden="true" />
             <div className="hero-stage-line hero-stage-line-right" aria-hidden="true" />
-            {PRODUCT_VISUALS.map((product, index) => (
+            {content.productVisuals.slice(0, 3).map((product, index) => (
               <Image
                 key={product.src}
                 src={product.src}
                 alt={product.alt}
-                width={index === 0 ? 260 : 164}
-                height={index === 0 ? 347 : 219}
+                width={PRODUCT_VISUAL_SIZES[index]?.width ?? 164}
+                height={PRODUCT_VISUAL_SIZES[index]?.height ?? 219}
                 priority={index === 0}
-                className={product.className}
+                className={PRODUCT_VISUAL_CLASSES[index] ?? PRODUCT_VISUAL_CLASSES[1]}
               />
             ))}
           </div>
 
           <nav className="hero-collection-stack" aria-label="Accès rapide aux univers" style={revealStyle(0.62)}>
-            {COLLECTION_LINKS.map((collection) => (
+            {content.collectionLinks.map((collection) => (
               <Link key={collection.href} href={collection.href} className="hero-collection-link">
                 <span style={{ background: collection.tone }} aria-hidden="true" />
                 <strong>{collection.name}</strong>
@@ -191,7 +159,7 @@ export default function Hero() {
 
       <div className="hero-bottom-bar">
         <div className="hero-ticker" aria-hidden="true">
-          {[...BRAND_TICKER, ...BRAND_TICKER].map((brand, index) => (
+          {[...content.brandTicker, ...content.brandTicker].map((brand, index) => (
             <span key={`${brand}-${index}`}>{brand}</span>
           ))}
         </div>
@@ -201,7 +169,7 @@ export default function Hero() {
           onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
           aria-label="Défiler vers les collections"
         >
-          Explorer
+          {content.scrollLabel}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 5v14" />
             <path d="m19 12-7 7-7-7" />

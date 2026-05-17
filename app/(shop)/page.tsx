@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { getProducts, getProductCountsByGender } from '@/lib/supabase/products';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getHomeUnivers } from '@/lib/supabase/home-content';
+import { getHomeHero } from '@/lib/supabase/home-hero';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,11 +82,12 @@ function ProductSectionEmptyState() {
 
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
-  const [{ products: rawBestSellers }, genderCounts, reviews, universDB] = await Promise.all([
+  const [{ products: rawBestSellers }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
     getProducts({ featured: true, limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
     getProductCountsByGender().catch(() => ({} as Record<string, number>)),
     getApprovedReviews(6).catch(() => []),
     getHomeUnivers().catch(() => []),
+    getHomeHero(),
   ]);
 
   // Si aucun produit featured en DB → fallback : 8 derniers produits
@@ -120,7 +122,7 @@ export default async function HomePage() {
       <ScrollAnimations />
       
       {/* ══ HERO — sombre, identité de marque ══ */}
-      <Hero />
+      <Hero content={homeHero} />
 
       {/* ══ BANDE OR — confiance immédiate ══ */}
       <div style={{ background: 'var(--gold)', padding: '0.875rem 0' }}>

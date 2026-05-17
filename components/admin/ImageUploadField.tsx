@@ -10,7 +10,7 @@
  *   disabled – optionnel
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /* ── Constantes ──────────────────────────────────────────────────────────── */
 
@@ -47,6 +47,7 @@ interface Props {
   onChange: (v: string) => void;
   label?: string;
   disabled?: boolean;
+  maxImages?: number;
 }
 
 /* ── Composant principal ─────────────────────────────────────────────────── */
@@ -56,15 +57,18 @@ export default function ImageUploadField({
   onChange,
   label = 'Images du produit',
   disabled = false,
-}: Props) {
+  maxImages,
+}: Readonly<Props>) {
   /* Items = liste des images affichées (depuis value + uploads en cours) */
   const [items, setItems] = useState<UploadItem[]>(() =>
     splitUrls(value).map((url) => ({ id: url, url })),
   );
   const [dragging, setDragging] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [manualUrl, setManualUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setItems(splitUrls(value).map((url) => ({ id: url, url })));
+  }, [value]);
 
   /* Synchronise vers le parent à chaque modification */
   const syncUp = useCallback(
@@ -89,7 +93,7 @@ export default function ImageUploadField({
       const placeholder: UploadItem = { id: tempId, url: '', uploading: true };
 
       setItems((prev) => {
-        const next = [...prev, placeholder];
+        const next = maxImages === 1 ? [placeholder] : [...prev, placeholder];
         return next;
       });
 
@@ -107,9 +111,7 @@ export default function ImageUploadField({
         const url: string = json.url;
 
         setItems((prev) => {
-          const next = prev.map((i) =>
-            i.id === tempId ? { id: url, url, uploading: false } : i,
-          );
+          const next = prev.map((i) => (i.id === tempId ? { id: url, url, uploading: false } : i));
           syncUp(next);
           return next;
         });
@@ -122,18 +124,23 @@ export default function ImageUploadField({
         );
       }
     },
-    [syncUp],
+    [maxImages, syncUp],
   );
 
   /* Gérer les fichiers sélectionnés (input ou drop) */
   const handleFiles = useCallback(
     (files: FileList | null) => {
       if (!files) return;
-      Array.from(files).forEach((f) => {
+      const currentCount = items.filter((item) => !item.uploading && !item.error).length;
+      const availableSlots = maxImages ? Math.max(0, maxImages - currentCount) : Infinity;
+      const selectedFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+      const filesToUpload = maxImages === 1 ? selectedFiles.slice(0, 1) : selectedFiles.slice(0, availableSlots);
+
+      filesToUpload.forEach((f) => {
         if (f.type.startsWith('image/')) uploadFile(f);
       });
     },
-    [uploadFile],
+    [items, maxImages, uploadFile],
   );
 
   /* Drag events */
@@ -150,19 +157,7 @@ export default function ImageUploadField({
     handleFiles(e.dataTransfer.files);
   };
 
-  /* Ajouter une URL manuelle */
-  const addManualUrl = () => {
-    const url = manualUrl.trim();
-    if (!url || items.some((i) => i.url === url)) {
-      setManualUrl('');
-      return;
-    }
-    const next = [...items, { id: url, url }];
-    setItems(next);
-    syncUp(next);
-    setManualUrl('');
-    setShowUrlInput(false);
-  };
+  const uploadedCount = items.reduce((count, item) => (item.uploading || item.error ? count : count + 1), 0);
 
   /* ── Rendu ─────────────────────────────────────────────────────────────── */
 
@@ -183,30 +178,18 @@ export default function ImageUploadField({
         >
           {label}
         </label>
-        <button
-          type="button"
-          onClick={() => setShowUrlInput((v) => !v)}
-          style={{
-            fontSize: '0.7rem',
-            color: GOLD,
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            opacity: 0.8,
-            padding: 0,
-          }}
-        >
-          + URL manuelle
-        </button>
       </div>
 
       {/* Zone drag & drop */}
-      <div
+      <button
+        type="button"
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={disabled ? undefined : onDrop}
         onClick={() => !disabled && fileInputRef.current?.click()}
+        disabled={disabled}
         style={{
+          width: '100%',
           border: `1.5px dashed ${dragging ? BORDER_DRAG : BORDER_IDLE}`,
           borderRadius: '10px',
           background: dragging ? BG_ZONE_DRAG : BG_ZONE,
@@ -221,7 +204,7 @@ export default function ImageUploadField({
           ref={fileInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp,image/avif"
-          multiple
+          multiple={maxImages !== 1}
           hidden
           disabled={disabled}
           onChange={(e) => handleFiles(e.target.files)}
@@ -242,70 +225,7 @@ export default function ImageUploadField({
             </>
           )}
         </div>
-      </div>
-
-      {/* Input URL manuelle */}
-      {showUrlInput && (
-        <div
-          style={{
-            display: 'flex',
-            gap: '6px',
-            marginTop: '8px',
-          }}
-        >
-          <input
-            type="url"
-            value={manualUrl}
-            onChange={(e) => setManualUrl(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addManualUrl())}
-            placeholder="https://…/image.jpg"
-            autoFocus
-            style={{
-              flex: 1,
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '8px',
-              color: '#e5e7eb',
-              padding: '6px 10px',
-              fontSize: '0.75rem',
-              fontFamily: 'monospace',
-              outline: 'none',
-            }}
-          />
-          <button
-            type="button"
-            onClick={addManualUrl}
-            style={{
-              background: GOLD,
-              color: '#0a0a0a',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '6px 12px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Ajouter
-          </button>
-          <button
-            type="button"
-            onClick={() => { setShowUrlInput(false); setManualUrl(''); }}
-            style={{
-              background: 'rgba(255,255,255,0.06)',
-              color: '#888',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '6px 10px',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-            }}
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      </button>
 
       {/* Grille des images */}
       {items.length > 0 && (
@@ -324,10 +244,10 @@ export default function ImageUploadField({
       )}
 
       {/* Compteur */}
-      {items.filter((i) => !i.uploading && !i.error).length > 0 && (
+      {uploadedCount > 0 && (
         <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '6px' }}>
-          {items.filter((i) => !i.uploading && !i.error).length} image
-          {items.filter((i) => !i.uploading && !i.error).length > 1 ? 's' : ''}
+          {uploadedCount} image
+          {uploadedCount > 1 ? 's' : ''}
         </div>
       )}
     </div>
@@ -339,10 +259,10 @@ export default function ImageUploadField({
 function ImageTile({
   item,
   onRemove,
-}: {
+}: Readonly<{
   item: UploadItem;
   onRemove: () => void;
-}) {
+}>) {
   const [imgErr, setImgErr] = useState(false);
 
   if (item.uploading) {
@@ -445,7 +365,7 @@ function ImageTile({
 
 /* ── Bouton supprimer ────────────────────────────────────────────────────── */
 
-function RemoveBtn({ onClick }: { onClick: () => void }) {
+function RemoveBtn({ onClick }: Readonly<{ onClick: () => void }>) {
   const [hover, setHover] = useState(false);
   return (
     <button

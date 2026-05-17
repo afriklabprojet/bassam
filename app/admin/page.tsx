@@ -357,6 +357,7 @@ export default function AdminDashboard() {
             </span>
             <div className="flex flex-col gap-3 flex-1">
               {[
+                { label: 'Modifier le hero', href: '/admin/contenu/accueil', icon: 'M3 9l9-7 9 7M5 10v10h14V10M9 20v-6h6v6', color: '#C5A55A' },
                 { label: 'Nouveau produit', href: '/admin/produits', icon: 'M12 5v14M5 12h14', color: '#C5A55A' },
                 { label: 'Voir commandes', href: '/admin/commandes', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2', color: '#D9BE80' },
                 { label: 'Gérer clients', href: '/admin/clients', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2', color: '#E8D9C0' },

@@ -61,9 +61,10 @@ export default function CheckoutPage() {
     setSubmitError('');
 
     const orderItems = items.map((item) => ({
-      productId: item.id,
+      productId: item.productId ?? item.id,
       quantity: item.quantity,
       unitPrice: item.price,
+      customCreation: item.customization,
     }));
 
     try {
@@ -202,9 +203,9 @@ export default function CheckoutPage() {
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, marginBottom: '1.5rem' }}>Vos informations</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div>
-                    <label htmlFor="guestEmail" style={{ display: 'block', fontSize: '0.75rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Email (facultatif)</label>
+                    <label htmlFor="guestEmail" style={{ display: 'block', fontSize: '0.75rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Email de confirmation</label>
                     <input id="guestEmail" type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} placeholder="vous@email.com" className={inputCls} />
-                    <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', marginTop: '0.375rem' }}>Pour recevoir la confirmation de commande.</p>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', marginTop: '0.375rem' }}>Facultatif : nous confirmons aussi par téléphone.</p>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
@@ -409,7 +410,9 @@ export default function CheckoutPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', fontSize: '0.875rem', marginBottom: '1rem' }}>
                 {items.map((item) => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name} ×{item.quantity}</span>
+                    <span style={{ color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.name} ×{item.quantity}{item.isCustom ? ' · sur-mesure' : ''}
+                    </span>
                     <span style={{ fontWeight: 500, flexShrink: 0 }}>{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}

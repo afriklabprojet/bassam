@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { supportConfig } from '@/lib/site-config';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
@@ -348,6 +350,7 @@ export default async function ConsultationPage() {
               >
                 <input type="hidden" name="_subject" value="Demande de consultation privée — VIP Parfumerie Bar" />
                 <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_next" value={`${SITE_URL}/services/merci`} />
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                   {/* Nom */}

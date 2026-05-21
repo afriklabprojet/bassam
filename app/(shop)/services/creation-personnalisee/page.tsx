@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { supportConfig } from '@/lib/site-config';
+import CreationConfigurator from '@/components/CreationConfigurator';
+import { fetchCreationConfig } from '@/lib/custom-creation';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Cr\u00e9ation Personnalis\u00e9e \u2014 VIP Parfumerie Bar',
@@ -98,7 +101,8 @@ const familles = [
 
 /* ─── Page ───────────────────────────────────────────────── */
 
-export default function CreationPersonnalisee() {
+export default async function CreationPersonnalisee() {
+  const creationConfig = await fetchCreationConfig();
   return (
     <main>
 
@@ -182,6 +186,8 @@ export default function CreationPersonnalisee() {
           </div>
         </div>
       </section>
+
+        <CreationConfigurator config={creationConfig} />
 
       {/* ══════════════════════════════════════════════════
           PALETTE OLFACTIVE
@@ -331,105 +337,6 @@ export default function CreationPersonnalisee() {
                 </a>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
-          FORMULAIRE COMMANDE
-      ══════════════════════════════════════════════════ */}
-      <section id="commander" style={{ background: 'var(--surface)', padding: '88px 0' }}>
-        <div className="container">
-          <div style={{ maxWidth: 720, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 48 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <div style={{ width: 20, height: '1px', background: 'var(--gold)' }} />
-                <span style={{ fontSize: '0.5625rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>Brief créatif</span>
-                <div style={{ width: 20, height: '1px', background: 'var(--gold)' }} />
-              </div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 300, color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>
-                Commencez votre{' '}
-                <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>création.</em>
-              </h2>
-            </div>
-
-            <div style={{ background: '#fff', padding: '44px 40px', borderRadius: 3 }}>
-              <form
-                action={`https://formsubmit.co/${supportConfig.email}`}
-                method="POST"
-                style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
-              >
-                <input type="hidden" name="_subject" value="Demande de création personnalisée — VIP Parfumerie Bar" />
-                <input type="hidden" name="_captcha" value="false" />
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <div>
-                    <label htmlFor="pnom" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                      Nom <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input id="pnom" name="nom" type="text" required placeholder="Votre nom" className="input" />
-                  </div>
-                  <div>
-                    <label htmlFor="pemail" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                      Email <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input id="pemail" name="email" type="email" required placeholder="votre@email.com" className="input" />
-                  </div>
-                </div>
-
-                {/* Formule */}
-                <div>
-                  <label htmlFor="pformule" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>Formule choisie</label>
-                  <select id="pformule" name="formule" className="input">
-                    <option value="">Sélectionner…</option>
-                    <option value="essentiel">Essentiel — 30 ml · 85 000 FCFA</option>
-                    <option value="signature">Signature — 50 ml · 135 000 FCFA</option>
-                    <option value="cadeau">Cadeau Prestige — 95 000 FCFA</option>
-                  </select>
-                </div>
-
-                {/* Pour qui */}
-                <div>
-                  <label htmlFor="ppourqui" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>Ce parfum est pour…</label>
-                  <select id="ppourqui" name="pour_qui" className="input">
-                    <option value="">Sélectionner…</option>
-                    <option value="moi-femme">Moi — Féminin</option>
-                    <option value="moi-homme">Moi — Masculin</option>
-                    <option value="moi-unisex">Moi — Mixte / Unisexe</option>
-                    <option value="offrir">Un cadeau à offrir</option>
-                  </select>
-                </div>
-
-                {/* Inspiration */}
-                <div>
-                  <label htmlFor="pinspiration" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Votre brief & inspirations <span style={{ color: '#EF4444' }}>*</span>
-                  </label>
-                  <textarea
-                    id="pinspiration" name="brief" required rows={5}
-                    placeholder="Décrivez l'émotion, l'ambiance, les parfums que vous aimez, les matières premières souhaitées, l'occasion… Plus vous êtes précis(e), mieux nous pouvons créer pour vous."
-                    className="input"
-                    style={{ resize: 'vertical', lineHeight: 1.6 }}
-                  />
-                </div>
-
-                {/* Gravure */}
-                <div>
-                  <label htmlFor="pgravure" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Texte à graver sur le flacon
-                  </label>
-                  <input id="pgravure" name="gravure" type="text" placeholder="Prénom, initiales, date, courte phrase…" className="input" />
-                </div>
-
-                <button type="submit" className="btn-gold" style={{ width: '100%' }}>
-                  Soumettre mon brief créatif
-                </button>
-
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', textAlign: 'center', lineHeight: 1.5, margin: 0 }}>
-                  Après réception, nous vous envoyons un devis détaillé sous 24h.
-                </p>
-              </form>
-            </div>
           </div>
         </div>
       </section>

@@ -10,13 +10,13 @@ const fmt = (p: number) =>
 
 export default function CartSidebar() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
-  const panelRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDialogElement>(null);
 
   /* Close on Escape */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') closeCart(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    globalThis.addEventListener('keydown', handler);
+    return () => globalThis.removeEventListener('keydown', handler);
   }, [closeCart]);
 
   /* Lock body scroll */
@@ -55,16 +55,19 @@ export default function CartSidebar() {
       />
 
       {/* ── Panel ────────────────────────────────── */}
-      <aside
+      <dialog
         ref={panelRef}
-        role="dialog"
-        aria-modal="true"
+        open={isOpen}
         aria-label="Votre sélection"
         tabIndex={-1}
         style={{
+          border: 'none',
+          padding: 0,
+          margin: 0,
           position: 'fixed',
           top: 0,
           right: 0,
+          left: 'auto',
           height: '100%',
           width: '100%',
           maxWidth: '440px',
@@ -166,7 +169,24 @@ export default function CartSidebar() {
             </div>
           ) : (
             <ul>
-              {items.map((item, idx) => (
+              {items.map((item, idx) => {
+                const thumbnail = (
+                  <div
+                    style={{
+                      position: 'relative',
+                      width: '76px',
+                      height: '95px',
+                      borderRadius: 'var(--r-sm)',
+                      overflow: 'hidden',
+                      background: 'var(--offwhite)',
+                      border: item.isCustom ? '1px solid rgba(197,165,90,0.55)' : '1px solid var(--line-light)',
+                    }}
+                  >
+                    <Image src={item.image} alt={item.name} fill className="object-cover" sizes="76px" />
+                  </div>
+                );
+
+                return (
                 <li
                   key={item.id}
                   className="cart-item-row"
@@ -180,32 +200,35 @@ export default function CartSidebar() {
                   }}
                 >
                   {/* Thumbnail */}
-                  <Link href={`/produits/${item.slug}`} onClick={closeCart} style={{ flexShrink: 0 }}>
-                    <div
-                      style={{
-                        position: 'relative',
-                        width: '76px',
-                        height: '95px',
-                        borderRadius: 'var(--r-sm)',
-                        overflow: 'hidden',
-                        background: 'var(--offwhite)',
-                        border: '1px solid var(--line-light)',
-                      }}
-                    >
-                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="76px" />
-                    </div>
-                  </Link>
+                  {item.isCustom ? (
+                    <div style={{ flexShrink: 0 }}>{thumbnail}</div>
+                  ) : (
+                    <Link href={`/produits/${item.slug}`} onClick={closeCart} style={{ flexShrink: 0 }}>
+                      {thumbnail}
+                    </Link>
+                  )}
 
                   {/* Details */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', marginBottom: '0.2rem' }}>{item.brand}</p>
-                    <Link
-                      href={`/produits/${item.slug}`}
-                      onClick={closeCart}
-                      style={{ display: 'block', fontFamily: 'var(--font-serif)', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.35, textDecoration: 'none', marginBottom: '0.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                      {item.name}
-                    </Link>
+                    {item.isCustom ? (
+                      <p style={{ display: 'block', fontFamily: 'var(--font-serif)', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.35, marginBottom: '0.35rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.name}
+                      </p>
+                    ) : (
+                      <Link
+                        href={`/produits/${item.slug}`}
+                        onClick={closeCart}
+                        style={{ display: 'block', fontFamily: 'var(--font-serif)', fontSize: '0.9375rem', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.35, textDecoration: 'none', marginBottom: '0.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      >
+                        {item.name}
+                      </Link>
+                    )}
+                    {item.customization && (
+                      <p style={{ fontSize: '0.6875rem', color: 'var(--text-secondary)', lineHeight: 1.45, marginBottom: '0.55rem' }}>
+                        {item.customization.formulaName} · {item.customization.family} · {item.customization.intensity}
+                      </p>
+                    )}
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       {/* Qty */}
@@ -242,7 +265,8 @@ export default function CartSidebar() {
                     </div>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>
@@ -297,7 +321,7 @@ export default function CartSidebar() {
             </div>
           </div>
         )}
-      </aside>
+      </dialog>
     </>
   );
 }

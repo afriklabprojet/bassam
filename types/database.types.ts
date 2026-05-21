@@ -1,6 +1,11 @@
 // Type definitions for VIP Parfumerie Bar database
 // Generated from Supabase schema
 
+export type ProductGender = 'homme' | 'femme' | 'mixte'
+export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+export type PaymentMethod = 'mobile_money' | 'card' | 'cash_on_delivery'
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+
 export type Json =
   | string
   | number
@@ -57,7 +62,7 @@ export interface Database {
           price: number
           original_price: number | null
           category_id: string | null
-          gender: 'homme' | 'femme' | 'mixte' | null
+          gender: ProductGender | null
           stock_quantity: number
           is_featured: boolean
           images: string[]
@@ -76,7 +81,7 @@ export interface Database {
           price: number
           original_price?: number | null
           category_id?: string | null
-          gender?: 'homme' | 'femme' | 'mixte' | null
+          gender?: ProductGender | null
           stock_quantity?: number
           is_featured?: boolean
           images?: string[]
@@ -95,7 +100,7 @@ export interface Database {
           price?: number
           original_price?: number | null
           category_id?: string | null
-          gender?: 'homme' | 'femme' | 'mixte' | null
+          gender?: ProductGender | null
           stock_quantity?: number
           is_featured?: boolean
           images?: string[]
@@ -139,10 +144,10 @@ export interface Database {
         Row: {
           id: string
           user_id: string | null
-          status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+          status: OrderStatus
           total_amount: number
-          payment_method: 'mobile_money' | 'card' | 'cash_on_delivery'
-          payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
+          payment_method: PaymentMethod
+          payment_status: PaymentStatus
           shipping_address: Json
           phone: string
           email: string
@@ -153,10 +158,10 @@ export interface Database {
         Insert: {
           id?: string
           user_id?: string | null
-          status?: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+          status?: OrderStatus
           total_amount: number
-          payment_method: 'mobile_money' | 'card' | 'cash_on_delivery'
-          payment_status?: 'pending' | 'paid' | 'failed' | 'refunded'
+          payment_method: PaymentMethod
+          payment_status?: PaymentStatus
           shipping_address: Json
           phone: string
           email: string
@@ -167,10 +172,10 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string | null
-          status?: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+          status?: OrderStatus
           total_amount?: number
-          payment_method?: 'mobile_money' | 'card' | 'cash_on_delivery'
-          payment_status?: 'pending' | 'paid' | 'failed' | 'refunded'
+          payment_method?: PaymentMethod
+          payment_status?: PaymentStatus
           shipping_address?: Json
           phone?: string
           email?: string

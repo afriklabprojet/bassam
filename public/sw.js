@@ -1,10 +1,9 @@
 // Service Worker for VIP Parfumerie Bar PWA
-const CACHE_NAME = 'vip-parfumerie-v1';
+const CACHE_NAME = 'vip-parfumerie-v2';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache on install
 const STATIC_CACHE_URLS = [
-  '/',
   '/offline.html',
   '/manifest.json',
 ];
@@ -56,6 +55,13 @@ self.addEventListener('fetch', (event) => {
 
   // Skip cross-origin requests (fonts.googleapis.com, pexels, supabase storage…)
   if (!event.request.url.startsWith(self.location.origin)) {
+    return;
+  }
+
+  if (event.request.mode === 'navigate' || dest === 'document') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
+    );
     return;
   }
 

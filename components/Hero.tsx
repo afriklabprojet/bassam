@@ -97,16 +97,7 @@ export default function Hero({ content }: Readonly<HeroProps>) {
             </Link>
           </div>
 
-          <ul className="hero-trust-list" aria-label="Garanties VIP Parfumerie Bar" style={revealStyle(0.54)}>
-            {content.trustItems.map((item) => (
-              <li key={item}>
-                <span aria-hidden="true" />
-                {item}
-              </li>
-            ))}
-          </ul>
-
-          <dl className="hero-stats" aria-label="Chiffres clés" style={revealStyle(0.66)}>
+          <dl className="hero-stats" aria-label="Chiffres clés" style={revealStyle(0.54)}>
             {content.stats.map((stat) => (
               <div key={stat.label}>
                 <dt>{stat.label}</dt>

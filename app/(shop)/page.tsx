@@ -82,23 +82,26 @@ function ProductSectionEmptyState() {
 
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
-  const [{ products: rawBestSellers }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
+  const [{ products: rawWeeklySelection }, { products: rawNewArrivals }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
     getProducts({ featured: true, limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
+    getProducts({ tri: 'nouveautes', limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
     getProductCountsByGender().catch(() => ({} as Record<string, number>)),
     getApprovedReviews(6).catch(() => []),
     getHomeUnivers().catch(() => []),
     getHomeHero(),
   ]);
 
-  // Si aucun produit featured en DB → fallback : 8 derniers produits
-  const { products: fallbackProducts } = rawBestSellers.length === 0
-    ? await getProducts({ limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 }))
-    : { products: [] };
-
   // Si BDD vide ou indisponible → produits démo (dev uniquement)
-  const dbProducts = rawBestSellers.length > 0 ? rawBestSellers : fallbackProducts;
-  const bestSellers = dbProducts.length > 0 ? dbProducts : DEV_MOCK_PRODUCTS;
-  const newArrivals = DEV_MOCK_PRODUCTS.length > 8 ? DEV_MOCK_PRODUCTS.slice(8) : bestSellers;
+  const mockNewArrivals = DEV_MOCK_PRODUCTS.slice(0, 8);
+  const mockWeeklySelection = DEV_MOCK_PRODUCTS.slice(8, 16);
+  const newArrivals = rawNewArrivals.length > 0 ? rawNewArrivals : mockNewArrivals;
+  let weeklySelection = rawWeeklySelection;
+  if (weeklySelection.length === 0) {
+    weeklySelection = rawNewArrivals;
+  }
+  if (weeklySelection.length === 0) {
+    weeklySelection = mockWeeklySelection.length > 0 ? mockWeeklySelection : mockNewArrivals;
+  }
 
   // Fusionner les compteurs réels avec le contenu éditorial
   // En dev sans BDD : compter depuis les mocks pour affichage cohérent
@@ -142,12 +145,91 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* ══ NOS UNIVERS — fond blanc, cartes chaudes ══ */}
+      {/* ══ SECTION 1 — nos nouveautés ══ */}
+      <section id="nouveautes" style={{ background: '#fff', padding: '8rem 0' }}>
+        <div className="container mx-auto">
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <span className="label">Nos nouveautés</span>
+              <h2
+                className="heading-display"
+                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
+              >
+                Dernières arrivées
+              </h2>
+            </div>
+            <Link href="/collections/nouveautes" className="btn-ghost" style={{ flexShrink: 0 }}>
+              Voir toutes les nouveautés
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+            {newArrivals.length === 0 ? (
+              <ProductSectionEmptyState />
+            ) : (
+              newArrivals.map((p) => (
+                <ProductCard
+                  key={p.slug}
+                  id={p.slug}
+                  name={p.name}
+                  brand={p.brand}
+                  price={p.price}
+                  originalPrice={p.originalPrice ?? undefined}
+                  image={p.images[0] ?? '/images/products/product-placeholder.svg'}
+                  category={p.gender ?? 'mixte'}
+                  inStock={p.stockQuantity > 0}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SECTION 2 — sélection de la semaine ══ */}
+      <section id="top-ventes" style={{ background: 'var(--offwhite)', padding: '8rem 0' }}>
+        <div className="container mx-auto">
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <span className="label">Sélection de la semaine</span>
+              <h2
+                className="heading-display"
+                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
+              >
+                Les coups de cœur VIP
+              </h2>
+            </div>
+            <Link href="/produits" className="btn-ghost" style={{ flexShrink: 0 }}>
+              Explorer la sélection
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+            {weeklySelection.length === 0 ? (
+              <ProductSectionEmptyState />
+            ) : (
+              weeklySelection.map((p) => (
+                <ProductCard
+                  key={p.slug}
+                  id={p.slug}
+                  name={p.name}
+                  brand={p.brand}
+                  price={p.price}
+                  originalPrice={p.originalPrice ?? undefined}
+                  image={p.images[0] ?? '/images/products/product-placeholder.svg'}
+                  category={p.gender ?? 'mixte'}
+                  inStock={p.stockQuantity > 0}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SECTION 3 — tout le catalogue ══ */}
       <section style={{ background: '#fff', padding: '8rem 0' }}>
         <div className="container mx-auto">
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '4rem', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
-              <span className="label">Nos univers</span>
+              <span className="label">Voir tout notre catalogue</span>
               <h2
                 style={{ marginTop: '0.625rem', fontSize: 'clamp(2rem,4vw,3rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
               >
@@ -220,90 +302,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ══ BESTSELLERS — fond crème ══ */}
-      <section id="top-ventes" style={{ background: 'var(--offwhite)', padding: '8rem 0' }}>
-        <div className="container mx-auto">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-            <div>
-              <span className="label">Nouveautés</span>
-              <h2
-                className="heading-display"
-                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
-              >
-                Nos dernières arrivées
-              </h2>
-            </div>
-            <Link href="/produits" className="btn-ghost" style={{ flexShrink: 0 }}>
-              Voir toutes les nouveautés
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-            {bestSellers.length === 0 ? (
-              <ProductSectionEmptyState />
-            ) : (
-              bestSellers.map((p) => (
-                <ProductCard
-                  key={p.slug}
-                  id={p.slug}
-                  name={p.name}
-                  brand={p.brand}
-                  price={p.price}
-                  originalPrice={p.originalPrice ?? undefined}
-                  image={p.images[0] ?? '/images/products/product-placeholder.svg'}
-                  category={p.gender ?? 'mixte'}
-                  inStock={p.stockQuantity > 0}
-                />
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ NOUVEAUTÉS 2 — sélection de la semaine ══ */}
-      <section style={{ background: '#fff', padding: '8rem 0' }}>
-        <div className="container mx-auto">
-
-          {/* En-tête */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-            <div>
-              <span className="label">Nouveautés</span>
-              <h2
-                className="heading-display"
-                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
-              >
-                La sélection de la semaine
-              </h2>
-            </div>
-            <Link href="/produits" className="btn-ghost" style={{ flexShrink: 0 }}>
-              Explorer tout le catalogue
-            </Link>
-          </div>
-
-          {/* Grille produits */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-            {newArrivals.length === 0 ? (
-              <ProductSectionEmptyState />
-            ) : (
-              newArrivals.map((p) => (
-                <ProductCard
-                  key={p.slug}
-                  id={p.slug}
-                  name={p.name}
-                  brand={p.brand}
-                  price={p.price}
-                  originalPrice={p.originalPrice ?? undefined}
-                  image={p.images[0] ?? '/images/products/product-placeholder.svg'}
-                  category={p.gender ?? 'mixte'}
-                  inStock={p.stockQuantity > 0}
-                />
-              ))
-            )}
-          </div>
-
-        </div>
-      </section>
-
-      {/* ══ TÉMOIGNAGES — fond crème, humain ══ */}
+      {/* ══ SECTION 4 — avis clients et témoignages ══ */}
       <section className="testimonials-section" style={{ background: 'var(--offwhite)' }}>
         <div className="container mx-auto">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
@@ -312,11 +311,18 @@ export default async function HomePage() {
               className="heading-display"
               style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)' }}
             >
-              Ils nous font confiance
+              Témoignages
             </h2>
           </div>
           <div className="testimonials-track grid md:grid-cols-3 gap-5" aria-label="Avis clients">
-            {reviews.map((t) => (
+            {reviews.length === 0 ? (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-secondary)', padding: '3rem 1rem' }}>
+                <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                  Les premiers témoignages seront publiés très bientôt.
+                </p>
+                <p>Partagez votre expérience après votre prochaine commande.</p>
+              </div>
+            ) : reviews.map((t) => (
               <div
                 key={t.id}
                 className="testimonial-card testimonial-slide"
@@ -347,23 +353,6 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ══ CITATION ÉDITORIALE — fond blanc ══ */}
-      <section style={{ background: '#fff', padding: '6rem 0', borderTop: '1px solid var(--line-light)', borderBottom: '1px solid var(--line-light)' }}>
-        <div className="container mx-auto" style={{ textAlign: 'center', maxWidth: '48rem', margin: '0 auto' }}>
-          <div style={{ width: 48, height: 1, background: 'var(--gold)', margin: '0 auto 2.5rem' }} />
-          <blockquote
-            className="heading-display"
-            style={{ fontSize: 'clamp(1.625rem,3vw,2.5rem)', color: 'var(--text-primary)', fontStyle: 'italic', lineHeight: 1.3 }}
-          >
-            &ldquo;Un parfum n&apos;est pas seulement un accessoire &mdash; c&apos;est la mémoire que vous laissez derrière vous.&rdquo;
-          </blockquote>
-          <div style={{ width: 48, height: 1, background: 'var(--gold)', margin: '2.5rem auto 1.5rem' }} />
-          <p style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-secondary)' }}>
-            VIP Parfumerie Bar &mdash; Abidjan
-          </p>
         </div>
       </section>
 

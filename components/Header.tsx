@@ -13,8 +13,16 @@ type NavLink = { label: string; href: string; children?: NavChild[] };
 
 const navLinks: NavLink[] = [
   { label: 'Accueil', href: '/' },
+  {
+    label: 'Services',
+    href: '/services',
+    children: [
+      { label: 'Quiz olfactif IA', href: '/services/quiz-olfactif', description: 'Trouvez votre signature' },
+      { label: 'Consultation privée', href: '/services/consultation', description: 'Sur rendez-vous' },
+      { label: 'Parfum personnalisé', href: '/services/creation-personnalisee', description: 'Création sur-mesure' },
+    ],
+  },
   { label: 'Boutique', href: '/produits' },
-  { label: 'À propos', href: '/a-propos' },
   {
     label: 'Collections',
     href: '/collections',
@@ -25,15 +33,7 @@ const navLinks: NavLink[] = [
       { label: 'Mixte', href: '/collections/mixte', description: 'Pour tous' },
     ],
   },
-  {
-    label: 'Services',
-    href: '/services',
-    children: [
-      { label: 'Quiz olfactif IA', href: '/services/quiz-olfactif', description: 'Trouvez votre signature' },
-      { label: 'Consultation privée', href: '/services/consultation', description: 'Sur rendez-vous' },
-      { label: 'Parfum personnalisé', href: '/services/creation-personnalisee', description: 'Création sur-mesure' },
-    ],
-  },
+  { label: 'À propos', href: '/a-propos' },
   { label: 'Contact', href: '/contact' },
 ];
 

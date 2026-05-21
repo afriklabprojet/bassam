@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/service';
+import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib/supabase/custom-order-items';
 import { createOrder } from '@/lib/supabase/orders';
 import { initiatePayment, mapProvider } from '@/lib/payment/jeko';
 
@@ -19,7 +21,12 @@ interface InitiateBody {
   phone: string;
   email?: string;
   notes?: string;
-  items: Array<{ productId: string; quantity: number; unitPrice: number }>;
+  items: IncomingOrderItem[];
+}
+
+function getGuestEmail(phone: string) {
+  const compactPhone = phone.replace(/\D/g, '').slice(-12) || `${Date.now()}`;
+  return `guest-${compactPhone}@vip-parfumerie.local`;
 }
 
 function validateBody(body: unknown): { data: InitiateBody } | { error: string } {
@@ -55,13 +62,6 @@ export async function POST(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Veuillez vous connecter pour passer une commande' },
-        { status: 401 }
-      );
-    }
-
     const raw = await request.json();
     const validated = validateBody(raw);
     if ('error' in validated) {
@@ -69,18 +69,26 @@ export async function POST(request: NextRequest) {
     }
 
     const d = validated.data;
-    const email = d.email ?? user.email ?? '';
+    const email = d.email ?? user?.email ?? getGuestEmail(d.phone);
+    const orderClient = createServiceClient();
+    const normalized = await normalizeOrderItemsForPersistence(orderClient, d.items);
+
+    if (!normalized.ok) {
+      return NextResponse.json({ error: normalized.error }, { status: 400 });
+    }
+
+    const notes = [d.notes, ...normalized.notes].filter(Boolean).join('\n\n');
 
     // ── 1. Create order with payment_status pending ───────────────────────
-    const { order, error: orderError } = await createOrder(user.id, {
+    const { order, error: orderError } = await createOrder(user?.id ?? null, {
       totalAmount: d.totalAmount,
       paymentMethod: 'mobile_money',
       shippingAddress: d.shippingAddress,
       phone: d.phone,
       email,
-      notes: d.notes,
-      items: d.items,
-    });
+      notes: notes || undefined,
+      items: normalized.items,
+    }, orderClient);
 
     if (orderError || !order) {
       return NextResponse.json(
@@ -106,7 +114,7 @@ export async function POST(request: NextRequest) {
     });
 
     // ── 3. Store Jeko transaction ID for webhook reconciliation ───────────
-    await supabase
+    await orderClient
       .from('orders')
       .update({ payment_reference: jekoRes.transactionId })
       .eq('id', order.id);

@@ -12,13 +12,21 @@ export default function PWAInstaller() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
-    const dismissed = window.localStorage.getItem('pwa-dismissed') === 'true';
+    const dismissed = globalThis.localStorage.getItem('pwa-dismissed') === 'true';
 
-    // Register service worker
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js');
-      });
+      if (process.env.NODE_ENV === 'development') {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => registration.unregister());
+        });
+        caches.keys().then((cacheNames) => {
+          cacheNames.forEach((cacheName) => caches.delete(cacheName));
+        });
+      } else {
+        globalThis.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
     }
 
     // Handle install prompt
@@ -33,16 +41,16 @@ export default function PWAInstaller() {
       }
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    globalThis.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // Handle app installed
-    window.addEventListener('appinstalled', () => {
+    globalThis.addEventListener('appinstalled', () => {
       setShowInstallPrompt(false);
       setDeferredPrompt(null);
     });
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      globalThis.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
 

@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -95,7 +96,7 @@ function aggregateQuantities(items: OrderItem[]): AggregateQuantitiesResult {
 
 async function buildVerifiedOrder(
   input: CreateOrderInput,
-  supabase: Awaited<ReturnType<typeof createClient>>
+  supabase: SupabaseClient
 ): Promise<BuildVerifiedOrderResult> {
   const aggregated = aggregateQuantities(input.items);
   if (!aggregated.ok) return { ok: false, error: aggregated.error };
@@ -152,8 +153,12 @@ async function buildVerifiedOrder(
 }
 
 /** Create a new order with items. */
-export async function createOrder(userId: string, input: CreateOrderInput): Promise<{ order: Order | null; error: string | null }> {
-  const supabase = await createClient();
+export async function createOrder(
+  userId: string | null,
+  input: CreateOrderInput,
+  supabaseClient?: SupabaseClient
+): Promise<{ order: Order | null; error: string | null }> {
+  const supabase = supabaseClient ?? await createClient();
   const verifiedOrder = await buildVerifiedOrder(input, supabase);
 
   if (!verifiedOrder.ok) {

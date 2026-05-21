@@ -39,13 +39,6 @@ const GUIDES = [
   },
 ];
 
-// ─── Code vestimentaire ───────────────────────────────────────────────────────
-const OCCASIONS = [
-  { oc: 'Bureau', conseil: 'Préférer les frais et boisés légers. Discrets mais présents.', ex: 'Bleu de Chanel EDP' },
-  { oc: 'Soirée', conseil: 'Les orientaux et boisés intenses dominent la nuit et les événements.', ex: 'Sauvage Elixir' },
-  { oc: 'Voyage', conseil: 'Un flacon de 50ml EDP dans votre bagage. Discret, polyvalent.', ex: 'Terre d’Hermès' },
-  { oc: 'Quotidien', conseil: 'Un eau de toilette frais — rafraichissant sans sur-saturer l’espace.', ex: 'Acqua di Giò' },
-];
 async function getHommeProducts(): Promise<Product[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -64,6 +57,10 @@ export default async function HommePage() {
     getHommeProducts(),
     getApprovedReviews(4).catch(() => []),
   ]);
+  const productCountSuffix = products.length > 1 ? 's' : '';
+  const productCountLabel = products.length > 0
+    ? `${products.length} référence${productCountSuffix}`
+    : 'Sélection disponible en boutique';
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
@@ -102,7 +99,7 @@ export default async function HommePage() {
                 fontSize: 'clamp(3rem, 7vw, 5.5rem)',
                 fontWeight: 300,
                 color: 'var(--surface)',
-                lineHeight: 1.0,
+                lineHeight: 1,
                 letterSpacing: '-0.02em',
                 marginBottom: '1.5rem',
               }}>
@@ -203,25 +200,6 @@ export default async function HommePage() {
         </div>
       </section>
 
-      {/* ── Code vestimentaire ────────────────────────────────────────────── */}
-      <section className="container mx-auto" style={{ padding: '4.5rem 0', borderBottom: '1px solid rgba(197,165,90,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-          <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-            Le bon parfum pour chaque moment
-          </span>
-        </div>
-        <div className="homme-occ-grid">
-          {OCCASIONS.map((oc) => (
-            <div key={oc.oc} style={{ padding: '1.5rem 0', borderBottom: '1px solid rgba(197,165,90,0.08)', display: 'grid', gridTemplateColumns: '120px 1fr auto', alignItems: 'center', gap: '1.5rem' }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600 }}>{oc.oc}</span>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{oc.conseil}</span>
-              <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '0.875rem', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>{oc.ex}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── Produits ─────────────────────────────────────────────────────── */}
       <section id="produits" className="container mx-auto" style={{ padding: '5rem 0' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -233,7 +211,7 @@ export default async function HommePage() {
               </span>
             </div>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-              {products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
+              {productCountLabel}
             </p>
           </div>
           <Link href="/produits?gender=homme" style={{
@@ -360,7 +338,6 @@ export default async function HommePage() {
           gap: 1px;
           background: rgba(197,165,90,0.08);
         }
-        .homme-occ-grid { display: block; }
         .homme-temo-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -369,7 +346,6 @@ export default async function HommePage() {
         @media (max-width: 900px) {
           .homme-hero-grid  { grid-template-columns: 1fr; gap: 2rem; }
           .homme-guide-grid { grid-template-columns: repeat(2, 1fr); }
-          .homme-occ-grid > div { grid-template-columns: 1fr !important; gap: 0.5rem !important; }
           .homme-temo-grid  { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {

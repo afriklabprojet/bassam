@@ -1,15 +1,19 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect, useMemo } from 'react';
+import type { CustomCreationSnapshot } from './custom-creation';
 
 export interface CartItem {
   id: string;
+  productId?: string;
   name: string;
   brand: string;
   price: number;
   image: string;
   quantity: number;
   slug: string;
+  isCustom?: boolean;
+  customization?: CustomCreationSnapshot;
 }
 
 export interface CartState {

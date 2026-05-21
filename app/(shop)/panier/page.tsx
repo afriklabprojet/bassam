@@ -9,6 +9,24 @@ function formatPrice(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
 }
 
+function getDiscountAmount(totalPrice: number, promoData: { type: 'percentage' | 'fixed'; value: number } | null, promoApplied: boolean) {
+  if (!promoApplied || !promoData) return 0;
+  if (promoData.type === 'percentage') return Math.round(totalPrice * promoData.value / 100);
+  return Math.min(promoData.value, totalPrice);
+}
+
+function getDiscountDisplay(promoData: { type: 'percentage' | 'fixed'; value: number } | null, promoApplied: boolean) {
+  if (!promoApplied || !promoData) return '';
+  if (promoData.type === 'percentage') return `${promoData.value}% de réduction`;
+  return `${formatPrice(promoData.value)} de réduction`;
+}
+
+function getSampleCount(totalPrice: number) {
+  if (totalPrice >= 100000) return 4;
+  if (totalPrice >= 50000) return 2;
+  return 0;
+}
+
 const TRUST_STRIP = [
   { icon: '◆', label: 'Authenticité garantie' },
   { icon: '◆', label: 'Paiement sécurisé' },
@@ -23,19 +41,11 @@ export default function CartPage() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoData, setPromoData] = useState<{ type: 'percentage' | 'fixed'; value: number } | null>(null);
   const shipping = totalPrice >= 50000 ? 0 : 2500;
-  const discountAmount = promoApplied && promoData
-    ? promoData.type === 'percentage'
-      ? Math.round(totalPrice * promoData.value / 100)
-      : Math.min(promoData.value, totalPrice)
-    : 0;
-  const discountDisplay = promoApplied && promoData
-    ? promoData.type === 'percentage'
-      ? `${promoData.value}% de réduction`
-      : `${formatPrice(promoData.value)} de réduction`
-    : '';
+  const discountAmount = getDiscountAmount(totalPrice, promoData, promoApplied);
+  const discountDisplay = getDiscountDisplay(promoData, promoApplied);
   const total = totalPrice - discountAmount + shipping;
 
-  const sampleCount = totalPrice >= 100000 ? 4 : totalPrice >= 50000 ? 2 : 0;
+  const sampleCount = getSampleCount(totalPrice);
 
   async function applyPromo() {
     if (!promoCode.trim()) return;
@@ -141,7 +151,20 @@ export default function CartPage() {
           {/* Left column: items */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '2rem', alignItems: 'start' }}>
             <div>
-              {items.map((item, index) => (
+              {items.map((item, index) => {
+                const productImage = (
+                  <div style={{ position: 'relative', width: '88px', height: '110px', borderRadius: 'var(--r-sm)', overflow: 'hidden', background: 'var(--surface)', border: item.isCustom ? '1px solid rgba(197,165,90,0.55)' : '1px solid var(--line-light)' }}>
+                    <Image
+                      src={item.image || '/images/products/product-placeholder.svg'}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                      sizes="88px"
+                    />
+                  </div>
+                );
+
+                return (
                 <div
                   key={item.id}
                   className="cart-page-item"
@@ -154,22 +177,23 @@ export default function CartPage() {
                   }}
                 >
                   {/* Image */}
-                  <Link href={`/produits/${item.slug}`} style={{ flexShrink: 0 }}>
-                    <div style={{ position: 'relative', width: '88px', height: '110px', borderRadius: 'var(--r-sm)', overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--line-light)' }}>
-                      <Image
-                        src={item.image || '/images/products/product-placeholder.svg'}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="88px"
-                      />
-                    </div>
-                  </Link>
+                  {item.isCustom ? (
+                    <div style={{ flexShrink: 0 }}>{productImage}</div>
+                  ) : (
+                    <Link href={`/produits/${item.slug}`} style={{ flexShrink: 0 }}>
+                      {productImage}
+                    </Link>
+                  )}
 
                   {/* Details */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', marginBottom: '0.25rem' }}>{item.brand}</p>
                     <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.0625rem', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.3, marginBottom: '0.875rem' }}>{item.name}</h3>
+                    {item.customization && (
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '-0.45rem 0 0.875rem' }}>
+                        {item.customization.formulaName} · {item.customization.family} · {item.customization.intensity} · Notes : {item.customization.notes.join(', ')}
+                      </p>
+                    )}
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
                       {/* Qty controls */}
@@ -203,7 +227,8 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
 
               <button
                 onClick={clearCart}

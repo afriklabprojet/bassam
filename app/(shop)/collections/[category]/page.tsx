@@ -69,11 +69,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 async function getProductsByCategory(category: string): Promise<Product[]> {
   const meta = CATEGORY_META[category];
   try {
-    const filters = meta?.gender
-      ? { gender: meta.gender as 'homme' | 'femme' | 'mixte', limit: 48 }
-      : category === 'nouveautes'
-      ? { tri: 'nouveautes' as const, limit: 48 }
-      : { limit: 48 };
+    let filters: Parameters<typeof getProducts>[0];
+    if (meta?.gender) {
+      filters = { gender: meta.gender, limit: 48 };
+    } else if (category === 'nouveautes') {
+      filters = { tri: 'nouveautes' as const, limit: 48 };
+    } else {
+      filters = { limit: 48 };
+    }
     const { products } = await getProducts(filters);
     return products;
   } catch {
@@ -81,7 +84,7 @@ async function getProductsByCategory(category: string): Promise<Product[]> {
   }
 }
 
-export default async function CategoryPage({ params }: PageProps) {
+export default async function CategoryPage({ params }: Readonly<PageProps>) {
   const { category } = await params;
   const meta = CATEGORY_META[category];
 

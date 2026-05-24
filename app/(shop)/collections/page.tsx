@@ -51,7 +51,7 @@ const COLLECTIONS = [
     label: 'Homme',
     eyebrow: 'Collection masculine',
     tagline: 'Boisés élégants, signatures puissantes',
-    description: 'Des sillages qui affirment sans imposer. De l'oud pur aux accords boisés contemporains, des parfums qui définissent le gentleman moderne.',
+    description: "Des sillages qui affirment sans imposer. De l'oud pur aux accords boisés contemporains, des parfums qui définissent le gentleman moderne.",
     accent: 'rgba(197,165,90,0.10)',
     textLight: true,
     icon: (
@@ -68,7 +68,7 @@ const COLLECTIONS = [
     label: 'Mixte',
     eyebrow: 'Au-delà des genres',
     tagline: 'La fragrance ne connaît pas de frontières',
-    description: 'Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l'instinct, sans convention.',
+    description: "Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l'instinct, sans convention.",
     accent: 'rgba(197,165,90,0.10)',
     textLight: true,
     icon: (

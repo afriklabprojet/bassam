@@ -132,7 +132,7 @@ describe('POST /api/payment/initiate — validation', () => {
   });
 
   it('rejette un numéro Mobile Money trop court', async () => {
-    const res = await POST(makeRequest({ ...VALID_BODY, mobileNumber: '123' }));
+    const res = await POST(makeRequest({ ...VALID_BODY, phone: '123' }));
     expect(res.status).toBe(400);
     const body = await res.json() as { error: string };
     expect(body.error).toMatch(/mobile money/i);

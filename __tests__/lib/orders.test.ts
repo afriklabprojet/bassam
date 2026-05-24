@@ -28,8 +28,16 @@ const mockFrom = vi.fn((table: string) => {
   return {};
 });
 
+const mockServiceFrom = vi.fn(() => ({
+  select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+}));
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve({ from: mockFrom })),
+}));
+
+vi.mock('@/lib/supabase/service', () => ({
+  createServiceClient: vi.fn(() => ({ from: mockServiceFrom })),
 }));
 
 import { createOrder } from '@/lib/supabase/orders';
@@ -96,6 +104,7 @@ describe('createOrder', () => {
 
     await createOrder('user-1', {
       ...baseInput,
+      shippingModeId: 'express',
       items: [
         { productId: PRODUCT_ID, quantity: 1, unitPrice: 1 },
         { productId: SECOND_PRODUCT_ID, quantity: 1, unitPrice: 1 },

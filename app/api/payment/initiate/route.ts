@@ -37,6 +37,7 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
   if (!['orange', 'mtn', 'wave', 'moov', 'djamo'].includes(b.paymentMethod as string))
     return { error: 'Opérateur Mobile Money invalide' };
   if (!b.phone || typeof b.phone !== 'string') return { error: 'Numéro de téléphone requis' };
+  if ((b.phone as string).replace(/\D/g, '').length < 8) return { error: 'Numéro Mobile Money invalide' };
   if (!Array.isArray(b.items) || b.items.length === 0)
     return { error: 'Au moins un article requis' };
 

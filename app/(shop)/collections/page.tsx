@@ -7,7 +7,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Collections | VIP Parfumerie Bar',
-  description: 'Explorez nos collections de parfums de luxe — Femme, Homme, Mixte et les dernières nouveautés. Livraison en Afrique de l’Ouest.',
+  description: "Explorez nos collections de parfums de luxe — Femme, Homme, Mixte et les dernières nouveautés. Livraison en Afrique de l'Ouest.",
 };
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ const COLLECTIONS = [
     label: 'Femme',
     eyebrow: 'Collection féminine',
     tagline: 'Floraux enivrants, orientaux profonds',
-    description: 'De la rose de Grasse aux muscs orientaux, une sélection de fragrances féminines qui incarnent l’élégance à son sommet.',
+    description: "De la rose de Grasse aux muscs orientaux, une sélection de fragrances féminines qui incarnent l'élégance à son sommet.",
     accent: 'rgba(197,165,90,0.12)',
     textLight: true,
     icon: (
@@ -51,7 +51,7 @@ const COLLECTIONS = [
     label: 'Homme',
     eyebrow: 'Collection masculine',
     tagline: 'Boisés élégants, signatures puissantes',
-    description: 'Des sillages qui affirment sans imposer. De l’oud pur aux accords boisés contemporains, des parfums qui définissent le gentleman moderne.',
+    description: 'Des sillages qui affirment sans imposer. De l'oud pur aux accords boisés contemporains, des parfums qui définissent le gentleman moderne.',
     accent: 'rgba(197,165,90,0.10)',
     textLight: true,
     icon: (
@@ -68,7 +68,7 @@ const COLLECTIONS = [
     label: 'Mixte',
     eyebrow: 'Au-delà des genres',
     tagline: 'La fragrance ne connaît pas de frontières',
-    description: 'Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l’instinct, sans convention.',
+    description: 'Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l'instinct, sans convention.',
     accent: 'rgba(197,165,90,0.10)',
     textLight: true,
     icon: (
@@ -197,12 +197,12 @@ export default async function CollectionsPage() {
       </section>
 
       {/* ── Quiz CTA compact ─────────────────────────────────────────────── */}
-      <section style={{ padding: ‘2.5rem 0’, borderTop: ‘1px solid rgba(197,165,90,0.10)’ }}>
-        <div className="container mx-auto" style={{ textAlign: ‘center’ }}>
+      <section style={{ padding: '2.5rem 0', borderTop: '1px solid rgba(197,165,90,0.10)' }}>
+        <div className="container mx-auto" style={{ textAlign: 'center' }}>
           <Link href="/services/quiz-olfactif" style={{
-            display: ‘inline-flex’, alignItems: ‘center’, gap: 10,
-            fontFamily: ‘var(--font-sans)’, fontSize: ‘0.65rem’, letterSpacing: ‘0.2em’, textTransform: ‘uppercase’,
-            color: ‘var(--gold)’, textDecoration: ‘none’, fontWeight: 500,
+            display: 'inline-flex', alignItems: 'center', gap: 10,
+            fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+            color: 'var(--gold)', textDecoration: 'none', fontWeight: 500,
           }}>
             Pas s&ucirc;r(e) de votre collection&nbsp;? Faites le quiz olfactif gratuit
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>

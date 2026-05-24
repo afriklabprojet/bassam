@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 
 interface ProductOption {
   id: string;
@@ -287,7 +288,7 @@ export default function AdminInventaire() {
                           {/* Thumbnail */}
                           <div className="relative shrink-0 rounded-lg overflow-hidden" style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.04)', border: BORDER }}>
                             {thumb ? (
-                              <Image src={thumb} alt={displayName} fill sizes="40px" className="object-cover" />
+                              <Image src={thumb} alt={displayName} fill sizes="40px" className="object-cover" unoptimized={shouldBypassNextImageOptimization(thumb)} />
                             ) : (
                               <div className="flex items-center justify-center h-full" style={{ color: '#333', fontSize: '1rem' }}>🧴</div>
                             )}
@@ -360,7 +361,7 @@ export default function AdminInventaire() {
                     {selectedProduct && (
                       <div className="relative shrink-0 rounded-lg overflow-hidden" style={{ width: 36, height: 36, background: CARD_BG, border: BORDER }}>
                         {selectedProduct.images?.[0] ? (
-                          <Image src={selectedProduct.images[0]} alt={selectedProduct.name} fill sizes="36px" className="object-cover" />
+                          <Image src={selectedProduct.images[0]} alt={selectedProduct.name} fill sizes="36px" className="object-cover" unoptimized={shouldBypassNextImageOptimization(selectedProduct.images[0])} />
                         ) : <div className="flex items-center justify-center h-full" style={{ color: '#555' }}>🧴</div>}
                       </div>
                     )}
@@ -391,7 +392,7 @@ export default function AdminInventaire() {
                         >
                           <div className="relative shrink-0 rounded-md overflow-hidden" style={{ width: 32, height: 32, background: CARD_BG }}>
                             {p.images?.[0] ? (
-                              <Image src={p.images[0]} alt={p.name} fill sizes="32px" className="object-cover" />
+                              <Image src={p.images[0]} alt={p.name} fill sizes="32px" className="object-cover" unoptimized={shouldBypassNextImageOptimization(p.images[0])} />
                             ) : <div className="flex items-center justify-center h-full" style={{ color: '#444', fontSize: '0.75rem' }}>🧴</div>}
                           </div>
                           <span style={{ color: '#ddd', fontSize: '0.8rem' }}>{p.name}</span>

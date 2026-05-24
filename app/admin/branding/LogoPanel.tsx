@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -188,7 +189,7 @@ function AssetCard({
               src={displayUrl}
               alt={label}
               fill
-              unoptimized={displayUrl.startsWith('data:')}
+              unoptimized={shouldBypassNextImageOptimization(displayUrl)}
               sizes={`${imgSize}px`}
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               onError={(e) => {

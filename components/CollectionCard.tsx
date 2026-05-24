@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 
 interface CollectionCardProps {
   name: string;
@@ -37,6 +38,7 @@ export default function CollectionCard({
           fill
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 33vw"
+          unoptimized={shouldBypassNextImageOptimization(image)}
         />
         {/* Dark gradient overlay */}
         <div

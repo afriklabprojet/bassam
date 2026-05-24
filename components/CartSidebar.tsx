@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 
 const fmt = (p: number) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(p);
@@ -182,7 +183,7 @@ export default function CartSidebar() {
                       border: item.isCustom ? '1px solid rgba(197,165,90,0.55)' : '1px solid var(--line-light)',
                     }}
                   >
-                    <Image src={item.image} alt={item.name} fill className="object-cover" sizes="76px" />
+                    <Image src={item.image} alt={item.name} fill className="object-cover" sizes="76px" unoptimized={shouldBypassNextImageOptimization(item.image)} />
                   </div>
                 );
 

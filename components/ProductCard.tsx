@@ -1,12 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { normalizeProductImage } from '@/lib/product-images';
+import { useCart } from '@/lib/cart-context';
 
 interface ProductCardProps {
   id: string;
+  productId?: string;
   name: string;
   brand: string;
   price: number;
@@ -18,6 +21,7 @@ interface ProductCardProps {
 
 export default function ProductCard({
   id,
+  productId,
   name,
   brand,
   price,
@@ -26,6 +30,9 @@ export default function ProductCard({
   category,
   inStock,
 }: Readonly<ProductCardProps>) {
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
+
   const discount = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
@@ -37,6 +44,23 @@ export default function ProductCard({
   } as const;
   const catLabel = categoryLabels[category];
   const productImage = normalizeProductImage(image);
+
+  function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!inStock || added) return;
+    addItem({
+      id: `${productId ?? id}-${Date.now()}`,
+      productId: productId ?? id,
+      name,
+      brand,
+      price,
+      image: productImage,
+      slug: id,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  }
 
   return (
     <Link
@@ -60,6 +84,7 @@ export default function ProductCard({
           fill
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          unoptimized={shouldBypassNextImageOptimization(productImage)}
         />
 
         {/* Badges */}
@@ -122,42 +147,89 @@ export default function ProductCard({
         <div
           className="absolute inset-0 product-card-overlay"
           style={{
-            background: 'linear-gradient(to top, rgba(8,8,8,0.65) 0%, rgba(8,8,8,0.15) 35%, transparent 60%)',
+            background: 'linear-gradient(to top, rgba(8,8,8,0.72) 0%, rgba(8,8,8,0.15) 40%, transparent 65%)',
             opacity: 0,
             transition: 'opacity 0.4s cubic-bezier(0.4,0,0.2,1)',
             zIndex: 1,
           }}
         />
 
-        {/* Hover CTA */}
+        {/* Hover CTA — bottom zone */}
         <div
-          className="absolute inset-x-0 bottom-0 flex items-center justify-center product-card-cta"
+          className="absolute inset-x-0 bottom-0 product-card-cta"
           style={{
-            padding: '0 16px 20px',
+            padding: '0 12px 14px',
             opacity: 0,
-            transform: 'translateY(8px)',
+            transform: 'translateY(6px)',
             transition: 'opacity 0.35s, transform 0.35s cubic-bezier(0.4,0,0.2,1)',
             zIndex: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 7,
           }}
         >
+          {/* Bouton Ajouter au panier */}
+          {inStock && (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                width: '100%',
+                height: 38,
+                background: added ? 'rgba(34,197,94,0.85)' : 'var(--gold)',
+                color: added ? '#fff' : 'var(--noir)',
+                border: 'none',
+                borderRadius: '3px',
+                fontSize: '0.625rem',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                transition: 'background 0.25s',
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              {added ? (
+                <>
+                  <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  Ajouté
+                </>
+              ) : (
+                <>
+                  <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+                  </svg>
+                  Ajouter au panier
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Lien Découvrir */}
           <span style={{
             display: 'inline-flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: 6,
             fontSize: '0.6875rem',
             fontWeight: 500,
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: '#fff',
-            padding: '9px 20px',
-            border: '1px solid rgba(255,255,255,0.4)',
+            padding: '8px 20px',
+            border: '1px solid rgba(255,255,255,0.3)',
             borderRadius: '3px',
             backdropFilter: 'blur(6px)',
-            background: 'rgba(255,255,255,0.08)',
-            transition: 'background 0.2s, border-color 0.2s',
+            background: 'rgba(255,255,255,0.06)',
           }}>
-            Découvrir
-            <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+            Voir le produit
+            <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
             </svg>
           </span>

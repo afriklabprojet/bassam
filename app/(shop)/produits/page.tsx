@@ -236,6 +236,7 @@ function ProduitsContent() {
                 <ProductCard
                   key={product.id}
                   id={product.slug}
+                  productId={product.id}
                   name={product.name}
                   brand={product.brand}
                   price={product.price}

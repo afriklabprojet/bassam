@@ -49,14 +49,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   try {
     const product = await getProductBySlug(slug);
     if (product) {
+      const desc = product.description?.slice(0, 155) || `Achetez ${product.name} de ${product.brand} chez VIP Parfumerie Bar à Abidjan. Authentique, livraison Côte d'Ivoire.`;
       return {
-        title: `${product.name} - ${product.brand} | VIP Parfumerie Bar`,
-        description: product.description?.slice(0, 160) || `Achetez ${product.name} de ${product.brand} chez VIP Parfumerie Bar. Livraison rapide en Afrique.`,
+        title: `${product.name} - ${product.brand} | VIP Parfumerie Bar Abidjan`,
+        description: desc,
+        keywords: `${product.name}, ${product.brand}, parfum Abidjan, acheter ${product.brand} Côte d'Ivoire, parfum luxe Afrique`,
+        alternates: { canonical: `${BASE_URL}/produits/${product.slug}` },
         openGraph: {
-          title: `${product.name} - ${product.brand}`,
-          description: product.description?.slice(0, 160) || `Parfum de luxe authentique. Livraison en Afrique de l'Ouest.`,
+          title: `${product.name} — ${product.brand} | VIP Parfumerie Bar`,
+          description: desc,
           images: product.images[0] ? [{ url: product.images[0] }] : [],
           type: 'website',
+          locale: 'fr_CI',
         },
       };
     }
@@ -80,7 +84,7 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
   const relatedProducts = await getRelatedProducts(product);
 
   // Schema.org JSON-LD — Product
-  const jsonLd = {
+  const productLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
@@ -95,16 +99,29 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
       availability: product.stockQuantity > 0
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
-      seller: { '@type': 'Organization', name: 'VIP Parfumerie Bar' },
+      seller: {
+        '@type': 'Organization',
+        name: 'VIP Parfumerie Bar',
+        '@id': `${BASE_URL}/#organization`,
+      },
+      areaServed: { '@type': 'Country', name: 'Côte d\'Ivoire' },
     },
+  };
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${BASE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Produits', item: `${BASE_URL}/produits` },
+      { '@type': 'ListItem', position: 3, name: product.name, item: `${BASE_URL}/produits/${product.slug}` },
+    ],
   };
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <ProductDetailClient slug={slug} initialProduct={product} relatedProducts={relatedProducts} />
     </>
   );

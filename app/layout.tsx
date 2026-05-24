@@ -87,6 +87,7 @@ export default function RootLayout({
     >
       <head>
         <BrandingInjector />
+        <meta name="google-adsense-account" content="ca-pub-6231112370273982" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#C5A55A" />
         <link rel="icon" href="/icons/favicon.ico" sizes="any" />

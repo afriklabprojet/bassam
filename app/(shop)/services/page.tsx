@@ -5,10 +5,13 @@ import { getServicesContent } from '@/lib/supabase/services-content';
 
 export const dynamic = 'force-dynamic';
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
+
 export const metadata: Metadata = {
-  title: 'Services \u2014 VIP Parfumerie Bar',
-  description:
-    "Découvrez nos services premium : quiz olfactif IA, consultation privée et création de parfum sur-mesure. L'expertise du luxe à votre service.",
+  title: 'Services — VIP Parfumerie Bar Abidjan',
+  description: "Quiz olfactif IA, consultation privée et création de parfum sur-mesure à Abidjan. L'expertise du luxe à votre service en Côte d'Ivoire.",
+  keywords: "parfum sur-mesure Abidjan, consultation parfum Côte d'Ivoire, quiz olfactif, création parfum personnalisé Abidjan",
+  alternates: { canonical: `${BASE_URL}/services` },
 };
 
 /* ─── Data ───────────────────────────────────────────────── */
@@ -16,6 +19,29 @@ export const metadata: Metadata = {
 const services = [
   {
     num: '01',
+    slug: 'creation-personnalisee',
+    titre: 'Création Personnalisée',
+    accroche: 'Un parfum unique, le vôtre.',
+    description:
+      "Nous composons pour vous une fragrance exclusive — accord sur-mesure, numéroté. Un objet de luxe signé à votre nom.",
+    details: [
+      'Formulation artisanale exclusive',
+      'Accord & notes sur-mesure',
+      'Coffret luxe avec certificat',
+      'Idéal comme cadeau prestige',
+    ],
+    cta: 'Créer mon parfum',
+    tag: 'Sur-mesure',
+    gradient: 'linear-gradient(135deg, #1a1a1a 0%, #2d2410 100%)',
+    dot: '#C5A55A',
+    icon: (
+      <svg width={32} height={32} fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+      </svg>
+    ),
+  },
+  {
+    num: '02',
     slug: 'quiz-olfactif',
     titre: 'Quiz Olfactif IA',
     accroche: 'Votre signature en 5 minutes.',
@@ -29,21 +55,21 @@ const services = [
     ],
     cta: 'Démarrer le quiz',
     tag: 'Gratuit',
+    gradient: 'linear-gradient(135deg, #F9EFE8 0%, #EDD9C8 100%)',
+    dot: '#C5A55A',
     icon: (
-      <svg width={28} height={28} fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24" aria-hidden="true">
+      <svg width={32} height={32} fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
       </svg>
     ),
-    bg: 'var(--noir)',
-    light: false,
   },
   {
-    num: '02',
+    num: '03',
     slug: 'consultation',
     titre: 'Consultation Privée',
-    accroche: 'L\u2019expertise à votre écoute.',
+    accroche: 'L’expertise à votre écoute.',
     description:
-      "Un rendez-vous exclusif avec notre experte parfumerie. Nous construisons ensemble votre garde-robe olfactive, selon votre personnalité, vos envies et votre budget.",
+      "Un rendez-vous exclusif avec notre experte parfumerie. Nous construisons ensemble votre garde-robe olfactive, selon votre personnalité et vos envies.",
     details: [
       'Séance de 60 à 90 minutes',
       'Analyse de votre profil olfactif',
@@ -52,45 +78,16 @@ const services = [
     ],
     cta: 'Prendre rendez-vous',
     tag: 'Sur rendez-vous',
+    gradient: 'linear-gradient(135deg, #EEF1F5 0%, #D6DDE7 100%)',
+    dot: '#7896B2',
     icon: (
-      <svg width={28} height={28} fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24" aria-hidden="true">
+      <svg width={32} height={32} fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
       </svg>
     ),
-    bg: 'var(--offwhite)',
-    light: true,
-  },
-  {
-    num: '03',
-    slug: 'creation-personnalisee',
-    titre: 'Création Personnalisée',
-    accroche: 'Un parfum unique, le vôtre.',
-    description:
-      "Nous composons pour vous une fragrance exclusive — accord sur-mesure, flacon gravé, coffret cadeau. Un objet de luxe signé à votre nom.",
-    details: [
-      'Formulation artisanale exclusive',
-      'Flacon numéroté & gravé à votre nom',
-      'Coffret luxe avec certificat',
-      'Idéal comme cadeau prestige',
-    ],
-    cta: 'Créer mon parfum',
-    tag: 'Sur-mesure',
-    icon: (
-      <svg width={28} height={28} fill="none" stroke="currentColor" strokeWidth={1.2} viewBox="0 0 24 24" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
-      </svg>
-    ),
-    bg: 'var(--noir-soft)',
-    light: false,
   },
 ];
 
-const stats = [
-  { v: '2\u202Fmin', l: 'Temps moyen quiz' },
-  { v: '98%', l: 'Satisfaction clients' },
-  { v: '500+', l: 'Consultations réalisées' },
-  { v: '3', l: 'Services exclusifs' },
-];
 
 /* ─── Page ───────────────────────────────────────────────── */
 
@@ -101,7 +98,6 @@ export default async function ServicesPage() {
   ]);
   const featuredReview = reviews[0] ?? null;
 
-  // Merge DB content over hardcoded fallbacks
   const servicesData = services.map((s) => {
     const db = servicesContent.find((c) => c.slug === s.slug);
     return {
@@ -151,155 +147,100 @@ export default async function ServicesPage() {
             <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>à votre mesure.</em>
           </h1>
 
-          <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, maxWidth: 540, margin: '0 0 52px' }}>
+          <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, maxWidth: 540, margin: 0 }}>
             Du quiz de découverte à la création exclusive, nos services vous guident vers
-            la fragrance qui vous ressemble. Une expérience olfactive personnalisée,
-            pensée pour vous.
+            la fragrance qui vous ressemble.
           </p>
-
-          {/* Stats */}
-          <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
-            {stats.map((s) => (
-              <div key={s.l} className="svc-stat">
-                <p style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 300, color: 'var(--gold)', margin: 0, lineHeight: 1 }}>{s.v}</p>
-                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', margin: '5px 0 0', transition: 'color 0.3s ease' }}>{s.l}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════════════
-          SERVICES — cards empilées
+          SERVICES — cartes style catalogue
       ══════════════════════════════════════════════════ */}
-      {servicesData.map((s, i) => (
-        <section key={s.slug} style={{ background: s.bg, padding: '96px 0', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-          <div className="container">
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '80px',
-              alignItems: 'center',
-            }} className={`svc-grid${i}`}>
-
-              {/* Texte */}
-              <div style={{ order: i % 2 === 0 ? 0 : 1 }} className="svc-txt">
-                {/* Numéro + eyebrow */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-                  <span style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: '4rem',
-                    fontWeight: 300,
-                    color: s.light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)',
-                    lineHeight: 1,
-                  }}>{s.num}</span>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                      <div style={{ width: 18, height: '1px', background: 'var(--gold)' }} />
-                      <span style={{ fontSize: '0.5625rem', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>{s.tag}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <h2 style={{
-                  fontFamily: 'var(--font-serif)',
-                  fontSize: 'clamp(2rem, 3.5vw, 3rem)',
-                  fontWeight: 300,
-                  color: s.light ? 'var(--text-primary)' : '#fff',
-                  lineHeight: 1.1,
-                  margin: '0 0 8px',
-                }}>
-                  {s.titre}
-                </h2>
-                <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--gold)', margin: '0 0 20px' }}>{s.accroche}</p>
-
-                <p style={{ fontSize: '0.9375rem', color: s.light ? 'var(--text-secondary)' : 'rgba(255,255,255,0.5)', lineHeight: 1.8, margin: '0 0 32px', maxWidth: 440 }}>
-                  {s.description}
-                </p>
-
-                {/* Liste détails */}
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {s.details.map((d) => (
-                    <li key={d} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <svg width={14} height={14} fill="none" stroke="var(--gold)" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                      <span style={{ fontSize: '0.875rem', color: s.light ? 'var(--text-secondary)' : 'rgba(255,255,255,0.55)' }}>{d}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href={`/services/${s.slug}`}
-                  className="svc-cta-gold"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 10,
-                    height: 48, padding: '0 28px',
-                    background: 'var(--gold)', color: 'var(--noir)',
-                    textDecoration: 'none',
-                    fontSize: '0.6875rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700,
-                    borderRadius: 3,
-                    transition: 'background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
-                  }}
-                >
-                  {s.cta}
-                  <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
-                  </svg>
-                </Link>
-              </div>
-
-              {/* Carte visuelle */}
-              <div
-                style={{ order: i % 2 === 0 ? 1 : 0 }}
-                className="svc-card svc-card-premium"
+      <section style={{ background: '#fff', padding: '80px 0' }}>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }} className="svc-cards-grid">
+            {servicesData.map((s) => (
+              <Link
+                key={s.slug}
+                href={`/services/${s.slug}`}
+                className="group svc-card-link"
+                style={{ display: 'block', textDecoration: 'none', borderRadius: 'var(--r-lg)', border: '1px solid var(--line-light)', overflow: 'hidden', background: '#fff', transition: 'box-shadow 0.3s ease, transform 0.3s ease' }}
               >
-                <div className="svc-card-inner" style={{
-                  aspectRatio: '4/5',
-                  maxHeight: 520,
-                  background: s.light ? 'var(--noir)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${s.light ? 'transparent' : 'rgba(197,165,90,0.12)'}`,
-                  borderRadius: 3,
+                {/* Visuel couleur */}
+                <div style={{
+                  height: '11rem',
+                  background: s.gradient,
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 24,
                   position: 'relative',
                   overflow: 'hidden',
-                  transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
                 }}>
-                  {/* Background glow */}
-                  <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(197,165,90,0.1) 0%, transparent 70%)', pointerEvents: 'none' }} aria-hidden="true" />
-                  {/* Corner ornaments */}
-                  <div style={{ position: 'absolute', top: 16, left: 16, width: 30, height: 30, borderTop: '1px solid rgba(197,165,90,0.4)', borderLeft: '1px solid rgba(197,165,90,0.4)' }} aria-hidden="true" />
-                  <div style={{ position: 'absolute', bottom: 16, right: 16, width: 30, height: 30, borderBottom: '1px solid rgba(197,165,90,0.4)', borderRight: '1px solid rgba(197,165,90,0.4)' }} aria-hidden="true" />
-
-                  {/* Icon */}
+                  <div aria-hidden style={{
+                    position: 'absolute', bottom: '-3rem', right: '-3rem',
+                    width: '9rem', height: '9rem',
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.15)',
+                  }} />
                   <div style={{
-                    width: 80, height: 80, borderRadius: '50%',
-                    border: '1px solid rgba(197,165,90,0.3)',
+                    width: 72, height: 72,
+                    borderRadius: '50%',
+                    border: '1px solid rgba(197,165,90,0.4)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--gold)',
+                    color: s.slug === 'creation-personnalisee' ? 'var(--gold)' : 'var(--gold)',
                     position: 'relative', zIndex: 1,
+                    background: s.slug === 'creation-personnalisee' ? 'rgba(197,165,90,0.1)' : 'rgba(255,255,255,0.6)',
                   }}>
                     {s.icon}
                   </div>
+                </div>
 
-                  <div style={{ textAlign: 'center', position: 'relative', zIndex: 1, padding: '0 32px' }}>
-                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 300, color: '#fff', margin: '0 0 8px' }}>{s.titre}</p>
-                    <p style={{ fontSize: '0.75rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)' }}>{s.tag}</p>
+                {/* Corps de la carte */}
+                <div style={{ padding: '1.5rem', background: '#fff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
+                    <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      {s.accroche}
+                    </p>
                   </div>
 
-                  {/* Decorative horizontal rule */}
-                  <div style={{ width: 40, height: '1px', background: 'rgba(197,165,90,0.4)', position: 'relative', zIndex: 1 }} aria-hidden="true" />
-                </div>
-              </div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+                    {s.titre}
+                  </h2>
 
-            </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.125rem' }}>
+                    {s.description}
+                  </p>
+
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.25rem', display: 'flex', flexDirection: 'column', gap: 7 }}>
+                    {s.details.map((d) => (
+                      <li key={d} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <svg width={12} height={12} fill="none" stroke="var(--gold)" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>{d}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '1rem', borderTop: '1px solid var(--line-light)' }}>
+                    <span style={{ fontSize: '0.625rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: 20, background: 'var(--offwhite)', color: 'var(--text-secondary)', border: '1px solid var(--line-light)' }}>
+                      {s.tag}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--gold)', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      {s.cta}
+                      <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-        </section>
-      ))}
+        </div>
+      </section>
 
       {/* ══════════════════════════════════════════════════
           TESTIMONIAL BAND
@@ -338,7 +279,7 @@ export default async function ServicesPage() {
           <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', margin: '0 0 36px' }}>Gratuit, rapide, sans engagement.</p>
           <Link
             href="/services/quiz-olfactif"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 52, padding: '0 32px', background: 'var(--noir)', color: '#fff', textDecoration: 'none', fontSize: '0.6875rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 3 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 52, padding: '0 32px', background: 'var(--noir)', color: '#fff', textDecoration: 'none', fontSize: '0.6875rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 'var(--r-sm)' }}
           >
             Démarrer le quiz gratuit
             <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
@@ -349,9 +290,15 @@ export default async function ServicesPage() {
       </section>
 
       <style>{`
-        @media (max-width: 767px) {
-          .svc-grid0, .svc-grid1, .svc-grid2 { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .svc-card { display: none; }
+        @media (max-width: 900px) {
+          .svc-cards-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 600px) {
+          .svc-cards-grid { grid-template-columns: 1fr !important; }
+        }
+        .svc-card-link:hover {
+          box-shadow: 0 12px 40px rgba(8,8,8,0.1);
+          transform: translateY(-2px);
         }
       `}</style>
     </main>

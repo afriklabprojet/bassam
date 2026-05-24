@@ -5,10 +5,13 @@ import { getAboutStats, getAboutValeurs, getAboutEngagements } from '@/lib/supab
 // ISR — revalide toutes les 5 minutes
 export const revalidate = 300;
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
+
 export const metadata: Metadata = {
-  title: 'À propos — VIP Parfumerie Bar',
-  description:
-    "Découvrez l\u2019histoire de VIP Parfumerie Bar, votre maison de parfums de luxe authentiques au cœur de l\u2019Afrique de l\u2019Ouest.",
+  title: 'À propos — VIP Parfumerie Bar Abidjan',
+  description: "Découvrez l'histoire de VIP Parfumerie Bar, votre maison de parfums de luxe authentiques au cœur d'Abidjan et de l'Afrique de l'Ouest.",
+  keywords: "parfumerie luxe Abidjan, histoire VIP Parfumerie Bar, parfums authentiques Côte d'Ivoire",
+  alternates: { canonical: `${BASE_URL}/a-propos` },
 };
 
 /* ─── Données (DB avec fallback sur les défauts) ──────────── */

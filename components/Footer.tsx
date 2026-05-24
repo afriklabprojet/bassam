@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useSiteSettings } from '@/lib/site-settings-context';
 import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
 
@@ -111,6 +112,7 @@ export default function Footer() {
                   alt=""
                   fill
                   sizes="60px"
+                  unoptimized={shouldBypassNextImageOptimization(settings.logo_url)}
                   style={{ objectFit: 'cover', objectPosition: 'center 22%' }}
                 />
               </div>

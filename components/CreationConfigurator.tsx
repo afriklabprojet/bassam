@@ -119,7 +119,7 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
   const formula = cfg.formulas.find((f) => f.id === draft.formulaId) ?? cfg.formulas[1] ?? cfg.formulas[0];
   const family = cfg.families.find((item) => item.id === draft.familyId) ?? cfg.families[0];
   const bottle = cfg.bottles.find((item) => item.id === draft.bottleId) ?? cfg.bottles[0];
-  const progress = Math.round(((activeStep + 1) / 5) * 100);
+  const progress = Math.round(((activeStep + 1) / 4) * 100);
 
   const validation = useMemo(() => {
     const missing: string[] = [];
@@ -185,7 +185,7 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
           <div style={{ background: '#fff', border: '1px solid var(--line-light)', borderRadius: 'var(--r-md)', overflow: 'hidden' }}>
             <div style={{ padding: '22px 24px', borderBottom: '1px solid var(--line-light)', background: 'var(--offwhite)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 12 }}>
-                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600 }}>Etape {activeStep + 1} / 5</p>
+                <p style={{ fontSize: '0.6875rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600 }}>Etape {activeStep + 1} / 4</p>
                 <p style={{ fontSize: '0.75rem', color: 'var(--gold-dark)', fontWeight: 600 }}>{progress}% pret</p>
               </div>
               <div style={{ height: 3, background: 'var(--line-light)', borderRadius: 999, overflow: 'hidden' }}>
@@ -194,7 +194,7 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
             </div>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '18px 24px 0' }}>
-              {['Formule', 'Accord', 'Notes', 'Flacon', 'Signature'].map((label, index) => (
+              {['Accord', 'Notes', 'Formule', 'Signature'].map((label, index) => (
                 <button
                   key={label}
                   type="button"
@@ -217,20 +217,8 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
             </div>
 
             <div style={{ padding: 24 }}>
+              {/* Étape 0 — Accord */}
               {activeStep === 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
-                  {cfg.formulas.map((item) => (
-                    <button key={item.id} type="button" onClick={() => update({ formulaId: item.id })} style={{ ...cardStyle(draft.formulaId === item.id), textAlign: 'left', borderRadius: 'var(--r-md)', padding: 18, cursor: 'pointer' }}>
-                      <p style={{ fontSize: '0.625rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-pale)', marginBottom: 6 }}>{item.volume}</p>
-                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 400, marginBottom: 6 }}>{item.name}</h3>
-                      <p style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold-dark)', fontSize: '1.25rem', marginBottom: 10 }}>{formatPrice(item.price)}</p>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', lineHeight: 1.55 }}>{item.description}</p>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {activeStep === 1 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 12 }}>
                     {cfg.families.map((item) => (
@@ -253,7 +241,8 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
                 </div>
               )}
 
-              {activeStep === 2 && (
+              {/* Étape 1 — Notes */}
+              {activeStep === 1 && (
                 <div>
                   <p style={{ color: 'var(--text-secondary)', marginBottom: 18 }}>Choisissez 2 a 6 notes. La selection nourrit directement votre brief et le recapitulatif panier.</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
@@ -269,23 +258,26 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
                 </div>
               )}
 
-              {activeStep === 3 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14 }}>
-                  {cfg.bottles.map((item) => (
-                    <button key={item.id} type="button" onClick={() => update({ bottleId: item.id })} style={{ ...cardStyle(draft.bottleId === item.id), borderRadius: 'var(--r-md)', padding: 18, textAlign: 'left', cursor: 'pointer' }}>
-                      <div style={{ width: 42, height: 58, border: '1px solid var(--gold)', borderRadius: 4, marginBottom: 14, background: item.id === 'cristal' ? 'linear-gradient(135deg,#fff,#eee)' : 'var(--noir)' }} />
-                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.125rem', fontWeight: 400, marginBottom: 6 }}>{item.name}</h3>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', lineHeight: 1.5 }}>{item.description}</p>
+              {/* Étape 2 — Formule */}
+              {activeStep === 2 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
+                  {cfg.formulas.map((item) => (
+                    <button key={item.id} type="button" onClick={() => update({ formulaId: item.id })} style={{ ...cardStyle(draft.formulaId === item.id), textAlign: 'left', borderRadius: 'var(--r-md)', padding: 18, cursor: 'pointer' }}>
+                      <p style={{ fontSize: '0.625rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-pale)', marginBottom: 6 }}>{item.volume}</p>
+                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 400, marginBottom: 6 }}>{item.name}</h3>
+                      <p style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold-dark)', fontSize: '1.25rem', marginBottom: 10 }}>{formatPrice(item.price)}</p>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', lineHeight: 1.55 }}>{item.description}</p>
                     </button>
                   ))}
                 </div>
               )}
 
-              {activeStep === 4 && (
+              {/* Étape 3 — Signature */}
+              {activeStep === 3 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div>
                     <label htmlFor="perfumeName" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 7 }}>Nom du parfum *</label>
-                    <input id="perfumeName" className="input" value={draft.perfumeName} onChange={(event) => update({ perfumeName: event.target.value })} placeholder="Ex : Nuit d&apos;Abidjan" maxLength={42} />
+                    <input id="perfumeName" className="input" value={draft.perfumeName} onChange={(event) => update({ perfumeName: event.target.value })} placeholder="Ex : Nuit d'Abidjan" maxLength={42} />
                   </div>
                   <div>
                     <label htmlFor="engraving" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: 7 }}>Gravure flacon</label>
@@ -300,8 +292,8 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 28 }}>
                 <button type="button" className="btn-ghost" onClick={() => setActiveStep((step) => Math.max(0, step - 1))} disabled={activeStep === 0} style={{ opacity: activeStep === 0 ? 0.35 : 1 }}>Retour</button>
-                {activeStep < 4 ? (
-                  <button type="button" className="btn-primary" onClick={() => setActiveStep((step) => Math.min(4, step + 1))}>Continuer</button>
+                {activeStep < 3 ? (
+                  <button type="button" className="btn-primary" onClick={() => setActiveStep((step) => Math.min(3, step + 1))}>Continuer</button>
                 ) : (
                   <button type="button" className="btn-primary" onClick={() => addCreationToCart(false)} disabled={validation.length > 0} style={{ opacity: validation.length > 0 ? 0.45 : 1 }}>
                     {added ? 'Ajoute au panier' : 'Ajouter au panier'}

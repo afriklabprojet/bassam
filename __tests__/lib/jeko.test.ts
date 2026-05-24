@@ -23,24 +23,24 @@ beforeAll(() => {
 // ─── mapProvider ─────────────────────────────────────────────────────────────
 
 describe('mapProvider', () => {
-  it('mappe "orange" vers orange_money', () => {
-    expect(mapProvider('orange')).toBe('orange_money');
+  it('mappe "orange" vers orange', () => {
+    expect(mapProvider('orange')).toBe('orange');
   });
 
-  it('mappe "mtn" vers mtn_mobile_money', () => {
-    expect(mapProvider('mtn')).toBe('mtn_mobile_money');
+  it('mappe "mtn" vers mtn', () => {
+    expect(mapProvider('mtn')).toBe('mtn');
   });
 
   it('mappe "wave" vers wave', () => {
     expect(mapProvider('wave')).toBe('wave');
   });
 
-  it('mappe "moov" vers moov_money', () => {
-    expect(mapProvider('moov')).toBe('moov_money');
+  it('mappe "moov" vers moov', () => {
+    expect(mapProvider('moov')).toBe('moov');
   });
 
-  it('retourne orange_money pour une valeur inconnue', () => {
-    expect(mapProvider('inconnu')).toBe('orange_money');
+  it('retourne orange pour une valeur inconnue', () => {
+    expect(mapProvider('inconnu')).toBe('orange');
   });
 });
 

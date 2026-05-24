@@ -470,7 +470,7 @@ export default function AdminCreationPage() {
       {activeTab === 'bottles' && (
         <Section title="Flacons disponibles">
           <p style={{ color: '#555', fontSize: 13, marginBottom: 20 }}>
-            Options de flacon proposées à l&apos;étape 4 du configurateur.
+            Options de flacon intégrées à la commande (flacon par défaut sélectionnable).
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {config.bottles.map((b, idx) => (

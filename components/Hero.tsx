@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import type { HomeHeroContent } from '@/lib/supabase/home-hero';
 
 const PRODUCT_VISUAL_CLASSES = [
@@ -131,6 +132,7 @@ export default function Hero({ content }: Readonly<HeroProps>) {
                 width={PRODUCT_VISUAL_SIZES[index]?.width ?? 164}
                 height={PRODUCT_VISUAL_SIZES[index]?.height ?? 219}
                 priority={index === 0}
+                unoptimized={shouldBypassNextImageOptimization(product.src)}
                 className={PRODUCT_VISUAL_CLASSES[index] ?? PRODUCT_VISUAL_CLASSES[1]}
               />
             ))}

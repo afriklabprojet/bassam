@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useSiteSettings } from '@/lib/site-settings-context';
 
 // ─── Navigation data ────────────────────────────────────────────────────────
@@ -144,8 +145,6 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  // ── Close mobile on navigation ───────────────────────────────────────────  // eslint-disable-next-line react-hooks/set-state-in-effect  useEffect(() => { setMenuOpen(false); setMobileExpanded(null); }, [pathname]);
-
   // ── Trap scroll when mobile is open ─────────────────────────────────────
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
@@ -231,8 +230,9 @@ export default function Header() {
                   src={settings.logo_url || '/images/logo.png'}
                   alt=""
                   fill
-                  priority
+                  loading="eager"
                   sizes="48px"
+                  unoptimized={shouldBypassNextImageOptimization(settings.logo_url)}
                   style={{ objectFit: 'cover', objectPosition: 'center 22%' }}
                 />
               </div>
@@ -412,11 +412,21 @@ function MobileDrawer({
   pathname: string;
 }>) {
   const settings = useSiteSettings();
+  const closeMobileMenu = () => {
+    setMenuOpen(false);
+    setMobileExpanded(null);
+  };
+
+  const handleMobileSearch = (event: React.SyntheticEvent<HTMLFormElement>) => {
+    closeMobileMenu();
+    handleSearch(event);
+  };
+
   return (
     <>
       {/* Backdrop */}
       <div
-        onClick={() => setMenuOpen(false)}
+        onClick={closeMobileMenu}
         aria-hidden="true"
         style={{
           position: 'fixed', inset: 0, zIndex: 49,
@@ -453,13 +463,14 @@ function MobileDrawer({
           borderBottom: '1px solid rgba(197,165,90,0.12)', flexShrink: 0,
           background: 'transparent',
         }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+          <Link href="/" onClick={closeMobileMenu} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
             <div style={{ position: 'relative', width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 0 0 1px rgba(197,165,90,0.4)' }}>
               <Image
                 src={settings.logo_url || '/images/logo.png'}
                 alt=""
                 fill
                 sizes="36px"
+                unoptimized={shouldBypassNextImageOptimization(settings.logo_url)}
                 style={{ objectFit: 'cover', objectPosition: 'center 22%' }}
               />
             </div>
@@ -468,7 +479,7 @@ function MobileDrawer({
             </span>
           </Link>
           <button
-            onClick={() => setMenuOpen(false)}
+            onClick={closeMobileMenu}
             aria-label="Fermer le menu"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)' }}
           >
@@ -478,7 +489,7 @@ function MobileDrawer({
 
         {/* Drawer search */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(197,165,90,0.1)', flexShrink: 0 }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex' }}>
+          <form onSubmit={handleMobileSearch} style={{ display: 'flex' }}>
             <input
               type="search"
               value={searchQuery}
@@ -528,6 +539,7 @@ function MobileDrawer({
                         <Link
                           key={child.href}
                           href={child.href}
+                          onClick={closeMobileMenu}
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             padding: '13px 24px 13px 36px',
@@ -548,6 +560,7 @@ function MobileDrawer({
               ) : (
                 <Link
                   href={link.href}
+                  onClick={closeMobileMenu}
                   style={{
                     display: 'block', padding: '16px 24px',
                     fontSize: '0.75rem', color: pathname === link.href ? 'var(--gold)' : 'rgba(255,255,255,0.85)',
@@ -568,6 +581,7 @@ function MobileDrawer({
         <div style={{ padding: '20px 24px', borderTop: '1px solid rgba(197,165,90,0.1)', flexShrink: 0 }}>
           <Link
             href="/compte"
+            onClick={closeMobileMenu}
             style={{
               display: 'flex', alignItems: 'center', gap: 12, padding: '13px 18px',
               border: '1px solid rgba(197,165,90,0.25)', borderRadius: 4,

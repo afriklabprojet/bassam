@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle, getOrderStatusLabel } from '@/lib/order-status-theme';
 
 /* ─── Types ────────────────────────────────────────────── */
@@ -770,7 +771,7 @@ export default function AdminDashboard() {
                         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
                       >
                         {product.image ? (
-                          <Image src={product.image} alt={product.name} width={40} height={40} className="w-full h-full object-cover" />
+                          <Image src={product.image} alt={product.name} width={40} height={40} className="w-full h-full object-cover" unoptimized={shouldBypassNextImageOptimization(product.image)} />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth={1.5}>
@@ -1028,7 +1029,7 @@ export default function AdminDashboard() {
                       style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.1)' }}
                     >
                       {product.image ? (
-                        <Image src={product.image} alt={product.name} width={36} height={36} className="w-full h-full object-cover" />
+                        <Image src={product.image} alt={product.name} width={36} height={36} className="w-full h-full object-cover" unoptimized={shouldBypassNextImageOptimization(product.image)} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth={1.5} strokeOpacity={0.5}>

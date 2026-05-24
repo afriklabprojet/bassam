@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
+import { useState, useEffect, useCallback, useRef, useId } from 'react';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -642,10 +643,11 @@ function NewsletterTab() {
 function BannerImageUpload({
   value,
   onChange,
-}: {
+}: Readonly<{
   value: string;
   onChange: (url: string) => void;
-}) {
+}>) {
+  const inputId = useId();
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -680,7 +682,17 @@ function BannerImageUpload({
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) uploadFile(file);
+    if (file) {
+      void uploadFile(file);
+    }
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.currentTarget.files?.[0];
+    if (file) {
+      void uploadFile(file);
+    }
+    e.currentTarget.value = '';
   }
 
   const zone: React.CSSProperties = {
@@ -696,13 +708,13 @@ function BannerImageUpload({
   if (value) {
     return (
       <div>
-        <label style={LABEL_STYLE}>Image de bannière</label>
-        <div style={{ ...zone, aspectRatio: '16/5', cursor: 'default' }}>
+        <p style={LABEL_STYLE}>Image de bannière</p>
+        <div className="group" style={{ ...zone, aspectRatio: '16/5', cursor: 'default' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', opacity: 0, transition: 'opacity .2s' }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
+          <div
+            className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
           >
             <button
               type="button"
@@ -720,8 +732,7 @@ function BannerImageUpload({
             </button>
           </div>
         </div>
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden
-          onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); e.target.value = ''; }} />
+        <input id={inputId} ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden onChange={onFileChange} />
         {uploadError && <p style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{uploadError}</p>}
       </div>
     );
@@ -729,16 +740,15 @@ function BannerImageUpload({
 
   return (
     <div>
-      <label style={LABEL_STYLE}>Image de bannière</label>
-      <div
+      <p style={LABEL_STYLE}>Image de bannière</p>
+      <label
+        htmlFor={inputId}
         style={{ ...zone, padding: '32px 20px', textAlign: 'center', aspectRatio: '16/5', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false); }}
         onDrop={onDrop}
-        onClick={() => !uploading && fileRef.current?.click()}
       >
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden
-          onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f); e.target.value = ''; }} />
+        <input id={inputId} ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden disabled={uploading} onChange={onFileChange} />
         {uploading ? (
           <>
             <div style={{ width: '28px', height: '28px', border: '3px solid rgba(197,165,90,0.2)', borderTopColor: GOLD, borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
@@ -760,7 +770,7 @@ function BannerImageUpload({
             <span style={{ fontSize: '11px', color: 'rgba(197,165,90,0.4)' }}>Format recommandé : 1600 × 500 px</span>
           </>
         )}
-      </div>
+      </label>
       {uploadError && <p style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{uploadError}</p>}
     </div>
   );
@@ -891,7 +901,7 @@ function BannersTab() {
             >
               {/* Preview swatch */}
               <div style={{ width: '64px', height: '42px', borderRadius: '8px', background: b.bg_color, flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
-                {b.image_url && <Image src={b.image_url} alt="" width={64} height={42} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />}
+                {b.image_url && <Image src={b.image_url} alt="" width={64} height={42} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} unoptimized={shouldBypassNextImageOptimization(b.image_url)} />}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>

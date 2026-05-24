@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
-import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getProducts } from '@/lib/supabase/products';
 import type { Product } from '@/types/product.types';
-import type { Review } from '@/lib/supabase/reviews';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,10 +21,7 @@ const FAMILIES = [
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function FemmePage() {
-  const [{ products }, reviews] = await Promise.all([
-    getProducts({ gender: 'femme', limit: 12 }),
-    getApprovedReviews(4).catch(() => []),
-  ]);
+  const { products } = await getProducts({ gender: 'femme', limit: 12 });
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
@@ -229,33 +224,6 @@ export default async function FemmePage() {
         )}
       </section>
 
-      {/* ── Témoignages ──────────────────────────────────────────────────── */}
-      <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '5rem 0' }}>
-        <div className="container mx-auto">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-            <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              Ils en parlent
-            </span>
-          </div>
-          <div className="femme-temo-grid">
-            {reviews.length === 0 ? (
-              <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'rgba(255,255,255,0.4)', gridColumn: '1/-1', textAlign: 'center' }}>Les premiers avis arrivent bientôt…</p>
-            ) : reviews.map((t: Review) => (
-              <div key={t.id} style={{ background: 'var(--noir)', padding: '2rem', borderLeft: '2px solid var(--gold)' }}>
-                <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.75, marginBottom: '1.25rem' }}>
-                  &ldquo;{t.texte}&rdquo;
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'var(--gold)', fontWeight: 500, letterSpacing: '0.08em' }}>{t.name}</span>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>{t.ville}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA footer ───────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--noir)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
         <div className="container mx-auto" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -300,15 +268,9 @@ export default async function FemmePage() {
           gap: 1px;
           background: rgba(197,165,90,0.08);
         }
-        .femme-temo-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1.5rem;
-        }
         @media (max-width: 900px) {
           .femme-hero-grid { grid-template-columns: 1fr; gap: 2rem; }
           .femme-fam-grid  { grid-template-columns: repeat(2, 1fr); }
-          .femme-temo-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
           .femme-fam-grid { grid-template-columns: 1fr; }

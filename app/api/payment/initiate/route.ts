@@ -3,14 +3,13 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib/supabase/custom-order-items';
 import { createOrder } from '@/lib/supabase/orders';
-import { initiatePayment, mapProvider } from '@/lib/payment/jeko';
+import { initiatePayment, mapProvider, JEKO_CURRENCY } from '@/lib/payment/jeko';
 
-type MobileProvider = 'orange' | 'mtn' | 'wave' | 'moov';
+type MobileProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
 
 interface InitiateBody {
   totalAmount: number;
   paymentMethod: MobileProvider;
-  mobileNumber: string;
   shippingAddress: {
     firstName: string;
     lastName: string;
@@ -35,10 +34,8 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
   if (!b || typeof b !== 'object') return { error: 'Corps de requête invalide' };
   if (typeof b.totalAmount !== 'number' || b.totalAmount <= 0)
     return { error: 'Montant invalide' };
-  if (!['orange', 'mtn', 'wave', 'moov'].includes(b.paymentMethod as string))
+  if (!['orange', 'mtn', 'wave', 'moov', 'djamo'].includes(b.paymentMethod as string))
     return { error: 'Opérateur Mobile Money invalide' };
-  if (!b.mobileNumber || typeof b.mobileNumber !== 'string' || b.mobileNumber.length < 8)
-    return { error: 'Numéro Mobile Money requis (min. 8 chiffres)' };
   if (!b.phone || typeof b.phone !== 'string') return { error: 'Numéro de téléphone requis' };
   if (!Array.isArray(b.items) || b.items.length === 0)
     return { error: 'Au moins un article requis' };
@@ -100,30 +97,28 @@ export async function POST(request: NextRequest) {
     // ── 2. Call Jeko API to initiate the mobile money payment ─────────────
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
-    const shortRef = `VIP-${order.id.substring(0, 8).toUpperCase()}`;
 
     const jekoRes = await initiatePayment({
-      amount: order.totalAmount,
-      currency: 'XOF',
-      phone: d.mobileNumber,
+      amountXof: order.totalAmount,
+      currency: JEKO_CURRENCY,
       provider: mapProvider(d.paymentMethod),
-      reference: order.id, // full UUID for exact webhook matching
-      customerName: `${d.shippingAddress.firstName} ${d.shippingAddress.lastName}`,
-      description: `Commande ${shortRef} — VIP Parfumerie`,
-      callbackUrl: `${appUrl}/api/payment/webhook`,
+      reference: order.id,
+      successUrl: `${appUrl}/commande/confirmation?order=${order.id}`,
+      errorUrl: `${appUrl}/commande?error=payment_failed`,
     });
 
-    // ── 3. Store Jeko transaction ID for webhook reconciliation ───────────
+    // ── 3. Store Jeko payment request ID for webhook reconciliation ───────
     await orderClient
       .from('orders')
-      .update({ payment_reference: jekoRes.transactionId })
+      .update({ payment_reference: jekoRes.id })
       .eq('id', order.id);
 
     return NextResponse.json(
       {
         orderId: order.id,
-        transactionId: jekoRes.transactionId,
-        message: jekoRes.message,
+        transactionId: jekoRes.id,
+        redirectUrl: jekoRes.redirectUrl,
+        status: jekoRes.status,
       },
       { status: 201 }
     );

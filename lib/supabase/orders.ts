@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
+import { getShippingConfig, getShippingFee } from '@/lib/shipping';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supabase Order Queries
@@ -15,6 +16,8 @@ export interface CreateOrderInput {
   /** Client-provided value kept for API compatibility. Server recomputes the actual total. */
   totalAmount: number;
   paymentMethod: 'mobile_money' | 'card' | 'cash_on_delivery';
+  /** ID of the selected delivery mode (from ShippingConfig.modes[].id) */
+  shippingModeId?: string;
   shippingAddress: {
     firstName: string;
     lastName: string;
@@ -68,13 +71,7 @@ type BuildVerifiedOrderResult =
   | { ok: true; data: VerifiedOrderData }
   | { ok: false; error: string };
 
-const FREE_SHIPPING_THRESHOLD = 50000;
-const STANDARD_SHIPPING_FEE = 2500;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function getShippingFee(subtotal: number) {
-  return subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
-}
 
 function aggregateQuantities(items: OrderItem[]): AggregateQuantitiesResult {
   const quantities = new Map<string, number>();
@@ -142,12 +139,14 @@ async function buildVerifiedOrder(
   }
 
   const subtotal = verifiedItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const shippingCfg = await getShippingConfig();
+  const shippingFee = getShippingFee(shippingCfg, input.shippingModeId ?? '');
 
   return {
     ok: true,
     data: {
       items: verifiedItems,
-      totalAmount: subtotal + getShippingFee(subtotal),
+      totalAmount: subtotal + shippingFee,
     },
   };
 }
@@ -172,6 +171,7 @@ export async function createOrder(
       user_id: userId,
       total_amount: verifiedOrder.data.totalAmount,
       payment_method: input.paymentMethod,
+      shipping_mode_id: input.shippingModeId ?? null,
       shipping_address: input.shippingAddress,
       phone: input.phone,
       email: input.email,

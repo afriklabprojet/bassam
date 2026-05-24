@@ -1,11 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteSettings, hasWhatsApp, buildWhatsAppHref, getPhoneHref, type SiteSettings } from '@/lib/site-settings';
+import ContactForm from '@/components/ContactForm';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
 
 export const metadata: Metadata = {
-  title: 'Contact \u2014 VIP Parfumerie Bar',
-  description:
-    "Contactez VIP Parfumerie Bar pour toute question sur nos parfums, vos commandes ou nos services. Nous r\u00e9pondons en moins de 2h.",
+  title: 'Contact \u2014 VIP Parfumerie Bar Abidjan',
+  description: 'Contactez VIP Parfumerie Bar \u00e0 Abidjan pour vos parfums de luxe. WhatsApp, t\u00e9l\u00e9phone, email \u2014 r\u00e9ponse en moins de 2h. Livraison C\u00f4te d\'Ivoire.',
+  keywords: 'contact parfumerie Abidjan, boutique parfum Abidjan t\u00e9l\u00e9phone, VIP Parfumerie Bar contact',
+  alternates: { canonical: `${BASE_URL}/contact` },
 };
 
 /* ─── Données ───────────────────────────────────────────── */
@@ -91,7 +95,7 @@ const faq = [
   },
   {
     q: 'Quels modes de paiement acceptez-vous\u00A0?',
-    r: 'Orange Money, Wave, MTN Mobile Money, carte bancaire Visa/Mastercard. Toutes les transactions sont sécurisées.',
+    r: 'Orange Money, MTN Money, Wave, Moov Money, Djamo. Toutes les transactions sont sécurisées.',
   },
   {
     q: 'Puis-je retourner un parfum\u00A0?',
@@ -291,95 +295,17 @@ export default async function ContactPage() {
               </div>
             </div>
 
-            {/* Colonne droite — formulaire (côté client géré via Server Action ou email) */}
-            <div style={{ background: '#fff', padding: '40px 36px', borderRadius: 3 }}>
-              <form
-                action={`https://formsubmit.co/${settings.support_email}`}
-                method="POST"
-                style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
-              >
-                <input type="hidden" name="_subject" value="Nouveau message — VIP Parfumerie Bar" />
-                <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_next" value={`${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://vip-parfumerie-bar.com'}/contact?sent=1`} />
-
-                {/* Nom */}
-                <div>
-                  <label htmlFor="name" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Nom complet <span style={{ color: '#EF4444' }}>*</span>
-                  </label>
-                  <input
-                    id="name" name="name" type="text" required placeholder="Votre nom"
-                    style={{ width: '100%', height: 44, padding: '0 14px', fontSize: '0.875rem', color: 'var(--text-primary)', background: 'var(--surface)', border: '1px solid var(--line-light)', borderRadius: 3, outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label htmlFor="email" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Email <span style={{ color: '#EF4444' }}>*</span>
-                  </label>
-                  <input
-                    id="email" name="email" type="email" required placeholder="votre@email.com"
-                    style={{ width: '100%', height: 44, padding: '0 14px', fontSize: '0.875rem', color: 'var(--text-primary)', background: 'var(--surface)', border: '1px solid var(--line-light)', borderRadius: 3, outline: 'none', boxSizing: 'border-box' }}
-                  />
-                </div>
-
-                {/* Sujet */}
-                <div>
-                  <label htmlFor="sujet" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Sujet
-                  </label>
-                  <select
-                    id="sujet" name="sujet"
-                    style={{ width: '100%', height: 44, padding: '0 14px', fontSize: '0.875rem', color: 'var(--text-primary)', background: 'var(--surface)', border: '1px solid var(--line-light)', borderRadius: 3, outline: 'none', boxSizing: 'border-box', appearance: 'none' }}
-                  >
-                    <option value="">Sélectionner un sujet…</option>
-                    <option value="commande">Commande / Livraison</option>
-                    <option value="conseil">Conseil olfactif</option>
-                    <option value="partenariat">Partenariat / B2B</option>
-                    <option value="consultation">Consultation privée</option>
-                    <option value="autre">Autre</option>
-                  </select>
-                </div>
-
-                {/* Message */}
-                <div>
-                  <label htmlFor="message" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Message <span style={{ color: '#EF4444' }}>*</span>
-                  </label>
-                  <textarea
-                    id="message" name="message" required rows={5}
-                    placeholder="Décrivez votre demande…"
-                    style={{ width: '100%', padding: '12px 14px', fontSize: '0.875rem', color: 'var(--text-primary)', background: 'var(--surface)', border: '1px solid var(--line-light)', borderRadius: 3, outline: 'none', resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6 }}
-                  />
-                </div>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  className="contact-submit"
-                  style={{
-                    height: 48, background: 'var(--noir)', color: '#fff', border: 'none', borderRadius: 3,
-                    fontSize: '0.6875rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700,
-                    cursor: 'pointer', transition: 'background 0.3s ease, transform 0.3s ease',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  }}
-                >
-                  Envoyer le message
-                  <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                  </svg>
-                </button>
-
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', textAlign: 'center', lineHeight: 1.5, margin: 0 }}>
-                  Pour une réponse immédiate :{' '}
-                  {hasWhatsApp(settings) ? (
-                    <a href={buildWhatsAppHref(settings, 'Bonjour, j\'ai une question suite à mon message de contact.')} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>WhatsApp</a>
-                  ) : (
-                    <span style={{ color: 'var(--gold)', fontWeight: 500 }}>email</span>
-                  )}
-                </p>
-              </form>
+            {/* Colonne droite — formulaire */}
+            <div>
+              <ContactForm />
+              <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', textAlign: 'center', lineHeight: 1.5, margin: '12px 0 0' }}>
+                Pour une réponse immédiate :{' '}
+                {hasWhatsApp(settings) ? (
+                  <a href={buildWhatsAppHref(settings, 'Bonjour, j\'ai une question suite à mon message de contact.')} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold)', textDecoration: 'none', fontWeight: 500 }}>WhatsApp</a>
+                ) : (
+                  <span style={{ color: 'var(--gold)', fontWeight: 500 }}>email</span>
+                )}
+              </p>
             </div>
 
           </div>

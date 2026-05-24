@@ -61,8 +61,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${meta.title} | VIP Parfumerie Bar`,
+    title: `${meta.title} | VIP Parfumerie Bar Abidjan`,
     description: meta.description,
+    keywords: `${meta.title.toLowerCase()} Abidjan, ${meta.title.toLowerCase()} Côte d'Ivoire, parfum luxe ${meta.title.toLowerCase()}, acheter parfum Abidjan`,
+    alternates: { canonical: `${BASE_URL}/collections/${category}` },
+    openGraph: {
+      title: `${meta.title} — VIP Parfumerie Bar`,
+      description: meta.description,
+      locale: 'fr_CI',
+    },
   };
 }
 
@@ -110,57 +117,50 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
     <div style={{ minHeight: '100vh', background: 'var(--offwhite)' }}>
-      {/* Category Hero */}
-      <div
-        style={{ background: 'var(--noir)', padding: '4rem 0', position: 'relative', overflow: 'hidden' }}
-      >
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%, rgba(197,165,90,0.08) 0%, transparent 60%)' }} aria-hidden="true" />
-        <div className="container mx-auto" style={{ position: 'relative' }}>
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm text-white/60 mb-6">
-            <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
-            <span>/</span>
-            <span className="text-white/80">{meta.title}</span>
-          </nav>
-          <h1 className="heading-lg text-white" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', marginBottom: '0.75rem' }}>{meta.title}</h1>
-          <p className="text-white/70 max-w-xl text-lg">{meta.description}</p>
-          <p className="mt-4 text-white/50 text-sm">{products.length} parfum{products.length > 1 ? 's' : ''}</p>
+      {/* Compact category header */}
+      <div style={{ background: 'var(--noir)', padding: '1.25rem 0' }}>
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <nav className="flex items-center gap-2 text-xs text-white/50 mb-1">
+                <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
+                <span>/</span>
+                <span>{meta.title}</span>
+              </nav>
+              <h1 className="text-white font-light" style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', letterSpacing: '0.04em' }}>{meta.title}</h1>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8125rem' }}>{products.length} produit{products.length > 1 ? 's' : ''}</span>
+          </div>
         </div>
       </div>
 
       {/* Products */}
-      <div className="container mx-auto py-12">
+      <div className="container mx-auto" style={{ paddingTop: '1.5rem', paddingBottom: '3rem' }}>
         {/* Filter shortcuts */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="flex gap-2 flex-wrap">
             <Link
               href={`/collections/${category}`}
-              className="px-4 py-2 rounded text-xs font-medium text-white"
+              className="px-3 py-1.5 rounded text-xs font-medium text-white"
               style={{ background: 'var(--noir)', letterSpacing: '0.06em', textTransform: 'uppercase' }}
             >
               Tous
             </Link>
             <Link
               href={`/produits?gender=${meta.gender || ''}&tri=nouveautes`}
-              className="px-4 py-2 rounded text-xs font-medium bg-white border border-line text-txt2 hover:border-txt2 transition-colors"
+              className="px-3 py-1.5 rounded text-xs font-medium bg-white border border-line text-txt2 hover:border-txt2 transition-colors"
               style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}
             >
               Nouveautés
             </Link>
             <Link
               href={`/produits?gender=${meta.gender || ''}&filtre=promo`}
-              className="px-4 py-2 rounded text-xs font-medium bg-white border border-line text-txt2 hover:border-txt2 transition-colors"
+              className="px-3 py-1.5 rounded text-xs font-medium bg-white border border-line text-txt2 hover:border-txt2 transition-colors"
               style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}
             >
               Promotions
             </Link>
           </div>
-          <Link
-            href={`/produits?gender=${meta.gender || ''}`}
-            style={{ fontSize: '0.75rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-secondary)', textDecoration: 'none' }}
-          >
-            Filtres avancés →
-          </Link>
         </div>
 
         {products.length === 0 ? (
@@ -176,6 +176,7 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
               <ProductCard
                 key={product.id}
                 id={product.slug}
+                productId={product.id}
                 name={product.name}
                 brand={product.brand}
                 price={product.price}
@@ -185,15 +186,6 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
                 inStock={product.stockQuantity > 0}
               />
             ))}
-          </div>
-        )}
-
-        {/* View all link */}
-        {products.length > 0 && (
-          <div className="text-center mt-12">
-            <Link href={`/produits?gender=${meta.gender || ''}`} className="btn-primary inline-block">
-              Voir tous les {meta.title.toLowerCase()} →
-            </Link>
           </div>
         )}
       </div>

@@ -1,9 +1,11 @@
 'use client';
 
 import { useCart } from '@/lib/cart-context';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
+import { DEFAULT_SHIPPING_CONFIG, getMinDeliveryFee, type ShippingConfig } from '@/lib/shipping';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
@@ -40,7 +42,18 @@ export default function CartPage() {
   const [promoError, setPromoError] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoData, setPromoData] = useState<{ type: 'percentage' | 'fixed'; value: number } | null>(null);
-  const shipping = totalPrice >= 50000 ? 0 : 2500;
+  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(DEFAULT_SHIPPING_CONFIG);
+
+  useEffect(() => {
+    fetch('/api/shipping-config')
+      .then(r => r.json())
+      .then((d: { config?: ShippingConfig }) => {
+        if (d.config) setShippingConfig(d.config);
+      })
+      .catch(() => {});
+  }, []);
+
+  const shipping = getMinDeliveryFee(shippingConfig);
   const discountAmount = getDiscountAmount(totalPrice, promoData, promoApplied);
   const discountDisplay = getDiscountDisplay(promoData, promoApplied);
   const total = totalPrice - discountAmount + shipping;
@@ -134,19 +147,7 @@ export default function CartPage() {
           </div>
         )}
 
-        {/* ── Free shipping progress ───────────── */}
-        {totalPrice >= 10000 && totalPrice < 50000 && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line-light)', borderRadius: 'var(--r-md)', padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-              Plus que <strong style={{ color: 'var(--gold-dark)' }}>{formatPrice(50000 - totalPrice)}</strong> pour la livraison offerte + 2 échantillons
-            </p>
-            <div style={{ height: '2px', background: 'var(--line-light)', borderRadius: '1px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'var(--gold)', borderRadius: '1px', width: `${Math.min((totalPrice / 50000) * 100, 100)}%`, transition: 'width 0.5s ease' }} />
-            </div>
-          </div>
-        )}
-
-        {/* ── Grid: Items + Summary ────────────── */}
+{/* ── Grid: Items + Summary ────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', alignItems: 'start' }}>
           {/* Left column: items */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '2rem', alignItems: 'start' }}>
@@ -160,6 +161,7 @@ export default function CartPage() {
                       fill
                       className="object-cover"
                       sizes="88px"
+                      unoptimized={shouldBypassNextImageOptimization(item.image)}
                     />
                   </div>
                 );
@@ -309,7 +311,7 @@ export default function CartPage() {
                 </Link>
 
                 <p style={{ textAlign: 'center', fontSize: '0.6875rem', color: 'var(--text-pale)', marginTop: '0.75rem', fontWeight: 300 }}>
-                  Paiement à la livraison · Mobile Money · Wave
+                  Orange Money · MTN · Wave · Moov · Djamo · Livraison
                 </p>
               </div>
 

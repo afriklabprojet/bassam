@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import ProductCard from '@/components/ProductCard';
 import Newsletter from '@/components/Newsletter';
@@ -10,6 +11,24 @@ import { getHomeUnivers } from '@/lib/supabase/home-content';
 import { getHomeHero } from '@/lib/supabase/home-hero';
 
 export const dynamic = 'force-dynamic';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
+
+export const metadata: Metadata = {
+  title: 'VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan, Côte d\'Ivoire',
+  description: 'Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford livrés partout en Côte d\'Ivoire et en Afrique de l\'Ouest. Paiement Mobile Money.',
+  keywords: 'parfum luxe Abidjan, parfumerie Côte d\'Ivoire, parfum authentique Abidjan, boutique parfum Abidjan, parfum Dior Abidjan, parfum Chanel Abidjan, livraison parfum Côte d\'Ivoire, Mobile Money parfum',
+  alternates: { canonical: BASE_URL },
+  openGraph: {
+    type: 'website',
+    locale: 'fr_CI',
+    url: BASE_URL,
+    siteName: 'VIP Parfumerie Bar',
+    title: 'VIP Parfumerie Bar — Parfums de Luxe à Abidjan',
+    description: 'Boutique de parfums de luxe authentiques à Abidjan. Livraison en Côte d\'Ivoire et Afrique de l\'Ouest.',
+    images: [{ url: `${BASE_URL}/og-image.svg`, width: 1200, height: 630, alt: 'VIP Parfumerie Bar — Parfums de Luxe Abidjan' }],
+  },
+};
 
 // ─── Contenu éditorial (statique) — descriptions, palettes, notes olfactives
 const UNIVERS_META = [
@@ -82,8 +101,7 @@ function ProductSectionEmptyState() {
 
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
-  const [{ products: rawWeeklySelection }, { products: rawNewArrivals }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
-    getProducts({ featured: true, limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
+  const [{ products: rawNewArrivals }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
     getProducts({ tri: 'nouveautes', limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
     getProductCountsByGender().catch(() => ({} as Record<string, number>)),
     getApprovedReviews(6).catch(() => []),
@@ -93,15 +111,7 @@ export default async function HomePage() {
 
   // Si BDD vide ou indisponible → produits démo (dev uniquement)
   const mockNewArrivals = DEV_MOCK_PRODUCTS.slice(0, 8);
-  const mockWeeklySelection = DEV_MOCK_PRODUCTS.slice(8, 16);
   const newArrivals = rawNewArrivals.length > 0 ? rawNewArrivals : mockNewArrivals;
-  let weeklySelection = rawWeeklySelection;
-  if (weeklySelection.length === 0) {
-    weeklySelection = rawNewArrivals;
-  }
-  if (weeklySelection.length === 0) {
-    weeklySelection = mockWeeklySelection.length > 0 ? mockWeeklySelection : mockNewArrivals;
-  }
 
   // Fusionner les compteurs réels avec le contenu éditorial
   // En dev sans BDD : compter depuis les mocks pour affichage cohérent
@@ -119,8 +129,83 @@ export default async function HomePage() {
       productsCount: effectiveCounts[u.slug] ?? 0,
     };
   });
+  // ─── JSON-LD : LocalBusiness + Organization + WebSite ────────────────────
+  const localBusinessLd = {
+    '@context': 'https://schema.org',
+    '@type': ['LocalBusiness', 'Store'],
+    '@id': `${BASE_URL}/#local-business`,
+    name: 'VIP Parfumerie Bar',
+    url: BASE_URL,
+    logo: `${BASE_URL}/icons/icon-192x192.png`,
+    image: `${BASE_URL}/og-image.svg`,
+    description: 'Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford. Livraison partout en Côte d\'Ivoire et Afrique de l\'Ouest.',
+    priceRange: '$$',
+    telephone: process.env.NEXT_PUBLIC_SUPPORT_PHONE_DISPLAY || '',
+    email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Abidjan',
+      addressCountry: 'CI',
+      addressRegion: 'Abidjan',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 5.3484,
+      longitude: -4.0107,
+    },
+    areaServed: [
+      { '@type': 'Country', name: 'Côte d\'Ivoire' },
+      { '@type': 'Country', name: 'Burkina Faso' },
+      { '@type': 'Country', name: 'Sénégal' },
+      { '@type': 'Country', name: 'Mali' },
+    ],
+    currenciesAccepted: 'XOF',
+    paymentAccepted: 'Orange Money, MTN Money, Wave, Moov Money, Djamo',
+    sameAs: [
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL,
+      process.env.NEXT_PUBLIC_FACEBOOK_URL,
+    ].filter(Boolean),
+  };
+
+  const organizationLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${BASE_URL}/#organization`,
+    name: 'VIP Parfumerie Bar',
+    url: BASE_URL,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${BASE_URL}/icons/icon-192x192.png`,
+      width: 192,
+      height: 192,
+    },
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      availableLanguage: ['French'],
+    },
+  };
+
+  const websiteLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${BASE_URL}/#website`,
+    url: BASE_URL,
+    name: 'VIP Parfumerie Bar',
+    inLanguage: 'fr-CI',
+    publisher: { '@id': `${BASE_URL}/#organization` },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${BASE_URL}/produits?q={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
       {/* Animations de scroll automatiques */}
       <ScrollAnimations />
       
@@ -146,9 +231,9 @@ export default async function HomePage() {
       </div>
 
       {/* ══ SECTION 1 — nos nouveautés ══ */}
-      <section id="nouveautes" style={{ background: '#fff', padding: '8rem 0' }}>
+      <section id="nouveautes" style={{ background: '#fff', padding: '5rem 0' }}>
         <div className="container mx-auto">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
               <span className="label">Nos nouveautés</span>
               <h2
@@ -185,49 +270,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ══ SECTION 2 — sélection de la semaine ══ */}
-      <section id="top-ventes" style={{ background: 'var(--offwhite)', padding: '8rem 0' }}>
-        <div className="container mx-auto">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '3.5rem', gap: '1rem', flexWrap: 'wrap' }}>
-            <div>
-              <span className="label">Sélection de la semaine</span>
-              <h2
-                className="heading-display"
-                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
-              >
-                Les coups de cœur VIP
-              </h2>
-            </div>
-            <Link href="/produits" className="btn-ghost" style={{ flexShrink: 0 }}>
-              Explorer la sélection
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-            {weeklySelection.length === 0 ? (
-              <ProductSectionEmptyState />
-            ) : (
-              weeklySelection.map((p) => (
-                <ProductCard
-                  key={p.slug}
-                  id={p.slug}
-                  name={p.name}
-                  brand={p.brand}
-                  price={p.price}
-                  originalPrice={p.originalPrice ?? undefined}
-                  image={p.images[0] ?? '/images/products/product-placeholder.svg'}
-                  category={p.gender ?? 'mixte'}
-                  inStock={p.stockQuantity > 0}
-                />
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
       {/* ══ SECTION 3 — tout le catalogue ══ */}
-      <section style={{ background: '#fff', padding: '8rem 0' }}>
+      <section style={{ background: '#fff', padding: '5rem 0' }}>
         <div className="container mx-auto">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '4rem', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2.5rem', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
               <span className="label">Voir tout notre catalogue</span>
               <h2
@@ -303,7 +349,7 @@ export default async function HomePage() {
       </section>
 
       {/* ══ SECTION 4 — avis clients et témoignages ══ */}
-      <section className="testimonials-section" style={{ background: 'var(--offwhite)' }}>
+      <section className="testimonials-section">
         <div className="container mx-auto">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <span className="label">Avis clients</span>

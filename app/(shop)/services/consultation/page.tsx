@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { supportConfig } from '@/lib/site-config';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
+import ConsultationForm from '@/components/ConsultationForm';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
@@ -99,7 +100,7 @@ const faq = [
   },
   {
     q: "Comment se déroule le paiement de la consultation ?",
-    r: "Paiement par Mobile Money (Orange Money, Wave, MTN MoMo) ou carte bancaire. Le règlement confirme votre rendez-vous.",
+    r: "Paiement par Mobile Money (Orange Money, MTN Money, Wave, Moov Money, Djamo). Le règlement confirme votre rendez-vous.",
   },
   {
     q: "Puis-je annuler ou reporter mon rendez-vous ?",
@@ -342,75 +343,7 @@ export default async function ConsultationPage() {
               </h2>
             </div>
 
-            <div style={{ background: '#fff', padding: '44px 40px', borderRadius: 3 }}>
-              <form
-                action={`https://formsubmit.co/${supportConfig.email}`}
-                method="POST"
-                style={{ display: 'flex', flexDirection: 'column', gap: 18 }}
-              >
-                <input type="hidden" name="_subject" value="Demande de consultation privée — VIP Parfumerie Bar" />
-                <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_next" value={`${SITE_URL}/services/merci`} />
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  {/* Nom */}
-                  <div>
-                    <label htmlFor="cname" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                      Nom <span style={{ color: '#EF4444' }}>*</span>
-                    </label>
-                    <input id="cname" name="nom" type="text" required placeholder="Votre nom" className="input" />
-                  </div>
-                  {/* Prénom */}
-                  <div>
-                    <label htmlFor="cprenom" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>Prénom</label>
-                    <input id="cprenom" name="prenom" type="text" placeholder="Votre prénom" className="input" />
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label htmlFor="cemail" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                    Email <span style={{ color: '#EF4444' }}>*</span>
-                  </label>
-                  <input id="cemail" name="email" type="email" required placeholder="votre@email.com" className="input" />
-                </div>
-
-                {/* Formule */}
-                <div>
-                  <label htmlFor="cformule" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>Formule souhaitée</label>
-                  <select id="cformule" name="formule" className="input">
-                    <option value="">Sélectionner…</option>
-                    <option value="decouverte">Découverte — 25 000 FCFA / 45 min</option>
-                    <option value="signature">Signature — 45 000 FCFA / 90 min</option>
-                    <option value="cadeau">Cadeau — 35 000 FCFA / 60 min</option>
-                  </select>
-                </div>
-
-                {/* Mode */}
-                <div>
-                  <label htmlFor="cmode" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>Mode de consultation</label>
-                  <select id="cmode" name="mode" className="input">
-                    <option value="">Sélectionner…</option>
-                    <option value="presentiel">Présentiel — Abidjan</option>
-                    <option value="visio">Visio — WhatsApp / Google Meet</option>
-                  </select>
-                </div>
-
-                {/* Disponibilités */}
-                <div>
-                  <label htmlFor="cdispo" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>Vos disponibilités</label>
-                  <textarea id="cdispo" name="disponibilites" rows={3} placeholder="Ex : semaine du 15 avril, libre mardi ou jeudi matin…" className="input" style={{ resize: 'vertical', lineHeight: 1.6 }} />
-                </div>
-
-                <button type="submit" className="btn-gold" style={{ width: '100%' }}>
-                  Envoyer ma demande de réservation
-                </button>
-
-                <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', textAlign: 'center', lineHeight: 1.5, margin: 0 }}>
-                  Nous vous contactons sous 4h pour confirmer le créneau.
-                </p>
-              </form>
-            </div>
+            <ConsultationForm siteUrl={SITE_URL} />
           </div>
         </div>
       </section>

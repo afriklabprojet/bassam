@@ -82,16 +82,6 @@ const COLLECTIONS = [
   },
 ];
 
-const FEATURED_BRANDS = [
-  { name: 'Dior', abbr: 'D' },
-  { name: 'Chanel', abbr: 'Ch' },
-  { name: 'Tom Ford', abbr: 'TF' },
-  { name: 'Maison Francis\nKurkdjian', abbr: 'MFK' },
-  { name: 'Amouage', abbr: 'Am' },
-  { name: 'Creed', abbr: 'Cr' },
-  { name: 'Initio', abbr: 'In' },
-  { name: 'YSL', abbr: 'YSL' },
-];
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
@@ -120,41 +110,27 @@ export default async function CollectionsPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '7rem 0 5rem', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 0%, rgba(197,165,90,0.12) 0%, transparent 65%)' }} aria-hidden="true" />
+      {/* ── Hero compact ─────────────────────────────────────────────────── */}
+      <section style={{ padding: '3rem 0 2.5rem', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(to right, transparent, rgba(197,165,90,0.3), transparent)' }} aria-hidden="true" />
-        <div className="container mx-auto" style={{ position: 'relative', textAlign: 'center', maxWidth: 760 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: '1.5rem' }}>
-            <span style={{ display: 'block', width: 32, height: '1px', background: 'var(--gold)' }} />
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
+        <div className="container mx-auto" style={{ position: 'relative', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: '0.875rem' }}>
+            <span style={{ display: 'block', width: 24, height: '1px', background: 'var(--gold)' }} />
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
               VIP Parfumerie Bar
             </span>
-            <span style={{ display: 'block', width: 32, height: '1px', background: 'var(--gold)' }} />
+            <span style={{ display: 'block', width: 24, height: '1px', background: 'var(--gold)' }} />
           </div>
           <h1 style={{
             fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(2.8rem, 7vw, 5rem)',
+            fontSize: 'clamp(2rem, 5vw, 3rem)',
             fontWeight: 300,
             color: 'var(--surface)',
             lineHeight: 1.1,
             letterSpacing: '-0.01em',
-            marginBottom: '1.5rem',
           }}>
             Nos Collections
           </h1>
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '1.0625rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.75, maxWidth: 540, margin: '0 auto 2.5rem' }}>
-            Des sélections pensées pour chaque personnalié, chaque moment, chaque émotion. Choisissez votre univers olfactif.
-          </p>
-          <Link href="/services/quiz-olfactif" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            fontFamily: 'var(--font-sans)', fontSize: '0.7rem',
-            letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: 'var(--gold)', textDecoration: 'none', fontWeight: 500,
-          }}>
-            Pas sûr(e) de votre collection ? Faites le quiz olfactif
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-          </Link>
         </div>
       </section>
 
@@ -220,97 +196,15 @@ export default async function CollectionsPage() {
         </div>
       </section>
 
-      {/* ── Marques ──────────────────────────────────────────────────────── */}
-      <section style={{ background: 'var(--noir-soft)', padding: '4rem 0', borderTop: '1px solid rgba(197,165,90,0.12)', borderBottom: '1px solid rgba(197,165,90,0.12)' }}>
-        <div className="container mx-auto">
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              Maisons sélectionnées
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem 0' }}>
-            {FEATURED_BRANDS.map((brand, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(0.85rem, 1.5vw, 1.05rem)', fontWeight: 300, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.3)', whiteSpace: 'nowrap' }}>
-                  {brand.name}
-                </span>
-                {i < FEATURED_BRANDS.length - 1 && (
-                  <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'rgba(197,165,90,0.4)', display: 'inline-block', margin: '0 0.75rem' }} />
-                )}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Editorial band ───────────────────────────────────────────────── */}
-      <section style={{ padding: '5rem 0' }}>
-        <div className="container mx-auto" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
-              <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>Notre sélection</span>
-            </div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', fontWeight: 300, color: 'var(--surface)', lineHeight: 1.2, marginBottom: '1.25rem' }}>
-              Un accès privilégié<br />aux plus grandes maisons
-            </h2>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '2rem' }}>
-              Chaque référence est sélectionnée à la main par notre équipe de spécialistes. Authenticité garantie, livraison sécurisée partout en Afrique de l’Ouest.
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <Link href="/collections/nouveautes" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'var(--gold)', color: 'var(--noir)',
-                padding: '0.75rem 1.5rem',
-                fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600,
-                textDecoration: 'none',
-              }}>
-                Voir les nouveautés
-              </Link>
-              <Link href="/services/consultation" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                border: '1px solid rgba(197,165,90,0.35)', color: 'var(--gold)',
-                padding: '0.75rem 1.5rem',
-                fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 500,
-                textDecoration: 'none',
-              }}>
-                Consulter un expert
-              </Link>
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            {[
-              { val: '500+', label: 'Références' },
-              { val: '100%', label: 'Authenticité' },
-              { val: '48h', label: 'Livraison Abidjan' },
-              { val: '5★', label: 'Service client' },
-            ].map(stat => (
-              <div key={stat.val} className="coll-stat" style={{
-                padding: '1.5rem',
-                border: '1px solid rgba(197,165,90,0.12)',
-                textAlign: 'center',
-                transition: 'border-color 0.3s, background 0.3s',
-              }}>
-                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 300, color: 'var(--gold)', lineHeight: 1, marginBottom: '0.4rem' }}>{stat.val}</div>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Quiz CTA ─────────────────────────────────────────────────────── */}
-      <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.10)', padding: '4rem 0' }}>
-        <div className="container mx-auto" style={{ textAlign: 'center' }}>
-          <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 'clamp(1.1rem, 2vw, 1.4rem)', color: 'rgba(255,255,255,0.55)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-            &ldquo;Un parfum, c&rsquo;est avant tout une émotion. Laissez-nous vous aider à trouver la vôtre.&rdquo;
-          </p>
+      {/* ── Quiz CTA compact ─────────────────────────────────────────────── */}
+      <section style={{ padding: ‘2.5rem 0’, borderTop: ‘1px solid rgba(197,165,90,0.10)’ }}>
+        <div className="container mx-auto" style={{ textAlign: ‘center’ }}>
           <Link href="/services/quiz-olfactif" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 10,
-            fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase',
-            color: 'var(--gold)', textDecoration: 'none', fontWeight: 500,
+            display: ‘inline-flex’, alignItems: ‘center’, gap: 10,
+            fontFamily: ‘var(--font-sans)’, fontSize: ‘0.65rem’, letterSpacing: ‘0.2em’, textTransform: ‘uppercase’,
+            color: ‘var(--gold)’, textDecoration: ‘none’, fontWeight: 500,
           }}>
-            Découvrez votre signature olfactive — Quiz gratuit
+            Pas sûr(e) de votre collection ? Faites le quiz olfactif gratuit
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </Link>
         </div>
@@ -326,11 +220,11 @@ export default async function CollectionsPage() {
         .coll-card {
           position: relative;
           overflow: hidden;
-          padding: 2.5rem;
+          padding: 2rem;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          min-height: 380px;
+          min-height: 300px;
           cursor: pointer;
           transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s ease;
         }
@@ -354,13 +248,9 @@ export default async function CollectionsPage() {
         .coll-card:hover .coll-discover { color: var(--gold-light); }
         .coll-arrow { transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
         .coll-discover { transition: color 0.3s ease; }
-        .coll-stat:hover {
-          border-color: rgba(197,165,90,0.3);
-          background: rgba(197,165,90,0.04);
-        }
         @media (max-width: 640px) {
           .coll-grid { grid-template-columns: 1fr; }
-          .coll-card { min-height: 280px; padding: 2rem; }
+          .coll-card { min-height: 220px; padding: 1.5rem; }
         }
       `}</style>
     </div>

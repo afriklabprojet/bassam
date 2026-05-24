@@ -175,7 +175,7 @@ export default function ProductDetailClient({
   const purchaseBenefits = [
     { label: 'Authenticité', value: 'Produit vérifié avant expédition' },
     { label: 'Livraison', value: '24h à Abidjan selon disponibilité' },
-    { label: 'Paiement', value: 'Orange Money, MTN, Wave' },
+    { label: 'Paiement', value: 'Orange Money, MTN, Wave, Moov, Djamo' },
     { label: 'Conseil', value: 'Assistance WhatsApp avant achat' },
   ];
 

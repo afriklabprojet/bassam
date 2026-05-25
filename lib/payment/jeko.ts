@@ -45,11 +45,6 @@ export interface JekoWebhookPayload {
   phone: string;
 }
 
-const JEKO_BASE_URL = process.env.JEKO_API_URL ?? 'https://api.jeko.africa';
-const JEKO_API_KEY = process.env.JEKO_API_KEY ?? '';
-const JEKO_API_KEY_ID = process.env.JEKO_API_KEY_ID ?? '';
-const JEKO_WEBHOOK_SECRET = process.env.JEKO_WEBHOOK_SECRET ?? '';
-const JEKO_STORE_ID = process.env.JEKO_STORE_ID ?? '';
 export const JEKO_CURRENCY = (process.env.JEKO_CURRENCY ?? 'XOF') as 'XOF' | 'XAF' | 'GNF';
 
 /** Map internal provider names (from checkout form) to Jeko's expected values */
@@ -69,6 +64,11 @@ export function mapProvider(internal: string): JekoProvider {
 export async function initiatePayment(
   params: JekoInitiateParams
 ): Promise<JekoInitiateResponse> {
+  const JEKO_BASE_URL = process.env.JEKO_API_URL ?? 'https://api.jeko.africa';
+  const JEKO_API_KEY = process.env.JEKO_API_KEY ?? '';
+  const JEKO_API_KEY_ID = process.env.JEKO_API_KEY_ID ?? '';
+  const JEKO_STORE_ID = process.env.JEKO_STORE_ID ?? '';
+
   if (!JEKO_API_KEY || !JEKO_API_KEY_ID) {
     throw new Error('JEKO_API_KEY and JEKO_API_KEY_ID must be configured');
   }
@@ -122,6 +122,7 @@ export async function initiatePayment(
  * Uses timing-safe comparison to prevent timing attacks.
  */
 export function verifyWebhookSignature(rawBody: string, signature: string): boolean {
+  const JEKO_WEBHOOK_SECRET = process.env.JEKO_WEBHOOK_SECRET ?? '';
   if (!JEKO_WEBHOOK_SECRET) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JEKO_WEBHOOK_SECRET must be set in production');

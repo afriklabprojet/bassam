@@ -1,7 +1,10 @@
 import { revalidateTag } from 'next/cache';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+
+const NEWSLETTER_RATE_LIMIT = { limit: 3, windowSec: 300 };
 
 const newsletterSchema = z.object({
   email: z.string().trim().toLowerCase().email('Email invalide'),
@@ -13,7 +16,10 @@ const newsletterSchema = z.object({
     .or(z.literal('')),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(request, 'newsletter', NEWSLETTER_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const body = await request.json();
     const parsed = newsletterSchema.safeParse(body);

@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { isCurrentUserAdmin, getAdminProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase/admin';
 
+const updateProductSchema = z.object({
+  name: z.string().min(1).optional(),
+  slug: z.string().min(1).optional(),
+  brand: z.string().min(1).optional(),
+  description: z.string().optional(),
+  price: z.number().positive().optional(),
+  originalPrice: z.number().positive().nullable().optional(),
+  categoryId: z.string().uuid().nullable().optional(),
+  gender: z.enum(['homme', 'femme', 'mixte']).optional(),
+  stockQuantity: z.number().int().min(0).optional(),
+  isFeatured: z.boolean().optional(),
+  images: z.array(z.string()).optional(),
+  notes: z.object({
+    top: z.array(z.string()),
+    heart: z.array(z.string()),
+    base: z.array(z.string()),
+  }).optional(),
+  concentration: z.string().optional(),
+  volume: z.string().optional(),
+});
+
 const createProductSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
@@ -81,13 +102,21 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, ...fields } = body;
+    const { id, ...rest } = body;
 
     if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'ID produit requis' }, { status: 400 });
     }
 
-    const { error } = await updateProduct(id, fields);
+    const parsed = updateProductSchema.safeParse(rest);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues.map((i) => i.message).join(', ') },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await updateProduct(id, parsed.data);
 
     if (error) {
       return NextResponse.json({ error }, { status: 500 });

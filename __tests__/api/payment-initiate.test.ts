@@ -3,6 +3,11 @@ import { NextRequest } from 'next/server';
 
 /* ── Mocks ───────────────────────────────────────────────────────────────── */
 
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 10, resetAt: Date.now() + 60_000 })),
+  rateLimitResponse: vi.fn(),
+}));
+
 const mockGetUser = vi.fn().mockResolvedValue({ data: { user: null } });
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve({ auth: { getUser: mockGetUser } })),

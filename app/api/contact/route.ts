@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+
+const CONTACT_RATE_LIMIT = { limit: 5, windowSec: 600 };
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, 'Nom trop court').max(80, 'Nom trop long'),
@@ -9,6 +12,9 @@ const contactSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(request, 'contact', CONTACT_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const body = await request.json();
     const parsed = contactSchema.safeParse(body);

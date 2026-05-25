@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 // Mock next/cache avant l'import de la route
 vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
@@ -13,10 +14,16 @@ vi.mock('@/lib/supabase/server', () => ({
   ),
 }));
 
+// Rate limiter toujours autorisé dans les tests
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 10, resetAt: Date.now() + 60_000 })),
+  rateLimitResponse: vi.fn(),
+}));
+
 import { POST } from '@/app/api/newsletter/route';
 
-function makeRequest(body: unknown): Request {
-  return new Request('http://localhost/api/newsletter', {
+function makeRequest(body: unknown): NextRequest {
+  return new NextRequest('http://localhost/api/newsletter', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

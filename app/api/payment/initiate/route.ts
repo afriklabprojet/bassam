@@ -4,6 +4,9 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib/supabase/custom-order-items';
 import { createOrder } from '@/lib/supabase/orders';
 import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY } from '@/lib/payment/jeko';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+
+const PAYMENT_RATE_LIMIT = { limit: 5, windowSec: 60 };
 
 type MobileProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
 
@@ -72,6 +75,9 @@ function getJekoErrorStatus(error: JekoApiError) {
  * to send an STK push to the customer's mobile phone.
  */
 export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(request, 'payment:initiate', PAYMENT_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const supabase = await createClient();
     const {

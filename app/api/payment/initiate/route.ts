@@ -124,9 +124,10 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
-    console.error('[POST /api/payment/initiate]', err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[POST /api/payment/initiate]', msg);
     return NextResponse.json(
-      { error: 'Erreur serveur lors de l\'initiation du paiement' },
+      { error: 'Erreur serveur lors de l\'initiation du paiement', detail: msg },
       { status: 500 }
     );
   }

@@ -419,20 +419,25 @@ body {
   }
 }
 
-.scroll-reveal {
+/* Sections are hidden only when JS has marked them as pending reveal */
+.scroll-reveal-pending {
   opacity: 0;
+  transform: translateY(40px);
+}
+
+.scroll-reveal-pending.scroll-reveal {
   animation: reveal-from-bottom 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.scroll-reveal-delay-1 {
+.scroll-reveal-pending.scroll-reveal-delay-1 {
   animation-delay: 0.1s;
 }
 
-.scroll-reveal-delay-2 {
+.scroll-reveal-pending.scroll-reveal-delay-2 {
   animation-delay: 0.2s;
 }
 
-.scroll-reveal-delay-3 {
+.scroll-reveal-pending.scroll-reveal-delay-3 {
   animation-delay: 0.3s;
 }
 

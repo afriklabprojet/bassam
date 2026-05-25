@@ -8,13 +8,11 @@ import { useEffect } from 'react';
  */
 export default function ScrollAnimations() {
   useEffect(() => {
-    // Créer l'IntersectionObserver
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('scroll-reveal');
-            // Ne trigger qu'une seule fois
             observer.unobserve(entry.target);
           }
         });
@@ -25,28 +23,26 @@ export default function ScrollAnimations() {
       }
     );
 
-    // Observer toutes les sections principales
     const sections = document.querySelectorAll('section');
     sections.forEach((section, index) => {
-      // Ajouter un délai progressif aux sections
       if (index > 0 && index <= 3) {
         section.classList.add(`scroll-reveal-delay-${Math.min(index, 3)}`);
       }
+      // Mark as pending ONLY after observer is ready — prevents invisible sections on slow JS
+      section.classList.add('scroll-reveal-pending');
       observer.observe(section);
     });
 
-    // Observer les product cards et collection cards
     const cards = document.querySelectorAll('.product-card, .collection-card');
     cards.forEach((card, index) => {
-      // Délai en cascade pour les cards
       const delay = Math.min(Math.floor(index / 4), 3);
       if (delay > 0) {
         card.classList.add(`scroll-reveal-delay-${delay}`);
       }
+      card.classList.add('scroll-reveal-pending');
       observer.observe(card);
     });
 
-    // Cleanup
     return () => {
       sections.forEach((section) => observer.unobserve(section));
       cards.forEach((card) => observer.unobserve(card));

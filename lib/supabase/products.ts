@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 import type { Product, ProductFilters, ProductsResponse } from '@/types/product.types';
 
@@ -28,19 +29,56 @@ function mapRow(row: Record<string, unknown>): Product {
   };
 }
 
-/** Fetch products list with server-side filtering, sorting and pagination */
-export async function getProducts(filters: ProductFilters): Promise<ProductsResponse> {
-  const supabase = await createClient();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabaseClient = SupabaseClient<any, any, any, any>;
 
-  const page = Math.max(1, filters.page ?? 1);
-  const limit = Math.min(48, Math.max(1, filters.limit ?? 12));
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
+type ProductsFallbackReason = 'empty-primary' | 'primary-error';
 
-  let query = supabase
-    .from('products')
-    .select('*, categories(name)', { count: 'exact' });
+type ProductsFallbackContext = {
+  reason: ProductsFallbackReason;
+  tri: ProductFilters['tri'] | null;
+  gender: ProductFilters['gender'] | null;
+  category: string | null;
+  brand: string | null;
+  featured: boolean;
+  promo: boolean;
+  hasSearchQuery: boolean;
+  page: number;
+  limit: number;
+  errorMessage?: string;
+};
 
+function createFallbackContext(
+  filters: ProductFilters,
+  reason: ProductsFallbackReason,
+  errorMessage?: string
+): ProductsFallbackContext {
+  return {
+    reason,
+    tri: filters.tri ?? null,
+    gender: filters.gender ?? null,
+    category: filters.category ?? null,
+    brand: filters.brand ?? null,
+    featured: Boolean(filters.featured),
+    promo: Boolean(filters.promo),
+    hasSearchQuery: Boolean(filters.q && filters.q.trim().length > 0),
+    page: Math.max(1, filters.page ?? 1),
+    limit: Math.min(48, Math.max(1, filters.limit ?? 12)),
+    errorMessage,
+  };
+}
+
+function logProductsFallback(context: ProductsFallbackContext) {
+  // Production observability by default; enable locally with DEBUG_PRODUCTS_FALLBACK=true.
+  if (process.env.NODE_ENV !== 'production' && process.env.DEBUG_PRODUCTS_FALLBACK !== 'true') {
+    return;
+  }
+
+  console.warn('[products:fallback]', context);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyProductFilters(query: any, filters: ProductFilters) {
   // Text search (name, brand, description)
   if (filters.q) {
     const q = `%${filters.q}%`;
@@ -80,32 +118,41 @@ export async function getProducts(filters: ProductFilters): Promise<ProductsResp
     query = query.not('original_price', 'is', null);
   }
 
-  // Sorting
-  switch (filters.tri) {
+  return query;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyProductSorting(query: any, tri: ProductFilters['tri']) {
+  switch (tri) {
     case 'prix-asc':
-      query = query.order('price', { ascending: true });
-      break;
+      return query.order('price', { ascending: true });
     case 'prix-desc':
-      query = query.order('price', { ascending: false });
-      break;
+      return query.order('price', { ascending: false });
     case 'nouveautes':
-      query = query.order('created_at', { ascending: false });
-      break;
+      return query.order('created_at', { ascending: false });
     case 'marque':
-      query = query.order('brand', { ascending: true });
-      break;
+      return query.order('brand', { ascending: true });
     default:
-      query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
+      return query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
   }
+}
 
-  // Pagination
-  query = query.range(from, to);
+async function runProductsQuery(supabase: AnySupabaseClient, filters: ProductFilters): Promise<ProductsResponse> {
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = Math.min(48, Math.max(1, filters.limit ?? 12));
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
 
-  const { data, error, count } = await query;
+  let query = supabase
+    .from('products')
+    .select('*, categories(name)', { count: 'exact' });
+
+  query = applyProductFilters(query, filters);
+  query = applyProductSorting(query, filters.tri);
+  const { data, error, count } = await query.range(from, to);
 
   if (error) {
-    console.error('[getProducts]', error.message);
-    return { products: [], total: 0, page, totalPages: 0 };
+    throw error;
   }
 
   const total = count ?? 0;
@@ -117,6 +164,50 @@ export async function getProducts(filters: ProductFilters): Promise<ProductsResp
     page,
     totalPages: Math.ceil(total / limit),
   };
+}
+
+async function tryServiceProductsQuery(filters: ProductFilters): Promise<ProductsResponse | null> {
+  try {
+    const { createServiceClient } = await import('./service');
+    const serviceClient = createServiceClient();
+    return await runProductsQuery(serviceClient, filters);
+  } catch {
+    return null;
+  }
+}
+
+/** Fetch products list with server-side filtering, sorting and pagination */
+export async function getProducts(filters: ProductFilters): Promise<ProductsResponse> {
+  try {
+    const supabase = await createClient();
+    const primary = await runProductsQuery(supabase, filters);
+
+    // If anon/RLS path returns an empty payload, try a trusted server fallback.
+    if (primary.total === 0) {
+      const serviceResult = await tryServiceProductsQuery(filters);
+      if (serviceResult && serviceResult.total > 0) {
+        logProductsFallback(createFallbackContext(filters, 'empty-primary'));
+        return serviceResult;
+      }
+    }
+
+    return primary;
+  } catch (error) {
+    console.warn('[getProducts] Primary query failed, trying service fallback', error instanceof Error ? error.message : 'unknown error');
+    const serviceResult = await tryServiceProductsQuery(filters);
+    if (serviceResult) {
+      logProductsFallback(
+        createFallbackContext(
+          filters,
+          'primary-error',
+          error instanceof Error ? error.message : 'unknown error'
+        )
+      );
+      return serviceResult;
+    }
+
+    return { products: [], total: 0, page: Math.max(1, filters.page ?? 1), totalPages: 0 };
+  }
 }
 
 /** Fetch a single product by slug */

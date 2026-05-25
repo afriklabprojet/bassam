@@ -132,6 +132,18 @@ function handleAuthPage(pathname: string, user: AuthUser, request: NextRequest) 
   return null
 }
 
+function shouldResolveUser(pathname: string, isPublicRoute: boolean) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    return true
+  }
+
+  if (pathname === '/auth/login' || pathname === '/auth/signup') {
+    return true
+  }
+
+  return !isPublicRoute
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -147,8 +159,21 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createSupabaseClient(request, response, supabaseUrl, supabaseAnonKey)
 
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser() as { data: { user: AuthUser } }
+  if (!shouldResolveUser(pathname, isPublicRoute)) {
+    return response
+  }
+
+  let user: AuthUser = null
+  try {
+    // Refresh session if expired (only when auth context is needed)
+    const { data } = await supabase.auth.getUser() as { data: { user: AuthUser } }
+    user = data.user
+  } catch (error) {
+    console.warn('[proxy] getUser failed', {
+      pathname,
+      error: error instanceof Error ? error.message : 'unknown error',
+    })
+  }
 
   const adminResponse = handleAdminRoute(pathname, user, request, response)
   if (adminResponse) return adminResponse

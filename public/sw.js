@@ -1,5 +1,5 @@
 // Service Worker for VIP Parfumerie Bar PWA
-const CACHE_NAME = 'vip-parfumerie-v2';
+const CACHE_NAME = 'vip-parfumerie-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache on install
@@ -60,7 +60,9 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate' || dest === 'document') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
+      fetch(event.request).catch(() =>
+        caches.match(OFFLINE_URL).then((r) => r ?? new Response('Offline', { status: 503, statusText: 'Service Unavailable' }))
+      )
     );
     return;
   }
@@ -87,12 +89,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
-          // If network fails, serve offline page for navigation requests
-          if (event.request.destination === 'document') {
-            return caches.match(OFFLINE_URL);
-          }
-        });
+        .catch(() => new Response('', { status: 503, statusText: 'Service Unavailable' }));
     })
   );
 });

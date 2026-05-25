@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
@@ -154,28 +154,28 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/stats');
-      if (!res.ok) {
-        setError(res.status === 403 ? 'Accès refusé — vous devez être administrateur' : 'Erreur de chargement');
-        return;
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/stats');
+        if (!res.ok) {
+          setError(res.status === 403 ? 'Accès refusé — vous devez être administrateur' : 'Erreur de chargement');
+          return;
+        }
+        const data = await res.json();
+        setStats(data.stats);
+        setRecentOrders(data.recentOrders);
+        setTopProducts(data.topProducts ?? []);
+        setLowStockProducts(data.lowStockProducts ?? []);
+        setPaymentStats(data.paymentStats ?? []);
+        setTopCustomers(data.topCustomers ?? []);
+      } catch {
+        setError('Erreur de connexion');
+      } finally {
+        setLoading(false);
       }
-      const data = await res.json();
-      setStats(data.stats);
-      setRecentOrders(data.recentOrders);
-      setTopProducts(data.topProducts ?? []);
-      setLowStockProducts(data.lowStockProducts ?? []);
-      setPaymentStats(data.paymentStats ?? []);
-      setTopCustomers(data.topCustomers ?? []);
-    } catch {
-      setError('Erreur de connexion');
-    } finally {
-      setLoading(false);
-    }
+    })();
   }, []);
-
-  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     const el = containerRef.current;

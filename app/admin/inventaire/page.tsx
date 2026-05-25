@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
@@ -80,8 +80,7 @@ export default function AdminInventaire() {
   const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     try {
       const res = await fetch('/api/admin/inventory');
       if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
@@ -90,19 +89,32 @@ export default function AdminInventaire() {
       setStats(d.stats ?? {});
     } catch { setError('Erreur réseau'); }
     finally { setLoading(false); }
+  }
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/inventory');
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const d = await res.json();
+        setItems(d.items ?? []);
+        setStats(d.stats ?? {});
+      } catch { setError('Erreur réseau'); }
+      finally { setLoading(false); }
+    })();
   }, []);
 
-  const loadProducts = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/products?limit=200');
-      if (!res.ok) return;
-      const d = await res.json();
-      setAllProducts(d.products ?? []);
-    } catch { /* ignore */ }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { if (showAdd) loadProducts(); }, [showAdd, loadProducts]);
+  useEffect(() => {
+    if (!showAdd) return;
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/products?limit=200');
+        if (!res.ok) return;
+        const d = await res.json();
+        setAllProducts(d.products ?? []);
+      } catch { /* ignore */ }
+    })();
+  }, [showAdd]);
 
   // Close dropdown on outside click
   useEffect(() => {

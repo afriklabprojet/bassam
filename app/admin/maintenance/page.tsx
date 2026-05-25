@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Task {
   id: string;
@@ -52,8 +52,7 @@ export default function AdminMaintenance() {
   const [showAdd, setShowAdd] = useState(false);
   const [newTask, setNewTask] = useState({ type: 'preventive', title: '', description: '', priority: 'medium', assigned_to: '', scheduled_at: '', notes: '' });
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     try {
       const p = new URLSearchParams();
       if (statusFilter) p.set('status', statusFilter);
@@ -65,9 +64,23 @@ export default function AdminMaintenance() {
       setStats(d.stats ?? {});
     } catch { setError('Erreur réseau'); }
     finally { setLoading(false); }
-  }, [statusFilter, priorityFilter]);
+  }
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const p = new URLSearchParams();
+        if (statusFilter) p.set('status', statusFilter);
+        if (priorityFilter) p.set('priority', priorityFilter);
+        const res = await fetch(`/api/admin/maintenance?${p}`);
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const d = await res.json();
+        setTasks(d.tasks ?? []);
+        setStats(d.stats ?? {});
+      } catch { setError('Erreur réseau'); }
+      finally { setLoading(false); }
+    })();
+  }, [statusFilter, priorityFilter]);
 
   async function updateStatus(id: string, status: string) {
     setSaving(id);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
 
 function getStockStyle(qty: number): { background: string; color: string } {
@@ -105,8 +105,7 @@ export default function AdminProducts() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (search) params.set('q', search);
@@ -124,9 +123,29 @@ export default function AdminProducts() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        if (search) params.set('q', search);
+        const res = await fetch(`/api/admin/products?${params}`);
+        if (!res.ok) {
+          setError(res.status === 403 ? 'Accès refusé' : 'Erreur');
+          return;
+        }
+        const data = await res.json();
+        setProducts(data.products);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      } catch {
+        setError('Erreur de connexion');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [page, search]);
 
   useEffect(() => {
     fetch('/api/admin/categories')

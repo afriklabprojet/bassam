@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import type { Product, ProductFilters } from '@/types/product.types';
@@ -41,35 +41,45 @@ function ProduitsContent() {
     page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
   } as ProductFilters;
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (currentFilters.q) params.set('q', currentFilters.q);
-      if (currentFilters.gender) params.set('gender', currentFilters.gender);
-      if (currentFilters.minPrice) params.set('minPrice', String(currentFilters.minPrice));
-      if (currentFilters.maxPrice) params.set('maxPrice', String(currentFilters.maxPrice));
-      if (currentFilters.tri) params.set('tri', currentFilters.tri);
-      if (searchParams.get('filtre')) params.set('filtre', searchParams.get('filtre')!);
-      if (currentFilters.page && currentFilters.page > 1) params.set('page', String(currentFilters.page));
-
-      const res = await fetch(`/api/products?${params.toString()}`);
-      if (!res.ok) throw new Error('Erreur chargement');
-      const data = await res.json();
-      setProducts(data.products);
-      setTotal(data.total);
-      setTotalPages(data.totalPages);
-    } catch {
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams.toString()]);
+  const searchKey = searchParams.toString();
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    let cancelled = false;
+    const sp = new URLSearchParams(searchKey);
+    const params = new URLSearchParams();
+    const q = sp.get('q');
+    const gender = sp.get('gender');
+    const minPrice = sp.get('minPrice');
+    const maxPrice = sp.get('maxPrice');
+    const tri = sp.get('tri');
+    const filtre = sp.get('filtre');
+    const page = sp.get('page');
+    if (q) params.set('q', q);
+    if (gender) params.set('gender', gender);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (tri) params.set('tri', tri);
+    if (filtre) params.set('filtre', filtre);
+    if (page && Number(page) > 1) params.set('page', page);
+
+    void (async () => {
+      try {
+        const res = await fetch(`/api/products?${params.toString()}`);
+        if (cancelled) return;
+        if (!res.ok) throw new Error('Erreur chargement');
+        const data = await res.json();
+        if (cancelled) return;
+        setProducts(data.products);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      } catch {
+        if (!cancelled) setProducts([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [searchKey]);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle } from '@/lib/order-status-theme';
 
 interface OrderItem {
@@ -40,8 +40,7 @@ export default function AdminOrders() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
       if (statusFilter) params.set('status', statusFilter);
@@ -56,9 +55,26 @@ export default function AdminOrders() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter]);
+  }
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        if (statusFilter) params.set('status', statusFilter);
+        const res = await fetch(`/api/admin/orders?${params}`);
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const data = await res.json();
+        setOrders(data.orders);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      } catch {
+        setError('Erreur de connexion');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [page, statusFilter]);
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Review {
   id: string;
@@ -37,8 +37,7 @@ export default function AdminAvisPage() {
   const [tab, setTab] = useState<Tab>('pending');
   const [actionId, setActionId] = useState<string | null>(null);
 
-  const fetchReviews = useCallback(async () => {
-    setLoading(true);
+  async function fetchReviews() {
     try {
       const res = await fetch('/api/admin/reviews');
       if (!res.ok) throw new Error('Erreur');
@@ -49,9 +48,22 @@ export default function AdminAvisPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
-  useEffect(() => { fetchReviews(); }, [fetchReviews]);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/reviews');
+        if (!res.ok) throw new Error('Erreur');
+        const data = await res.json();
+        setReviews(data.reviews ?? []);
+      } catch {
+        setReviews([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const handleAction = async (id: string, action: 'approve' | 'reject' | 'delete') => {
     setActionId(id);

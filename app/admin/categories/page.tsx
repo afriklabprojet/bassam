@@ -244,7 +244,6 @@ export default function CategoriesAdminPage() {
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
   async function load() {
-    setLoading(true);
     try {
       const res = await fetch('/api/admin/categories');
       const d = await res.json();
@@ -256,8 +255,19 @@ export default function CategoriesAdminPage() {
     }
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/categories');
+        const d = await res.json();
+        setCategories(d.categories ?? []);
+      } catch {
+        showToast(false, 'Erreur lors du chargement');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   function showToast(ok: boolean, msg: string) {
     setToast({ ok, msg });

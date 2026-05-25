@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Barcode {
   id: string;
@@ -45,8 +45,7 @@ export default function AdminCodesBarres() {
   const [editingLink, setEditingLink] = useState<string | null>(null); // barcode id being re-linked
   const [linkProductId, setLinkProductId] = useState<string>('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     try {
       const p = new URLSearchParams();
       if (activeOnly) p.set('active', 'true');
@@ -57,19 +56,33 @@ export default function AdminCodesBarres() {
       setTotal(d.total ?? 0);
     } catch { setError('Erreur réseau'); }
     finally { setLoading(false); }
+  }
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const p = new URLSearchParams();
+        if (activeOnly) p.set('active', 'true');
+        const res = await fetch(`/api/admin/barcodes?${p}`);
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const d = await res.json();
+        setBarcodes(d.barcodes ?? []);
+        setTotal(d.total ?? 0);
+      } catch { setError('Erreur réseau'); }
+      finally { setLoading(false); }
+    })();
   }, [activeOnly]);
 
-  const loadProducts = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/products?limit=200');
-      if (!res.ok) return;
-      const d = await res.json();
-      setProducts(d.products ?? []);
-    } catch { /* ignore */ }
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/products?limit=200');
+        if (!res.ok) return;
+        const d = await res.json();
+        setProducts(d.products ?? []);
+      } catch { /* ignore */ }
+    })();
   }, []);
-
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { loadProducts(); }, [loadProducts]);
 
   async function generateEAN() {
     const res = await fetch('/api/admin/barcodes?generate=ean13');

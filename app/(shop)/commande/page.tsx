@@ -565,7 +565,9 @@ export default function CheckoutPage() {
     firstName: '', lastName: '', phone: '',
     address: '', city: '', country: "Côte d'Ivoire", notes: '',
   });
-  const [selectedModeId, setSelectedModeId] = useState('');
+  const [selectedModeId, setSelectedModeId] = useState<string>(
+    () => DEFAULT_SHIPPING_CONFIG.modes.find((m) => m.enabled)?.id ?? '',
+  );
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('livraison');
   const [orderNumber, setOrderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -576,16 +578,15 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetch('/api/shipping-config')
       .then(r => r.json())
-      .then((d: { config?: ShippingConfig }) => { if (d.config) setShippingConfig(d.config); })
+      .then((d: { config?: ShippingConfig }) => {
+        if (d.config) {
+          setShippingConfig(d.config);
+          const firstEnabled = d.config.modes.find((m) => m.enabled);
+          if (firstEnabled) setSelectedModeId(firstEnabled.id);
+        }
+      })
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!selectedModeId) {
-      const first = shippingConfig.modes.find(m => m.enabled);
-      if (first) setSelectedModeId(first.id);
-    }
-  }, [shippingConfig, selectedModeId]);
 
   const enabledModes = shippingConfig.modes.filter(m => m.enabled);
   const selectedMode = enabledModes.find(m => m.id === selectedModeId) ?? null;

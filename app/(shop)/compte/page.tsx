@@ -62,7 +62,11 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [orders, setOrders]   = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab]         = useState<Tab>('commandes');
+  const [tab, setTab]         = useState<Tab>(() => {
+    if (typeof window === 'undefined') return 'commandes';
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    return isTabValue(requestedTab) ? requestedTab : 'commandes';
+  });
 
   // Profile edit form
   const [editFullName, setEditFullName] = useState('');
@@ -104,18 +108,6 @@ export default function AccountPage() {
   // updates the AppRouter context, which changes the router reference,
   // which would re-trigger the effect.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const requestedTab = new URLSearchParams(window.location.search).get('tab');
-
-    if (isTabValue(requestedTab)) {
-      setTab(requestedTab);
-    }
   }, []);
 
   const wishlist: WishlistItem[] =

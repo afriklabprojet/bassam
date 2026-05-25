@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
@@ -45,7 +45,7 @@ export default function ProductCard({
   const catLabel = categoryLabels[category];
   const productImage = normalizeProductImage(image);
 
-  function handleAddToCart(e: React.MouseEvent) {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!inStock || added) return;
@@ -60,7 +60,7 @@ export default function ProductCard({
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
-  }
+  }, [inStock, added, addItem, productId, id, name, brand, price, productImage]);
 
   return (
     <Link

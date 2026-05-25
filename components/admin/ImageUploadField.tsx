@@ -10,7 +10,7 @@
  *   disabled – optionnel
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 /* ── Constantes ──────────────────────────────────────────────────────────── */
 
@@ -59,21 +59,27 @@ export default function ImageUploadField({
   disabled = false,
   maxImages,
 }: Readonly<Props>) {
-  /* Items = liste des images affichées (depuis value + uploads en cours) */
-  const [items, setItems] = useState<UploadItem[]>(() =>
-    splitUrls(value).map((url) => ({ id: url, url })),
-  );
+  /* uploadItems = in-progress / errored uploads only */
+  const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setItems(splitUrls(value).map((url) => ({ id: url, url })));
-  }, [value]);
+  /* Derive persisted items from the value prop — no effect needed */
+  const persistedItems = useMemo<UploadItem[]>(
+    () => splitUrls(value).map((url) => ({ id: url, url })),
+    [value],
+  );
+
+  /* Merge persisted + in-flight for display */
+  const items = useMemo<UploadItem[]>(
+    () => [...persistedItems, ...uploadItems],
+    [persistedItems, uploadItems],
+  );
 
   /* Synchronise vers le parent à chaque modification */
   const syncUp = useCallback(
-    (nextItems: UploadItem[]) => {
-      const urls = nextItems.filter((i) => !i.uploading && !i.error).map((i) => i.url);
+    (nextPersisted: UploadItem[]) => {
+      const urls = nextPersisted.filter((i) => !i.uploading && !i.error).map((i) => i.url);
       onChange(joinUrls(urls));
     },
     [onChange],
@@ -81,9 +87,13 @@ export default function ImageUploadField({
 
   /* Supprimer une image */
   const remove = (id: string) => {
-    const next = items.filter((i) => i.id !== id);
-    setItems(next);
-    syncUp(next);
+    const isUpload = uploadItems.some((i) => i.id === id);
+    if (isUpload) {
+      setUploadItems((prev) => prev.filter((i) => i.id !== id));
+    } else {
+      const next = persistedItems.filter((i) => i.id !== id);
+      syncUp(next);
+    }
   };
 
   /* Uploader un fichier (File) via l'API route */
@@ -92,10 +102,7 @@ export default function ImageUploadField({
       const tempId = `tmp-${Date.now()}-${Math.random()}`;
       const placeholder: UploadItem = { id: tempId, url: '', uploading: true };
 
-      setItems((prev) => {
-        const next = maxImages === 1 ? [placeholder] : [...prev, placeholder];
-        return next;
-      });
+      setUploadItems((prev) => (maxImages === 1 ? [placeholder] : [...prev, placeholder]));
 
       try {
         const fd = new FormData();
@@ -110,21 +117,20 @@ export default function ImageUploadField({
 
         const url: string = json.url;
 
-        setItems((prev) => {
-          const next = prev.map((i) => (i.id === tempId ? { id: url, url, uploading: false } : i));
-          syncUp(next);
-          return next;
-        });
+        /* Remove from uploadItems and add the new URL to the parent value */
+        setUploadItems((prev) => prev.filter((i) => i.id !== tempId));
+        const nextPersisted = [...splitUrls(value), url].map((u) => ({ id: u, url: u }));
+        syncUp(nextPersisted);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Erreur inconnue';
-        setItems((prev) =>
+        setUploadItems((prev) =>
           prev.map((i) =>
             i.id === tempId ? { ...i, uploading: false, error: message } : i,
           ),
         );
       }
     },
-    [maxImages, syncUp],
+    [maxImages, syncUp, value],
   );
 
   /* Gérer les fichiers sélectionnés (input ou drop) */

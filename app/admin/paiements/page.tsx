@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Payment {
   id: string;
@@ -53,22 +53,21 @@ export default function AdminPaiements() {
   const [total, setTotal] = useState(0);
   const LIMIT = 50;
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const p = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
-      if (statusFilter) p.set('status', statusFilter);
-      const res = await fetch(`/api/admin/payments?${p}`);
-      if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
-      const d = await res.json();
-      setPayments(d.payments ?? []);
-      setStats(d.stats ?? {});
-      setTotal(d.total ?? 0);
-    } catch { setError('Erreur réseau'); }
-    finally { setLoading(false); }
+  useEffect(() => {
+    void (async () => {
+      try {
+        const p = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
+        if (statusFilter) p.set('status', statusFilter);
+        const res = await fetch(`/api/admin/payments?${p}`);
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const d = await res.json();
+        setPayments(d.payments ?? []);
+        setStats(d.stats ?? {});
+        setTotal(d.total ?? 0);
+      } catch { setError('Erreur réseau'); }
+      finally { setLoading(false); }
+    })();
   }, [page, statusFilter]);
-
-  useEffect(() => { load(); }, [load]);
 
   if (error) return (
     <div className="flex items-center justify-center h-64">

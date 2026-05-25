@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface StockAlert {
   id: string;
@@ -74,8 +74,7 @@ export default function AlertesStockPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     setError(null);
     try {
       const p = new URLSearchParams();
@@ -95,9 +94,31 @@ export default function AlertesStockPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, severityFilter]);
+  }
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void (async () => {
+      setError(null);
+      try {
+        const p = new URLSearchParams();
+        if (statusFilter)   p.set('status',   statusFilter);
+        if (severityFilter) p.set('severity', severityFilter);
+        const res = await fetch(`/api/admin/stock-alerts?${p}`);
+        if (!res.ok) {
+          const d = await res.json();
+          setError(d.error ?? 'Erreur chargement');
+          return;
+        }
+        const d = await res.json();
+        setAlerts(d.alerts ?? []);
+        setStats(d.stats ?? { total: 0, pending: 0, acknowledged: 0, resolved: 0, critical: 0 });
+      } catch {
+        setError('Erreur réseau');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [statusFilter, severityFilter]);
 
   async function handleCheck() {
     setChecking(true);

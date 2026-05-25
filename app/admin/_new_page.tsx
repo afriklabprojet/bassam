@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ORDER_STATUS_KEYS,
@@ -194,30 +194,28 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/stats');
-      if (!res.ok) {
-        setError(res.status === 403 ? 'Accès refusé — administrateur requis' : 'Erreur de chargement');
-        return;
-      }
-      const data = await res.json();
-      setStats(data.stats);
-      setRecentOrders(data.recentOrders ?? []);
-      setTopProducts(data.topProducts ?? []);
-      setLowStockProducts(data.lowStockProducts ?? []);
-      setPaymentStats(data.paymentStats ?? []);
-      setTopCustomers(data.topCustomers ?? []);
-    } catch {
-      setError('Erreur de connexion');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/stats');
+        if (!res.ok) {
+          setError(res.status === 403 ? 'Accès refusé — administrateur requis' : 'Erreur de chargement');
+          return;
+        }
+        const data = await res.json();
+        setStats(data.stats);
+        setRecentOrders(data.recentOrders ?? []);
+        setTopProducts(data.topProducts ?? []);
+        setLowStockProducts(data.lowStockProducts ?? []);
+        setPaymentStats(data.paymentStats ?? []);
+        setTopCustomers(data.topCustomers ?? []);
+      } catch {
+        setError('Erreur de connexion');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Customer {
   id: string;
@@ -22,24 +22,23 @@ export default function AdminClients() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: String(page), limit: '25' });
-      const res = await fetch(`/api/admin/customers?${params}`);
-      if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
-      const data = await res.json();
-      setCustomers(data.customers);
-      setTotal(data.total);
-      setTotalPages(data.totalPages);
-    } catch {
-      setError('Erreur de connexion');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    void (async () => {
+      try {
+        const params = new URLSearchParams({ page: String(page), limit: '25' });
+        const res = await fetch(`/api/admin/customers?${params}`);
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const data = await res.json();
+        setCustomers(data.customers);
+        setTotal(data.total);
+        setTotalPages(data.totalPages);
+      } catch {
+        setError('Erreur de connexion');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [page]);
-
-  useEffect(() => { load(); }, [load]);
 
   if (error) {
     return (

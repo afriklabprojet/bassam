@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Refund {
   id: string;
@@ -55,8 +55,7 @@ export default function AdminRemboursements() {
   const [newRefund, setNewRefund] = useState({ order_id: '', amount: 0, currency: 'XOF', reason: '', refund_method: 'original', notes: '' });
   const LIMIT = 50;
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  async function load() {
     try {
       const p = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
       if (statusFilter) p.set('status', statusFilter);
@@ -68,9 +67,23 @@ export default function AdminRemboursements() {
       setTotal(d.total ?? 0);
     } catch { setError('Erreur réseau'); }
     finally { setLoading(false); }
-  }, [page, statusFilter]);
+  }
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    void (async () => {
+      try {
+        const p = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
+        if (statusFilter) p.set('status', statusFilter);
+        const res = await fetch(`/api/admin/refunds?${p}`);
+        if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
+        const d = await res.json();
+        setRefunds(d.refunds ?? []);
+        setStats(d.stats ?? {});
+        setTotal(d.total ?? 0);
+      } catch { setError('Erreur réseau'); }
+      finally { setLoading(false); }
+    })();
+  }, [page, statusFilter]);
 
   async function updateStatus(id: string, status: string) {
     setSaving(id);

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { supportConfig } from '@/lib/site-config';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import ConsultationForm from '@/components/ConsultationForm';
 

@@ -217,17 +217,25 @@ export default async function HomePage() {
       <Hero content={homeHero} />
 
       {/* ══ BANDE OR — confiance immédiate ══ */}
-      <div style={{ background: 'var(--gold)', padding: '0.875rem 0' }}>
+      <div style={{ background: 'var(--gold)', overflow: 'hidden' }}>
         <div
-          className="container mx-auto"
-          style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '0.5rem 2.5rem' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2rem',
+            padding: '0.75rem 1.5rem',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            whiteSpace: 'nowrap',
+            WebkitOverflowScrolling: 'touch',
+          }}
         >
           {['Authenticité 100% garantie', 'Livraison sous 24h à Abidjan', 'Paiement Mobile Money accepté', '+500 clients satisfaits'].map((t) => (
             <span
               key={t}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#fff' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#fff', flexShrink: 0 }}
             >
-              <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', display: 'inline-block' }} />
+              <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', display: 'inline-block', flexShrink: 0 }} />
               {t}
             </span>
           ))}
@@ -235,7 +243,7 @@ export default async function HomePage() {
       </div>
 
       {/* ══ SECTION 1 — nos nouveautés ══ */}
-      <section id="nouveautes" style={{ background: '#fff', padding: '5rem 0' }}>
+      <section id="nouveautes" className="section-sm" style={{ background: '#fff' }}>
         <div className="container mx-auto">
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
@@ -275,7 +283,7 @@ export default async function HomePage() {
       </section>
 
       {/* ══ SECTION 2 — sélection de la semaine ══ */}
-      <section style={{ background: 'var(--offwhite, #F8F5F0)', padding: '5rem 0' }}>
+      <section className="section-sm" style={{ background: 'var(--offwhite)' }}>
         <div className="container mx-auto">
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
@@ -315,13 +323,14 @@ export default async function HomePage() {
       </section>
 
       {/* ══ SECTION 3 — tout le catalogue ══ */}
-      <section style={{ background: '#fff', padding: '5rem 0' }}>
+      <section className="section-sm" style={{ background: '#fff' }}>
         <div className="container mx-auto">
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2.5rem', gap: '1rem', flexWrap: 'wrap' }}>
             <div>
               <span className="label">Voir tout notre catalogue</span>
               <h2
-                style={{ marginTop: '0.625rem', fontSize: 'clamp(2rem,4vw,3rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
+                className="heading-display"
+                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
               >
                 Trouvez votre<br />
                 <em style={{ color: 'var(--gold)' }}>signature olfactive</em>

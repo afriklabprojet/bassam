@@ -387,24 +387,33 @@ body {
 
 /* Product card hover — styles dans .product-card-premium (globals.css ligne ~510) */
 
-/* Hero parallax layers */
+/* Hero parallax layers — disabled on mobile to avoid GPU saturation */
 .hero-parallax {
   perspective: 1000px;
 }
 
 .parallax-layer {
   transform: translateZ(-20px) scale(1.02);
-  will-change: transform;
 }
 
 .parallax-glow {
   transform: translateZ(-30px) scale(1.03);
-  will-change: transform, opacity;
 }
 
 .parallax-glow-2 {
   transform: translateZ(-40px) scale(1.04);
-  will-change: transform, opacity;
+}
+
+@media (min-width: 1024px) {
+  .parallax-layer  { will-change: transform; }
+  .parallax-glow   { will-change: transform, opacity; }
+  .parallax-glow-2 { will-change: transform, opacity; }
+}
+
+@media (max-width: 1023px) {
+  .parallax-layer, .parallax-glow, .parallax-glow-2 {
+    transform: none;
+  }
 }
 
 /* Scroll reveal animations */
@@ -423,6 +432,7 @@ body {
 .scroll-reveal-pending {
   opacity: 0;
   transform: translateY(40px);
+  will-change: opacity, transform;
 }
 
 .scroll-reveal-pending.scroll-reveal {
@@ -532,6 +542,25 @@ header a[aria-label]:hover {
   opacity: 1 !important;
 }
 
+/* Mobile CTA (+) : visible sur tactile, caché sur desktop où le hover overlay suffit */
+@media (hover: hover) and (pointer: fine) {
+  /* Desktop — pointer précis → CTA caché (overlay hover le remplace) */
+  .product-card-mobile-cta {
+    display: none !important;
+  }
+}
+@media (hover: none), (pointer: coarse) {
+  /* Tactile — pas de hover → CTA toujours visible */
+  .product-card-mobile-cta {
+    display: flex !important;
+  }
+  /* Le hover overlay/CTA interne n'est pas accessible sur tactile → on le garde caché */
+  .product-card-overlay,
+  .product-card-cta {
+    display: none;
+  }
+}
+
 /* ─── CollectionCard premium styles ─── */
 .collection-card-premium {
   transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
@@ -576,9 +605,13 @@ header a[aria-label]:hover {
 
 /* ─── Video Hero — Cinéma Parfum ─────────────── */
 .hero-video-bg {
-  will-change: opacity, transform;
   filter: brightness(0.6) saturate(1.15) contrast(1.05);
-  animation: hero-video-breathe 12s ease-in-out infinite;
+}
+@media (min-width: 768px) {
+  .hero-video-bg {
+    will-change: opacity;
+    animation: hero-video-breathe 12s ease-in-out infinite;
+  }
 }
 @keyframes hero-video-breathe {
   0%, 100% { filter: brightness(0.6) saturate(1.15) contrast(1.05); }

@@ -270,29 +270,67 @@ export default function ProductCard({
           {name}
         </h3>
 
-        {/* Price row */}
-        <div className="flex items-baseline gap-2" style={{ marginTop: 8 }}>
-          <span style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: '1.125rem',
-            fontWeight: 500,
-            color: inStock ? 'var(--text-primary)' : 'var(--text-pale)',
-            letterSpacing: '-0.01em',
-          }}>
-            {price.toLocaleString('fr-FR')}{' '}
-            <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-secondary)' }}>
-              FCFA
-            </span>
-          </span>
-          {originalPrice && (
+        {/* Price row + mobile CTA */}
+        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div className="flex items-baseline gap-2" style={{ minWidth: 0 }}>
             <span style={{
-              fontSize: '0.75rem',
-              color: 'var(--text-pale)',
-              textDecoration: 'line-through',
-              textDecorationColor: 'rgba(197,165,90,0.4)',
+              fontFamily: 'var(--font-serif)',
+              fontSize: '1.125rem',
+              fontWeight: 500,
+              color: inStock ? 'var(--text-primary)' : 'var(--text-pale)',
+              letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap',
             }}>
-              {originalPrice.toLocaleString('fr-FR')}
+              {price.toLocaleString('fr-FR')}{' '}
+              <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-secondary)' }}>
+                FCFA
+              </span>
             </span>
+            {originalPrice && (
+              <span style={{
+                fontSize: '0.75rem',
+                color: 'var(--text-pale)',
+                textDecoration: 'line-through',
+                textDecorationColor: 'rgba(197,165,90,0.4)',
+                whiteSpace: 'nowrap',
+              }}>
+                {originalPrice.toLocaleString('fr-FR')}
+              </span>
+            )}
+          </div>
+
+          {/* Bouton + visible sur mobile (hover: none) — caché sur desktop */}
+          {inStock && (
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              aria-label={added ? 'Ajouté au panier' : `Ajouter ${name} au panier`}
+              className="product-card-mobile-cta"
+              style={{
+                flexShrink: 0,
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                border: `1.5px solid ${added ? 'transparent' : 'var(--gold)'}`,
+                background: added ? 'var(--gold)' : 'transparent',
+                color: added ? '#fff' : 'var(--gold)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.25s, color 0.25s, border-color 0.25s',
+              }}
+            >
+              {added ? (
+                <svg width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              ) : (
+                <svg width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              )}
+            </button>
           )}
         </div>
 

@@ -47,11 +47,13 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden safe-area-bottom"
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden"
       style={{
         background: 'rgba(255,255,255,0.97)',
         borderTop: '1px solid var(--line-light)',
         backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
       <div className="grid grid-cols-4">
@@ -65,11 +67,13 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
-              className="flex flex-col items-center justify-center gap-1 py-2.5 relative"
+              className="flex flex-col items-center justify-center gap-1 relative"
               style={{
                 color: isActive ? 'var(--gold)' : 'var(--text-pale)',
                 textDecoration: 'none',
                 transition: 'color 0.2s',
+                minHeight: 52,
+                padding: '8px 0',
               }}
             >
               {/* Active top bar */}

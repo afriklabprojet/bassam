@@ -101,8 +101,9 @@ function ProductSectionEmptyState() {
 
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
-  const [{ products: rawNewArrivals }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
+  const [{ products: rawNewArrivals }, { products: rawFeatured }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
     getProducts({ tri: 'nouveautes', limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
+    getProducts({ featured: true, limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
     getProductCountsByGender().catch(() => ({} as Record<string, number>)),
     getApprovedReviews(6).catch(() => []),
     getHomeUnivers().catch(() => []),
@@ -112,6 +113,9 @@ export default async function HomePage() {
   // Si BDD vide ou indisponible → produits démo (dev uniquement)
   const mockNewArrivals = DEV_MOCK_PRODUCTS.slice(0, 8);
   const newArrivals = rawNewArrivals.length > 0 ? rawNewArrivals : mockNewArrivals;
+
+  const mockFeatured = DEV_MOCK_PRODUCTS.filter((p) => p.isFeatured).slice(0, 8);
+  const featuredProducts = rawFeatured.length > 0 ? rawFeatured : mockFeatured;
 
   // Fusionner les compteurs réels avec le contenu éditorial
   // En dev sans BDD : compter depuis les mocks pour affichage cohérent
@@ -253,6 +257,46 @@ export default async function HomePage() {
               <ProductSectionEmptyState />
             ) : (
               newArrivals.map((p) => (
+                <ProductCard
+                  key={p.slug}
+                  id={p.slug}
+                  name={p.name}
+                  brand={p.brand}
+                  price={p.price}
+                  originalPrice={p.originalPrice ?? undefined}
+                  image={p.images[0] ?? '/images/products/product-placeholder.svg'}
+                  category={p.gender ?? 'mixte'}
+                  inStock={p.stockQuantity > 0}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SECTION 2 — sélection de la semaine ══ */}
+      <section style={{ background: 'var(--offwhite, #F8F5F0)', padding: '5rem 0' }}>
+        <div className="container mx-auto">
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <div>
+              <span className="label">Coup de cœur</span>
+              <h2
+                className="heading-display"
+                style={{ marginTop: '0.625rem', fontSize: 'clamp(1.875rem,3.5vw,2.75rem)', color: 'var(--text-primary)', lineHeight: 1.1 }}
+              >
+                Sélection de la semaine
+              </h2>
+            </div>
+            <Link href="/produits?filtre=vedettes" className="btn-ghost" style={{ flexShrink: 0 }}>
+              Voir toute la sélection
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+            {featuredProducts.length === 0 ? (
+              <ProductSectionEmptyState />
+            ) : (
+              featuredProducts.map((p) => (
                 <ProductCard
                   key={p.slug}
                   id={p.slug}

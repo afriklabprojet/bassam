@@ -5,9 +5,20 @@ import { getCollectionsContent } from '@/lib/supabase/collections-content';
 
 export const revalidate = 300;
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  title: 'Collections | VIP Parfumerie Bar',
-  description: "Explorez nos collections de parfums de luxe — Femme, Homme, Mixte et les dernières nouveautés. Livraison en Afrique de l'Ouest.",
+  title: 'Collections de Parfums à Abidjan -- Femme, Homme, Mixte | VIP Parfumerie Bar',
+  description: "Explorez nos collections de parfums de luxe à Abidjan -- Femme, Homme, Mixte, Nouveautés. Les plus grandes maisons. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
+  keywords: "collections parfums Abidjan, parfumerie Côte d'Ivoire, collection parfum luxe Abidjan, catalogue parfum Abidjan",
+  alternates: { canonical: `${BASE_URL}/collections` },
+  openGraph: {
+    title: 'Collections de Parfums | VIP Parfumerie Bar Abidjan',
+    description: "Femme, Homme, Mixte -- toutes nos collections disponibles à Abidjan.",
+    url: `${BASE_URL}/collections`,
+    type: 'website',
+    locale: 'fr_CI',
+  },
 };
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -18,7 +29,7 @@ const COLLECTIONS = [
     label: 'Nouveautés',
     eyebrow: 'Dernières arrivées',
     tagline: 'Ce qui vient de poser ses valises',
-    description: 'Parcourez les toutes dernières créations des maisons que nous sélectionnons avec soin — des lancements mondiaux disponibles à Abidjan.',
+    description: 'Parcourez les toutes dernières créations des maisons que nous sélectionnons avec soin -- des lancements mondiaux disponibles à Abidjan.',
     accent: 'rgba(197,165,90,0.18)',
     textLight: false,
     icon: (

@@ -18,14 +18,16 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "VIP Parfumerie Bar - Parfums de Luxe Authentiques en Afrique",
+    default: "VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan",
     template: "%s | VIP Parfumerie Bar",
   },
-  description: "Découvrez les meilleurs parfums de luxe authentiques des plus grandes marques. Livraison rapide en Afrique de l'Ouest. Paiement sécurisé par Mobile Money.",
-  keywords: "parfum, luxe, authentique, Afrique, Burkina Faso, mobile money, Chanel, Dior, YSL",
+  description: "Boutique de parfums de luxe authentiques à Abidjan, Côte d'Ivoire. Chanel, Dior, YSL, Tom Ford, Creed. Livraison en 24h à Abidjan et partout en Afrique de l'Ouest. Paiement Mobile Money.",
+  keywords: "parfum luxe Abidjan, parfumerie Côte d'Ivoire, boutique parfum authentique Abidjan, Chanel Abidjan, Dior Abidjan, YSL Abidjan, Tom Ford Abidjan, livraison parfum Afrique Ouest, Mobile Money parfum",
   authors: [{ name: "VIP Parfumerie Bar" }],
   creator: "VIP Parfumerie Bar",
   publisher: "VIP Parfumerie Bar",
@@ -45,24 +47,24 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "fr_FR",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://vip-parfumerie-bar.com",
+    locale: "fr_CI",
+    url: SITE_URL,
     siteName: "VIP Parfumerie Bar",
-    title: "VIP Parfumerie Bar - Parfums de Luxe Authentiques",
-    description: "Découvrez les meilleurs parfums de luxe authentiques en Afrique de l'Ouest",
+    title: "VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan",
+    description: "Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
     images: [
       {
         url: "/og-image.svg",
         width: 1200,
         height: 630,
-        alt: "VIP Parfumerie Bar",
+        alt: "VIP Parfumerie Bar — Parfums de Luxe Abidjan",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "VIP Parfumerie Bar - Parfums de Luxe",
-    description: "Découvrez les meilleurs parfums de luxe authentiques",
+    title: "VIP Parfumerie Bar — Parfums de Luxe à Abidjan",
+    description: "Boutique de parfums de luxe authentiques à Abidjan. Livraison rapide en Côte d'Ivoire.",
     images: ["/og-image.svg"],
   },
 };

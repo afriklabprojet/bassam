@@ -5,10 +5,20 @@ import { fetchCreationConfig } from '@/lib/custom-creation';
 
 export const dynamic = 'force-dynamic';
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  title: 'Cr\u00e9ation Personnalis\u00e9e \u2014 VIP Parfumerie Bar',
-  description:
-    "Faites créer votre parfum unique : accord sur-mesure, flacon gravé, coffret luxe numéroté. La fragrance exclusive signée à votre nom.",
+  title: 'Parfum Personnalisé sur Mesure à Abidjan | VIP Parfumerie Bar',
+  description: "Faites créer votre parfum unique à Abidjan : accord sur-mesure, flacon gravé, coffret luxe numéroté. La fragrance exclusive signée à votre nom en Côte d'Ivoire.",
+  keywords: "parfum sur mesure Abidjan, création parfum personnalisé Côte d'Ivoire, parfum unique Abidjan, parfumeur Abidjan",
+  alternates: { canonical: `${BASE_URL}/services/creation-personnalisee` },
+  openGraph: {
+    title: 'Parfum Personnalisé sur Mesure | VIP Parfumerie Bar Abidjan',
+    description: "Créez votre parfum unique à Abidjan — accord sur-mesure, flacon gravé, coffret luxe.",
+    url: `${BASE_URL}/services/creation-personnalisee`,
+    type: 'website',
+    locale: 'fr_CI',
+  },
 };
 
 /* ─── Data ───────────────────────────────────────────────── */

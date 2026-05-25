@@ -87,24 +87,44 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
   const productLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
+    '@id': `${BASE_URL}/produits/${product.slug}#product`,
     name: product.name,
     brand: { '@type': 'Brand', name: product.brand },
-    description: product.description ?? undefined,
-    image: product.images,
+    description: product.description ?? `${product.name} de ${product.brand} — parfum de luxe authentique disponible à Abidjan, Côte d'Ivoire.`,
+    image: product.images.length > 0 ? product.images : [`${BASE_URL}/og-image.svg`],
     url: `${BASE_URL}/produits/${product.slug}`,
+    sku: product.slug,
     offers: {
       '@type': 'Offer',
+      '@id': `${BASE_URL}/produits/${product.slug}#offer`,
       priceCurrency: 'XOF',
       price: product.price,
+      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       availability: product.stockQuantity > 0
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
       seller: {
         '@type': 'Organization',
         name: 'VIP Parfumerie Bar',
         '@id': `${BASE_URL}/#organization`,
       },
-      areaServed: { '@type': 'Country', name: 'Côte d\'Ivoire' },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          currency: 'XOF',
+          value: 0,
+          description: 'Livraison offerte dès 50 000 XOF',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+          transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 3, unitCode: 'DAY' },
+        },
+        shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'CI' },
+      },
+      areaServed: { '@type': 'Country', name: "Côte d'Ivoire" },
     },
   };
 

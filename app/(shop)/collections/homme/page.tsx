@@ -6,34 +6,45 @@ import { getApprovedReviews } from '@/lib/supabase/reviews';
 
 export const dynamic = 'force-dynamic';
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  title: 'Parfums Homme | VIP Parfumerie Bar',
-  description: 'Collection homme — Boisés élégants, orientaux intenses, signatures fraiches. Sauvage, Bleu de Chanel, Tom Ford. Livraison Abidjan et Afrique de l’Ouest.',
+  title: 'Parfums Homme à Abidjan -- Sauvage, Bleu de Chanel, Tom Ford | VIP Parfumerie Bar',
+  description: "Collection parfums homme à Abidjan -- Boisés élégants, orientaux intenses, signatures fraîches. Sauvage Dior, Bleu de Chanel, Tom Ford. Livraison Côte d'Ivoire.",
+  keywords: "parfum homme Abidjan, parfum masculin Côte d'Ivoire, Sauvage Dior Abidjan, Bleu de Chanel Abidjan, Tom Ford homme Abidjan",
+  alternates: { canonical: `${BASE_URL}/collections/homme` },
+  openGraph: {
+    title: 'Parfums Homme | VIP Parfumerie Bar Abidjan',
+    description: "Les meilleures fragrances masculines disponibles à Abidjan. Livraison Côte d'Ivoire.",
+    url: `${BASE_URL}/collections/homme`,
+    type: 'website',
+    locale: 'fr_CI',
+  },
 };
 
 // ─── Fragrance guides ─────────────────────────────────────────────────────────
 const GUIDES = [
   {
     titre: 'Le Boisé Élégant',
-    description: 'Cèdre, vétiver, santal — l’arche tempéréle du gentleman contemporain. Tenue 8-12h.',
+    description: "Cèdre, vétiver, santal -- l'arche tempérée du gentleman contemporain. Tenue 8-12h.",
     icone: '□',
-    rep: ['Bleu de Chanel', 'Terre d’Hermès', 'Wood & Fresh TF'],
+    rep: ['Bleu de Chanel', "Terre d'Hermès", 'Wood & Fresh TF'],
   },
   {
-    titre: 'L’Oriental Puissant',
-    description: 'Oud, ambre, résine — pour ceux qui assument leur présence et laissent un sillage mémorable.',
+    titre: "L'Oriental Puissant",
+    description: 'Oud, ambre, résine -- pour ceux qui assument leur présence et laissent un sillage mémorable.',
     icone: '◆',
     rep: ['Oud Wood TF', 'Sauvage Elixir Dior', 'Roja Enigma'],
   },
   {
     titre: 'Le Fraîcs Aquatique',
-    description: 'Bergamote, cédrat, notes marines — léger, d’une modernité impéccable. Idéal au bureau.',
+    description: "Bergamote, cédrat, notes marines -- léger, d'une modernité impeccable. Idéal au bureau.",
     icone: '○',
-    rep: ['Acqua di Giò', 'L’Homme YSL', 'Gentleman Givenchy'],
+    rep: ['Acqua di Giò', "L'Homme YSL", 'Gentleman Givenchy'],
   },
   {
     titre: 'La Signature Chaude',
-    description: 'Vanille, cuir, tabac — une chaleur sensuelle qui s’intensifie sur la peau.',
+    description: "Vanille, cuir, tabac -- une chaleur sensuelle qui s'intensifie sur la peau.",
     icone: '▲',
     rep: ['Spicebomb TF', 'A*Men Mugler', 'Dior Homme Intense'],
   },
@@ -67,7 +78,7 @@ export default async function HommePage() {
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section style={{ padding: '6rem 0 0', position: 'relative', overflow: 'hidden' }}>
-        {/* Gradient ambiance masculine — bleu nuit + or */}
+        {/* Gradient ambiance masculine -- bleu nuit + or */}
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 75% 25%, rgba(80,100,150,0.09) 0%, transparent 55%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 15% 70%, rgba(197,165,90,0.08) 0%, transparent 50%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(197,165,90,0.2), transparent)' }} aria-hidden="true" />
@@ -83,7 +94,7 @@ export default async function HommePage() {
           </nav>
 
           <div className="homme-hero-grid">
-            {/* Left — Text */}
+            {/* Left -- Text */}
             <div style={{ paddingBottom: '4.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
                 <svg width="16" height="16" viewBox="0 0 40 40" fill="none" aria-hidden="true">
@@ -109,7 +120,7 @@ export default async function HommePage() {
                 &ldquo;Le parfum, c&rsquo;est la première chose que l&rsquo;on remarque et la dernière dont on se souvient.&rdquo;
               </p>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, maxWidth: 420, marginBottom: '2.5rem' }}>
-                Boisés élégants, orientaux intenses, fragrances fraiches — des signatures masculines qui affirment sans imposer, pour chaque occasion.
+                Boisés élégants, orientaux intenses, fragrances fraiches -- des signatures masculines qui affirment sans imposer, pour chaque occasion.
               </p>
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <Link href="#produits" style={{
@@ -133,7 +144,7 @@ export default async function HommePage() {
               </div>
             </div>
 
-            {/* Right — Manifest card */}
+            {/* Right -- Manifest card */}
             <div style={{ position: 'relative' }}>
               <div style={{
                 position: 'absolute', inset: 0,
@@ -146,7 +157,7 @@ export default async function HommePage() {
                 </div>
                 {[
                   { step: '01', label: 'Définissez votre style' },
-                  { step: '02', label: 'Choisissez l’intensité' },
+                  { step: '02', label: "Choisissez l'intensité" },
                   { step: '03', label: 'Faites le quiz' },
                   { step: '04', label: 'Commandez' },
                 ].map((s) => (
@@ -190,7 +201,7 @@ export default async function HommePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {g.rep.map((r) => (
                     <span key={r} style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em' }}>
-                      — {r}
+                      -- {r}
                     </span>
                   ))}
                 </div>

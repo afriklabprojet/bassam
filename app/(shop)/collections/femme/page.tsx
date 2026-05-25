@@ -6,14 +6,25 @@ import type { Product } from '@/types/product.types';
 
 export const dynamic = 'force-dynamic';
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  title: 'Parfums Femme | VIP Parfumerie Bar',
-  description: 'Collection femme — Floraux enivrants, orientaux profonds, muscs sensuels. Les plus grandes maisons de parfumerie sélectionnées pour la femme moderne. Livraison Abidjan.',
+  title: 'Parfums Femme à Abidjan -- Chanel, Dior, YSL, Lancôme | VIP Parfumerie Bar',
+  description: "Collection parfums femme à Abidjan -- Floraux enivrants, orientaux profonds, muscs sensuels. Chanel N°5, Miss Dior, La Vie est Belle. Livraison Côte d'Ivoire.",
+  keywords: "parfum femme Abidjan, parfum féminin Côte d'Ivoire, Chanel N5 Abidjan, Miss Dior Abidjan, La Vie est Belle Abidjan, parfum floral Abidjan",
+  alternates: { canonical: `${BASE_URL}/collections/femme` },
+  openGraph: {
+    title: 'Parfums Femme | VIP Parfumerie Bar Abidjan',
+    description: "Les meilleures fragrances féminines disponibles à Abidjan. Livraison Côte d'Ivoire.",
+    url: `${BASE_URL}/collections/femme`,
+    type: 'website',
+    locale: 'fr_CI',
+  },
 };
 
 // ─── Olfactive families ───────────────────────────────────────────────────────
 const FAMILIES = [
-  { nom: 'Floral', icon: '✦', description: 'Rose, pivoine, jasmin, fleur d’oranger', exemples: ['Chanel N°5', 'Miss Dior', 'La Vie est Belle'] },
+  { nom: 'Floral', icon: '✦', description: "Rose, pivoine, jasmin, fleur d'oranger", exemples: ['Chanel N°5', 'Miss Dior', 'La Vie est Belle'] },
   { nom: 'Oriental', icon: '◆', description: 'Ambre, vanille, musc chaud, résines précieuses', exemples: ['Black Opium YSL', 'Hypnôse Lancôme', 'Guilty Gucci'] },
   { nom: 'Boisé Floral', icon: '○', description: 'Cèdre, santal, rose, iris', exemples: ['Mon Guerlain', 'Coco Mademoiselle', 'Flora Gucci'] },
   { nom: 'Fruité', icon: '△', description: 'Pêche, framboise, litchi, fruit de la passion', exemples: ['Si Armani', 'Chance Eau Vive', 'Irresistible Givenchy'] },
@@ -28,7 +39,7 @@ export default async function FemmePage() {
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section style={{ padding: '6rem 0 0', position: 'relative', overflow: 'hidden' }}>
-        {/* Gradient ambiance féminine — rose-gold */}
+        {/* Gradient ambiance féminine -- rose-gold */}
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 70% 30%, rgba(197,130,130,0.10) 0%, transparent 55%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% 80%, rgba(197,165,90,0.09) 0%, transparent 50%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(197,165,90,0.2), transparent)' }} aria-hidden="true" />
@@ -44,7 +55,7 @@ export default async function FemmePage() {
           </nav>
 
           <div className="femme-hero-grid">
-            {/* Left — Text */}
+            {/* Left -- Text */}
             <div style={{ paddingBottom: '4rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
                 <svg width="16" height="16" viewBox="0 0 40 40" fill="none" aria-hidden="true">
@@ -94,7 +105,7 @@ export default async function FemmePage() {
               </div>
             </div>
 
-            {/* Right — Editorial card */}
+            {/* Right -- Editorial card */}
             <div style={{ position: 'relative' }}>
               <div style={{
                 position: 'absolute', inset: 0,
@@ -145,7 +156,7 @@ export default async function FemmePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {fam.exemples.map((ex) => (
                     <span key={ex} style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em' }}>
-                      — {ex}
+                      -- {ex}
                     </span>
                   ))}
                 </div>

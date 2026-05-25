@@ -3,9 +3,20 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  title: 'Parfums Mixtes | VIP Parfumerie Bar',
-  description: 'Collection mixte — Fragrances unisexes qui transcendent les genres. Baccarat Rouge, Oud Wood, Bvlgari Man. Pour ceux qui choisissent à l’instinct.',
+  title: 'Parfums Mixtes & Unisexes à Abidjan -- Baccarat Rouge, Oud Wood | VIP Parfumerie Bar',
+  description: "Collection parfums unisexes à Abidjan -- Fragrances qui transcendent les genres. Baccarat Rouge 540, Oud Wood Tom Ford, Santal 33. Livraison Côte d'Ivoire.",
+  keywords: "parfum mixte Abidjan, parfum unisexe Côte d'Ivoire, Baccarat Rouge Abidjan, Oud Wood Abidjan, parfum gender neutral Abidjan",
+  alternates: { canonical: `${BASE_URL}/collections/mixte` },
+  openGraph: {
+    title: 'Parfums Mixtes & Unisexes | VIP Parfumerie Bar Abidjan',
+    description: "Fragrances unisexes d'exception disponibles à Abidjan. Livraison Côte d'Ivoire.",
+    url: `${BASE_URL}/collections/mixte`,
+    type: 'website',
+    locale: 'fr_CI',
+  },
 };
 
 // ─── Manifesto sections ───────────────────────────────────────────────────────
@@ -13,17 +24,17 @@ const PHILOSOPHIE = [
   {
     num: '01',
     titre: 'Au-delà des codes',
-    texte: 'La parfumerie unisexe refuse la catégorisation binaire. Elle valorise l’essence pure de la fragrance, sans contexte de genre.',
+    texte: "La parfumerie unisexe refuse la catégorisation binaire. Elle valorise l'essence pure de la fragrance, sans contexte de genre.",
   },
   {
     num: '02',
     titre: 'La peau comme territoire',
-    texte: 'Sur chaque peau, un parfum mixte donne un résultat différent. C’est ce qui rend ces compositions si intimes.',
+    texte: "Sur chaque peau, un parfum mixte donne un résultat différent. C'est ce qui rend ces compositions si intimes.",
   },
   {
     num: '03',
     titre: 'Sélectionné à la main',
-    texte: 'Nous choisissons uniquement les mixtes de caractère — ceux qui ont leur propre signature, reconnaissables entre mille.',
+    texte: 'Nous choisissons uniquement les mixtes de caractère -- ceux qui ont leur propre signature, reconnaissables entre mille.',
   },
 ];
 
@@ -31,7 +42,7 @@ const PHILOSOPHIE = [
 const ACCORDS = [
   { accord: 'Oud & Vanille', profil: 'Chaud · Enveloppant · Sensuel', repere: 'Baccarat Rouge 540' },
   { accord: 'Boisé Sec', profil: 'Austere · Moderne · Durable', repere: 'Oud Wood TF' },
-  { accord: 'Iris & Musc', profil: 'Poudré · Délicat · Signature', repere: 'Infusion d’Iris Prada' },
+  { accord: 'Iris & Musc', profil: 'Poudré · Délicat · Signature', repere: "Infusion d'Iris Prada" },
   { accord: 'Agrumes & Ambre', profil: 'Vivant · Solaire · Élégant', repere: 'Neroli Portofino TF' },
   { accord: 'Cuir & Rose', profil: 'Fort · Dramatique · Contrasté', repere: 'Portrait of a Lady Frederic Malle' },
   { accord: 'Cédre & Musc', profil: 'Propre · Minimal · Inédit', repere: 'Escentric 01' },
@@ -39,7 +50,7 @@ const ACCORDS = [
 
 // ─── Marques mixtes phares ────────────────────────────────────────────────────
 const MAISONS = [
-  { nom: 'Maison Francis Kurkdjian', specialite: 'L’avant-garde olfactive' },
+  { nom: 'Maison Francis Kurkdjian', specialite: "L'avant-garde olfactive" },
   { nom: 'Tom Ford', specialite: 'Luxe hédoniste' },
   { nom: 'Le Labo', specialite: 'Minimalisme signature' },
   { nom: 'Byredo', specialite: 'Identité sensorielle' },
@@ -67,9 +78,9 @@ export default async function MixtePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
 
-      {/* ── Hero — full width manifesto ────────────────────────────────────── */}
+      {/* ── Hero -- full width manifesto ────────────────────────────────────── */}
       <section style={{ padding: '7rem 0 5rem', position: 'relative', overflow: 'hidden' }}>
-        {/* Gradient — vert nuit + or */}
+        {/* Gradient -- vert nuit + or */}
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 40%, rgba(60,90,60,0.08) 0%, transparent 55%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 80% 60%, rgba(197,165,90,0.07) 0%, transparent 50%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(197,165,90,0.2), transparent)' }} aria-hidden="true" />
@@ -109,7 +120,7 @@ export default async function MixtePage() {
               &ldquo;Un parfum n&rsquo;a pas de genre. Il a une âme.&rdquo;
             </p>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '2.5rem' }}>
-              Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l’instinct, sans compromis, sans convention.
+              Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l'instinct, sans compromis, sans convention.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="#produits" style={{

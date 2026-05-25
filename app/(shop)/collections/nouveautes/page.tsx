@@ -3,9 +3,20 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+
 export const metadata: Metadata = {
-  title: 'Nouveautés | VIP Parfumerie Bar',
-  description: 'Découvrez les dernières arrivées chez VIP Parfumerie Bar — fragrances de luxe et soins premium disponibles à Abidjan et livraison Afrique de l’Ouest.',
+  title: 'Nouveaux Parfums à Abidjan -- Dernières Arrivées | VIP Parfumerie Bar',
+  description: "Découvrez les derniers parfums de luxe arrivés à Abidjan chez VIP Parfumerie Bar. Sauvage Elixir, Baccarat Rouge 540 et plus. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
+  keywords: "nouveaux parfums Abidjan, nouveautés parfums Côte d'Ivoire, dernières arrivées parfumerie Abidjan, parfum 2024 Abidjan",
+  alternates: { canonical: `${BASE_URL}/collections/nouveautes` },
+  openGraph: {
+    title: 'Nouveaux Parfums à Abidjan | VIP Parfumerie Bar',
+    description: "Les dernières fragrances de luxe disponibles à Abidjan. Livraison Côte d'Ivoire.",
+    url: `${BASE_URL}/collections/nouveautes`,
+    type: 'website',
+    locale: 'fr_CI',
+  },
 };
 
 // ─── Featured arrivals ────────────────────────────────────────────────────────
@@ -78,7 +89,7 @@ export default async function NouveautesPage() {
               Nouveautés
             </h1>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, maxWidth: 520, marginBottom: '2rem' }}>
-              Ce qui vient de poser ses valises chez nous — les lancements mondiaux les plus exclusifs, disponibles dès aujourd&apos;hui à Abidjan.
+              Ce qui vient de poser ses valises chez nous -- les lancements mondiaux les plus exclusifs, disponibles dès aujourd&apos;hui à Abidjan.
             </p>
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

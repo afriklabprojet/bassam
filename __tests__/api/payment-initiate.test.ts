@@ -34,8 +34,21 @@ vi.mock('@/lib/supabase/custom-order-items', () => ({
 }));
 
 const mockInitiatePayment = vi.fn();
+class MockJekoApiError extends Error {
+  status: number;
+  details: string;
+
+  constructor(status: number, details: string) {
+    super(`Jeko API error ${status}: ${details}`);
+    this.name = 'JekoApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
 vi.mock('@/lib/payment/jeko', () => ({
   initiatePayment: mockInitiatePayment,
+  JekoApiError: MockJekoApiError,
   mapProvider: (p: string) => p + '_mapped',
   JEKO_CURRENCY: 'XOF',
 }));
@@ -46,6 +59,7 @@ const ORDER_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const VALID_BODY = {
   totalAmount: 35000,
   paymentMethod: 'orange',
+  shippingModeId: 'express',
   mobileNumber: '0700000000',
   shippingAddress: {
     firstName: 'Awa',
@@ -181,8 +195,16 @@ describe('POST /api/payment/initiate — flux nominal', () => {
         currency: 'XOF',
         successUrl: expect.stringContaining('/commande/confirmation'),
         errorUrl: expect.stringContaining('/commande'),
+        payerPhone: VALID_BODY.phone,
         reference: ORDER_ID,
       })
+    );
+  });
+
+  it('transmet le mode de livraison a la creation de commande', async () => {
+    await POST(makeRequest(VALID_BODY));
+    expect(mockOrderInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ shipping_mode_id: VALID_BODY.shippingModeId })
     );
   });
 
@@ -215,11 +237,30 @@ describe('POST /api/payment/initiate — erreurs Jeko', () => {
     expect(body.error).toMatch(/erreur serveur/i);
   });
 
+  it('retourne 502 si Jeko renvoie une erreur de validation', async () => {
+    mockInitiatePayment.mockRejectedValue(new MockJekoApiError(422, 'validation error'));
+    const res = await POST(makeRequest(VALID_BODY));
+    expect(res.status).toBe(502);
+    const body = await res.json() as { error: string };
+    expect(body.error).toMatch(/fournisseur/i);
+  });
+
   it('retourne 500 si la création de commande échoue', async () => {
     mockOrderInsertSingle.mockResolvedValue({ data: null, error: { message: 'DB error' } });
     const res = await POST(makeRequest(VALID_BODY));
     expect(res.status).toBe(500);
     const body = await res.json() as { error: string };
     expect(body.error).toBeTruthy();
+  });
+
+  it('retourne 409 si le stock est insuffisant', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 35000, stock_quantity: 0 }],
+      error: null,
+    });
+    const res = await POST(makeRequest(VALID_BODY));
+    expect(res.status).toBe(409);
+    const body = await res.json() as { error: string };
+    expect(body.error).toMatch(/stock insuffisant/i);
   });
 });

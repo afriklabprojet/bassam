@@ -45,6 +45,18 @@ export interface JekoWebhookPayload {
   phone: string;
 }
 
+export class JekoApiError extends Error {
+  status: number;
+  details: string;
+
+  constructor(status: number, details: string) {
+    super(`Jeko API error ${status}: ${details}`);
+    this.name = 'JekoApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
 export const JEKO_CURRENCY = (process.env.JEKO_CURRENCY ?? 'XOF') as 'XOF' | 'XAF' | 'GNF';
 
 /** Map internal provider names (from checkout form) to Jeko's expected values */
@@ -60,11 +72,17 @@ export function mapProvider(internal: string): JekoProvider {
   return PROVIDER_MAP[internal] ?? 'orange';
 }
 
+export function normalizeJekoBaseUrl(rawUrl: string) {
+  return rawUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
+}
+
 /** Initiate a mobile money collection via Jeko Africa API (redirect flow) */
 export async function initiatePayment(
   params: JekoInitiateParams
 ): Promise<JekoInitiateResponse> {
-  const JEKO_BASE_URL = process.env.JEKO_API_URL ?? 'https://api.jeko.africa';
+  const JEKO_BASE_URL = normalizeJekoBaseUrl(
+    process.env.JEKO_API_URL ?? 'https://api.jeko.africa'
+  );
   const JEKO_API_KEY = process.env.JEKO_API_KEY ?? '';
   const JEKO_API_KEY_ID = process.env.JEKO_API_KEY_ID ?? '';
   const JEKO_STORE_ID = process.env.JEKO_STORE_ID ?? '';
@@ -111,7 +129,7 @@ export async function initiatePayment(
   if (!response.ok) {
     const err = await response.text();
     console.error('[Jeko initiatePayment]', response.status, err);
-    throw new Error(`Jeko API error ${response.status}: ${err}`);
+    throw new JekoApiError(response.status, err);
   }
 
   return response.json() as Promise<JekoInitiateResponse>;

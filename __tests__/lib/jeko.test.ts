@@ -7,7 +7,7 @@ const TEST_SECRET = 'test_webhook_secret_12345';
 vi.stubEnv('JEKO_WEBHOOK_SECRET', TEST_SECRET);
 
 // Import après stubEnv pour que la constante soit correctement initialisée.
-const { mapProvider, verifyWebhookSignature } = await import('@/lib/payment/jeko');
+const { mapProvider, normalizeJekoBaseUrl, verifyWebhookSignature } = await import('@/lib/payment/jeko');
 
 const BODY = JSON.stringify({ event: 'payment.success', amount: 50000 });
 
@@ -41,6 +41,20 @@ describe('mapProvider', () => {
 
   it('retourne orange pour une valeur inconnue', () => {
     expect(mapProvider('inconnu')).toBe('orange');
+  });
+});
+
+describe('normalizeJekoBaseUrl', () => {
+  it('conserve une URL deja correcte', () => {
+    expect(normalizeJekoBaseUrl('https://api.jeko.africa')).toBe('https://api.jeko.africa');
+  });
+
+  it('retire un slash terminal', () => {
+    expect(normalizeJekoBaseUrl('https://api.jeko.africa/')).toBe('https://api.jeko.africa');
+  });
+
+  it('retire un suffixe /v1 incompatible avec le chemin partner_api', () => {
+    expect(normalizeJekoBaseUrl('https://api.jeko.africa/v1')).toBe('https://api.jeko.africa');
   });
 });
 

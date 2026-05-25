@@ -3,13 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib/supabase/custom-order-items';
 import { createOrder } from '@/lib/supabase/orders';
-import { initiatePayment, mapProvider, JEKO_CURRENCY } from '@/lib/payment/jeko';
+import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY } from '@/lib/payment/jeko';
 
 type MobileProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
 
 interface InitiateBody {
   totalAmount: number;
   paymentMethod: MobileProvider;
+  shippingModeId?: string;
   shippingAddress: {
     firstName: string;
     lastName: string;
@@ -37,15 +38,32 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
   if (!['orange', 'mtn', 'wave', 'moov', 'djamo'].includes(b.paymentMethod as string))
     return { error: 'Opérateur Mobile Money invalide' };
   if (!b.phone || typeof b.phone !== 'string') return { error: 'Numéro de téléphone requis' };
-  if ((b.phone as string).replace(/\D/g, '').length < 8) return { error: 'Numéro Mobile Money invalide' };
+  if (b.phone.replace(/\D/g, '').length < 8) return { error: 'Numéro Mobile Money invalide' };
   if (!Array.isArray(b.items) || b.items.length === 0)
     return { error: 'Au moins un article requis' };
+  if (b.shippingModeId !== undefined && typeof b.shippingModeId !== 'string') {
+    return { error: 'Mode de livraison invalide' };
+  }
 
   const addr = b.shippingAddress as Record<string, unknown>;
   if (!addr?.firstName || !addr?.lastName || !addr?.address || !addr?.city || !addr?.country)
     return { error: 'Adresse de livraison incomplète' };
 
   return { data: b as unknown as InitiateBody };
+}
+
+function getOrderErrorStatus(message: string) {
+  if (/stock insuffisant/i.test(message)) return 409;
+  if (/produit invalide|quantité invalide|article requis|introuvable|prix produit invalide/i.test(message)) {
+    return 400;
+  }
+  return 500;
+}
+
+function getJekoErrorStatus(error: JekoApiError) {
+  if ([400, 409, 422].includes(error.status)) return 502;
+  if ([401, 403].includes(error.status)) return 503;
+  return 502;
 }
 
 /**
@@ -81,6 +99,7 @@ export async function POST(request: NextRequest) {
     const { order, error: orderError } = await createOrder(user?.id ?? null, {
       totalAmount: d.totalAmount,
       paymentMethod: 'mobile_money',
+      shippingModeId: d.shippingModeId,
       shippingAddress: d.shippingAddress,
       phone: d.phone,
       email,
@@ -91,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (orderError || !order) {
       return NextResponse.json(
         { error: orderError ?? 'Erreur lors de la création de la commande' },
-        { status: 500 }
+        { status: getOrderErrorStatus(orderError ?? '') }
       );
     }
 
@@ -106,6 +125,7 @@ export async function POST(request: NextRequest) {
       reference: order.id,
       successUrl: `${appUrl}/commande/confirmation?order=${order.id}`,
       errorUrl: `${appUrl}/commande?error=payment_failed`,
+      payerPhone: d.phone,
     });
 
     // ── 3. Store Jeko payment request ID for webhook reconciliation ───────
@@ -124,6 +144,14 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
+    if (err instanceof JekoApiError) {
+      console.error('[POST /api/payment/initiate][Jeko]', err.status, err.details);
+      return NextResponse.json(
+        { error: 'Erreur du fournisseur de paiement' },
+        { status: getJekoErrorStatus(err) }
+      );
+    }
+
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[POST /api/payment/initiate]', msg);
     return NextResponse.json(

@@ -261,7 +261,8 @@ export async function getAdminOrders(page = 1, limit = 20, status?: string) {
 
 /** Update order status */
 export async function updateOrderStatus(orderId: string, status: string) {
-  const supabase = await createClient();
+  const { createServiceClient } = await import('./service');
+  const supabase = createServiceClient();
 
   const { error } = await supabase
     .from('orders')
@@ -327,7 +328,8 @@ export async function createProduct(input: {
   images?: string[]; notes?: Record<string, unknown>;
   concentration?: string; volume?: string;
 }) {
-  const supabase = await createClient();
+  const { createServiceClient } = await import('./service');
+  const supabase = createServiceClient();
 
   const { data, error } = await supabase
     .from('products')
@@ -355,7 +357,8 @@ export async function createProduct(input: {
 
 /** Update a product */
 export async function updateProduct(id: string, input: Record<string, unknown>) {
-  const supabase = await createClient();
+  const { createServiceClient } = await import('./service');
+  const supabase = createServiceClient();
 
   // Convert camelCase to snake_case
   const mapped: Record<string, unknown> = {};
@@ -381,7 +384,8 @@ export async function updateProduct(id: string, input: Record<string, unknown>) 
 
 /** Delete a product */
 export async function deleteProduct(id: string) {
-  const supabase = await createClient();
+  const { createServiceClient } = await import('./service');
+  const supabase = createServiceClient();
 
   const { error } = await supabase
     .from('products')

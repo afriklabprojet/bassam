@@ -254,13 +254,20 @@ export default function AdminProducts() {
 
   async function toggleFeatured(id: string, current: boolean) {
     setActionLoading(id);
-    await fetch('/api/admin/products', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, isFeatured: !current }),
-    });
-    setActionLoading(null);
-    load();
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isFeatured: !current }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(`Erreur : ${data.error ?? res.statusText}`);
+      }
+    } finally {
+      setActionLoading(null);
+      load();
+    }
   }
 
   async function handleDelete(id: string, name: string) {

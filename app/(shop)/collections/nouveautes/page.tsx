@@ -86,6 +86,7 @@ Ce qui vient de poser ses valises chez nous -- les lancements mondiaux les plus 
 </div>
 </section>
 {/* ── Product grid ─────────────────────────────────────────────────── */}
+<div style={{ background: 'var(--offwhite)' }}>
 <section className="container mx-auto" style={{ padding: '5rem 0' }}>
 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
 <div>
@@ -95,7 +96,7 @@ Ce qui vient de poser ses valises chez nous -- les lancements mondiaux les plus 
 Toutes les nouveautés
 </span>
 </div>
-<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'var(--text-pale)' }}>
 {referencesLabel}
 </p>
 </div>
@@ -108,9 +109,9 @@ style={{
 display: 'inline-block',
 padding: '0.4rem 1rem',
 fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.15em', textTransform: 'uppercase',
-color: f === 'Tous' ? 'var(--noir)' : 'rgba(255,255,255,0.5)',
+color: f === 'Tous' ? 'var(--noir)' : 'var(--text-secondary)',
 background: f === 'Tous' ? 'var(--gold)' : 'transparent',
-border: f === 'Tous' ? 'none' : '1px solid rgba(197,165,90,0.2)',
+border: f === 'Tous' ? 'none' : '1px solid var(--line-light)',
 textDecoration: 'none', fontWeight: f === 'Tous' ? 600 : 400,
 }}
 >
@@ -121,13 +122,13 @@ textDecoration: 'none', fontWeight: f === 'Tous' ? 600 : 400,
 </div>
 {products.length === 0 ? (
 <div style={{ textAlign: 'center', padding: '5rem 0' }}>
-<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.2rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
+<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.2rem', color: 'var(--text-pale)', marginBottom: '2rem' }}>
 Nos nouvelles acquisitions arrivent très bientôt.
 </p>
 <Link href="/produits" style={{
 display: 'inline-flex', alignItems: 'center', gap: 8,
-background: 'transparent', border: '1px solid rgba(197,165,90,0.35)',
-color: 'var(--gold)', padding: '0.75rem 1.5rem',
+background: 'transparent', border: '1px solid rgba(197,165,90,0.5)',
+color: 'var(--gold-dark)', padding: '0.75rem 1.5rem',
 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
 textDecoration: 'none',
 }}>
@@ -152,6 +153,7 @@ inStock={p.stockQuantity > 0}
 </div>
 )}
 </section>
+</div>
 {/* ── Footer CTA ───────────────────────────────────────────────────── */}
 <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.10)', padding: '4rem 0' }}>
 <div className="container mx-auto" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.5rem' }}>

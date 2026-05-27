@@ -4,6 +4,7 @@ import {
   getLowStockProducts, getPaymentMethodStats, getTopCustomers,
   isCurrentUserAdmin,
 } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -22,7 +23,7 @@ export async function GET() {
 
     return NextResponse.json({ stats, recentOrders, topProducts, lowStockProducts, paymentStats, topCustomers });
   } catch (error) {
-    console.error('[Admin /stats]', error);
+    logger.error('[Admin /stats]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

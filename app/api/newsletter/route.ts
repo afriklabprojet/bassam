@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 const NEWSLETTER_RATE_LIMIT = { limit: 3, windowSec: 300 };
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (error) {
-      console.error('Newsletter route error:', error);
+      logger.error('Newsletter route error:', 'Error', error);
       return NextResponse.json(
         { success: false, error: 'Impossible de finaliser l\'inscription.' },
         { status: 500 }
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
       message: 'Merci ! Vous êtes maintenant inscrit à notre newsletter.',
     });
   } catch (error) {
-    console.error('Newsletter route unexpected error:', error);
+    logger.error('Newsletter route unexpected error:', 'Error', error);
     return NextResponse.json(
       { success: false, error: 'Une erreur inattendue est survenue.' },
       { status: 500 }

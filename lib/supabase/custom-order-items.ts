@@ -5,6 +5,7 @@ import {
   getCustomCreationFormula,
 } from '@/lib/custom-creation';
 import type { OrderItem } from './orders';
+import { logger } from '@/lib/logger';
 
 export type IncomingOrderItem = {
   productId: string;
@@ -35,7 +36,7 @@ async function ensureCustomCreationProduct(
     .maybeSingle();
 
   if (selectError) {
-    console.error('[custom product lookup]', selectError.message);
+    logger.error('custom-order-items', 'Product lookup failed');
     return { error: 'Impossible de verifier la formule personnalisée' };
   }
 
@@ -63,7 +64,7 @@ async function ensureCustomCreationProduct(
   const insertError = insertResult.error;
 
   if (insertError || !created) {
-    console.error('[custom product create]', insertError?.message);
+    logger.error('custom-order-items', 'Product creation failed');
     return { error: 'Impossible de préparer la formule personnalisée' };
   }
 

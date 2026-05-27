@@ -17,7 +17,7 @@ export default function WhatsAppFAB() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contacter VIP Parfumerie Bar sur WhatsApp"
-      className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 flex items-center gap-2 px-4 py-3 text-white font-medium shadow-lg transition-opacity hover:opacity-90 active:opacity-80"
+      className="hidden md:flex fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 items-center gap-2 px-4 py-3 text-white font-medium shadow-lg transition-opacity hover:opacity-90 active:opacity-80"
       style={{ background: 'linear-gradient(135deg, #25D366, #128C7E)', borderRadius: 'var(--r-md)' }}
     >
       <svg className="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

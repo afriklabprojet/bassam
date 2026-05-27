@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/marketing/banners
 export async function GET() {
@@ -16,7 +17,7 @@ export async function GET() {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ banners: data ?? [] });
   } catch (err) {
-    console.error('[Admin GET /banners]', err);
+    logger.error('[Admin GET /banners]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ banner: data }, { status: 201 });
   } catch (err) {
-    console.error('[Admin POST /banners]', err);
+    logger.error('[Admin POST /banners]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -79,7 +80,7 @@ export async function PATCH(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Admin PATCH /banners]', err);
+    logger.error('[Admin PATCH /banners]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -99,7 +100,7 @@ export async function DELETE(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Admin DELETE /banners]', err);
+    logger.error('[Admin DELETE /banners]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

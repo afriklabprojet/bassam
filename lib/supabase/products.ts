@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 import type { Product, ProductFilters, ProductsResponse } from '@/types/product.types';
+import { logger } from '@/lib/logger';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supabase Product Queries — replaces mock data
@@ -74,7 +75,7 @@ function logProductsFallback(context: ProductsFallbackContext) {
     return;
   }
 
-  console.warn('[products:fallback]', context);
+  logger.warn('products', 'Fallback triggered');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -193,7 +194,7 @@ export async function getProducts(filters: ProductFilters): Promise<ProductsResp
 
     return primary;
   } catch (error) {
-    console.warn('[getProducts] Primary query failed, trying service fallback', error instanceof Error ? error.message : 'unknown error');
+    logger.warn('products', 'Primary query failed, trying service fallback');
     const serviceResult = await tryServiceProductsQuery(filters);
     if (serviceResult) {
       logProductsFallback(

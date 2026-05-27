@@ -552,6 +552,49 @@ function Step3Payment({
   );
 }
 
+/* ── Confirmation animations ────────────────────────────────── */
+
+const CONFETTI_PARTICLES = [
+  { id: 'c1',  x: 15,   y: -65, delay: 0,    color: '#C5A55A', size: 6 },
+  { id: 'c2',  x: -22,  y: -80, delay: 0.08, color: '#9B7B38', size: 4 },
+  { id: 'c3',  x: 55,   y: -52, delay: 0.14, color: '#E8C97A', size: 5 },
+  { id: 'c4',  x: -48,  y: -72, delay: 0.05, color: '#C5A55A', size: 4 },
+  { id: 'c5',  x: 82,   y: -38, delay: 0.2,  color: '#C5A55A', size: 3 },
+  { id: 'c6',  x: -78,  y: -58, delay: 0.1,  color: '#9B7B38', size: 5 },
+  { id: 'c7',  x: 32,   y: -92, delay: 0.24, color: '#E8C97A', size: 6 },
+  { id: 'c8',  x: -35,  y: -88, delay: 0.12, color: '#C5A55A', size: 4 },
+  { id: 'c9',  x: 65,   y: -78, delay: 0.18, color: '#9B7B38', size: 3 },
+  { id: 'c10', x: -62,  y: -68, delay: 0.22, color: '#C5A55A', size: 5 },
+  { id: 'c11', x: 105,  y: -28, delay: 0.28, color: '#E8C97A', size: 4 },
+  { id: 'c12', x: -98,  y: -42, delay: 0.06, color: '#C5A55A', size: 6 },
+  { id: 'c13', x: 42,   y: -45, delay: 0.16, color: '#9B7B38', size: 3 },
+  { id: 'c14', x: -15,  y: -95, delay: 0.3,  color: '#E8C97A', size: 5 },
+];
+
+function ConfettiParticles() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible', zIndex: 10 }}>
+      {CONFETTI_PARTICLES.map((p) => (
+        <div
+          key={p.id}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            borderRadius: '50%',
+            background: p.color,
+            animation: `confetti 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${p.delay}s both`,
+            ['--tx' as string]: `${p.x}px`,
+            ['--ty' as string]: `${p.y}px`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ── Main component ─────────────────────────────────────────── */
 
 export default function CheckoutPage() {
@@ -742,60 +785,71 @@ export default function CheckoutPage() {
 
             {/* ── Step 4 : Confirmation ── */}
             {step === 4 && (
-              <div className="card" style={{ padding: '3rem', textAlign: 'center', transition: 'none' }}>
-                <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 1.75rem' }}>
-                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid rgba(197,165,90,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(197,165,90,0.06)' }}>
-                    <svg width="32" height="32" fill="none" stroke="var(--gold)" strokeWidth="1.75" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              <div className="card" style={{ padding: '3rem', textAlign: 'center', transition: 'none', animation: 'fadeSlideUp 0.5s ease both' }}>
+
+                {/* Animated checkmark + confetti */}
+                <div style={{ position: 'relative', width: '88px', height: '88px', margin: '0 auto 1.75rem' }}>
+                  <ConfettiParticles />
+
+                  {/* Outer pulse ring */}
+                  <div style={{ position: 'absolute', inset: '-10px', borderRadius: '50%', border: '1.5px solid rgba(197,165,90,0.25)', animation: 'ringPulse 2s ease-out 0.6s infinite' }} />
+                  {/* Middle ring */}
+                  <div style={{ position: 'absolute', inset: '-4px', borderRadius: '50%', border: '1px solid rgba(197,165,90,0.35)', animation: 'ringPulse 2s ease-out 0.9s infinite' }} />
+
+                  {/* Circle */}
+                  <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'rgba(197,165,90,0.08)', border: '1.5px solid rgba(197,165,90,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'circlePop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.15s both' }}>
+                    <svg width="36" height="36" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M4.5 12.75l6 6 9-13.5" style={{ strokeDasharray: 30, strokeDashoffset: 30, animation: 'drawCheck 0.45s ease 0.55s forwards' }} />
                     </svg>
                   </div>
-                  <div style={{ position: 'absolute', inset: '-4px', borderRadius: '50%', border: '1px solid rgba(197,165,90,0.15)' }} />
                 </div>
 
-                <h2 className="heading-lg" style={{ marginBottom: '0.75rem', fontSize: '1.75rem' }}>
+                <h2 className="heading-lg" style={{ marginBottom: '0.75rem', fontSize: '1.75rem', animation: 'fadeSlideUp 0.45s ease 0.35s both' }}>
                   {paymentPending ? 'Paiement en cours' : 'Commande confirmée !'}
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', fontWeight: 300, maxWidth: '28rem', margin: '0 auto 2rem', lineHeight: 1.7 }}>
+                <p style={{ color: 'var(--text-secondary)', fontWeight: 300, maxWidth: '28rem', margin: '0 auto 2rem', lineHeight: 1.7, animation: 'fadeSlideUp 0.45s ease 0.45s both' }}>
                   {paymentPending
                     ? `Merci ${delivery.firstName} ! Confirmez le paiement sur votre téléphone. Votre commande sera traitée dès réception.`
                     : `Merci ${delivery.firstName}, votre commande a été enregistrée avec succès.`}
                 </p>
 
-                <div style={{ display: 'inline-block', background: 'var(--offwhite)', borderRadius: 'var(--r-md)', padding: '1.25rem 2rem', marginBottom: '1.5rem', border: '1px solid var(--line-light)' }}>
+                <div style={{ display: 'inline-block', background: 'var(--offwhite)', borderRadius: 'var(--r-md)', padding: '1.25rem 2rem', marginBottom: '1.5rem', border: '1px solid var(--line-light)', animation: 'fadeSlideUp 0.45s ease 0.55s both' }}>
                   <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.375rem' }}>Numéro de commande</p>
                   <p style={{ fontFamily: 'monospace', fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.08em' }}>{orderNumber}</p>
                 </div>
 
                 {selectedMode && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', animation: 'fadeSlideUp 0.45s ease 0.62s both' }}>
                     <span>{selectedMode.type === 'pickup' ? '🏪' : '🚚'}</span>
                     <span>{selectedMode.label}</span>
                     {selectedMode.description && <span style={{ color: 'var(--text-pale)' }}>· {selectedMode.description}</span>}
                   </div>
                 )}
 
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '2rem', fontWeight: 300 }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '2rem', fontWeight: 300, animation: 'fadeSlideUp 0.45s ease 0.68s both' }}>
                   Notre équipe vous contactera au <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{delivery.phone}</strong> pour confirmer.
                 </p>
 
-                {hasWhatsappSupport ? (
-                  <a
-                    href={buildWhatsAppHref(`Bonjour, j'ai passé la commande ${orderNumber}.`)}
-                    target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45z"/>
-                    </svg>
-                    Suivre via WhatsApp
-                  </a>
-                ) : (
-                  <Link href="/contact" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-                    Contacter le service client
-                  </Link>
-                )}
+                <div style={{ animation: 'fadeSlideUp 0.45s ease 0.76s both' }}>
+                  {hasWhatsappSupport ? (
+                    <a
+                      href={buildWhatsAppHref(`Bonjour, j'ai passé la commande ${orderNumber}.`)}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45z"/>
+                      </svg>
+                      Suivre via WhatsApp
+                    </a>
+                  ) : (
+                    <Link href="/contact" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+                      Contacter le service client
+                    </Link>
+                  )}
+                </div>
 
-                <div style={{ marginTop: '1.75rem' }}>
+                <div style={{ marginTop: '1.75rem', animation: 'fadeSlideUp 0.45s ease 0.84s both' }}>
                   <Link href="/" style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', textDecoration: 'none', letterSpacing: '0.04em' }}>
                     ← Retour à l&apos;accueil
                   </Link>
@@ -820,6 +874,32 @@ export default function CheckoutPage() {
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes circlePop {
+          from { opacity: 0; transform: scale(0.5); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes drawCheck {
+          to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes ringPulse {
+          0%   { opacity: 0.6; transform: scale(1); }
+          100% { opacity: 0;   transform: scale(1.6); }
+        }
+
+        @keyframes confetti {
+          0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          80%  { opacity: 0.8; }
+          100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4); }
+        }
+
         @media (max-width: 768px) {
           .checkout-layout { grid-template-columns: 1fr !important; }
           .checkout-layout > *:last-child { order: -1; }

@@ -1,4 +1,5 @@
 import { createClient } from './server';
+import { logger } from '@/lib/logger';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supabase Profile Queries
@@ -32,7 +33,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
     .single();
 
   if (error || !data) {
-    console.error('[getProfile]', error?.message);
+    logger.error('profile', 'Failed to get profile');
     return null;
   }
 
@@ -72,7 +73,7 @@ export async function updateProfile(userId: string, input: UpdateProfileInput): 
     .single();
 
   if (error || !data) {
-    console.error('[updateProfile]', error?.message);
+    logger.error('profile', 'Failed to update profile');
     return { profile: null, error: error?.message ?? 'Erreur mise à jour profil' };
   }
 

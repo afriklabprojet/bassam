@@ -5,6 +5,7 @@ import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib
 import { createOrder } from '@/lib/supabase/orders';
 import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY } from '@/lib/payment/jeko';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 const PAYMENT_RATE_LIMIT = { limit: 5, windowSec: 60 };
 
@@ -151,15 +152,14 @@ export async function POST(request: NextRequest) {
     );
   } catch (err) {
     if (err instanceof JekoApiError) {
-      console.error('[POST /api/payment/initiate][Jeko]', err.status, err.details);
+      logger.error('API /payment/initiate', 'Jeko API error');
       return NextResponse.json(
         { error: 'Erreur du fournisseur de paiement' },
         { status: getJekoErrorStatus(err) }
       );
     }
 
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error('[POST /api/payment/initiate]', msg);
+    logger.error('API /payment/initiate', 'Unexpected error', err);
     return NextResponse.json(
       { error: 'Erreur serveur lors de l\'initiation du paiement' },
       { status: 500 }

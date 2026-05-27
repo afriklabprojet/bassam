@@ -1,0 +1,16 @@
+.env.local
+.env.development
+__tests__
+e2e
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+vitest.config.ts
+vitest.setup.ts
+playwright.config.ts
+test-results
+supabase
+scripts
+CLAUDE.md
+*.md

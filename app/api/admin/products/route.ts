@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { isCurrentUserAdmin, getAdminProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 const updateProductSchema = z.object({
   name: z.string().min(1).optional(),
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     const result = await getAdminProducts(page, limit, search);
     return NextResponse.json(result);
   } catch (error) {
-    console.error('[Admin GET /products]', error);
+    logger.error('[Admin GET /products]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ product }, { status: 201 });
   } catch (error) {
-    console.error('[Admin POST /products]', error);
+    logger.error('[Admin POST /products]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -124,7 +125,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Admin PATCH /products]', error);
+    logger.error('[Admin PATCH /products]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -151,7 +152,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Admin DELETE /products]', error);
+    logger.error('[Admin DELETE /products]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

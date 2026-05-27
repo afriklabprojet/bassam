@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { ProductFilters } from '@/types/product.types';
 import { getProducts, getBrands } from '@/lib/supabase/products';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
     });
   } catch (error) {
-    console.error('[API /products]', error);
+    logger.error('API /products', 'Failed to load products', error);
     return NextResponse.json(
       { error: 'Erreur lors du chargement des produits' },
       { status: 500 }

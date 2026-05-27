@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
 import type { SiteSettings } from '@/lib/site-settings';
+import { logger } from '@/lib/logger';
 
 const ALLOWED_KEYS: Array<keyof SiteSettings> = [
   'support_phone',
@@ -39,7 +40,7 @@ export async function GET() {
 
     return NextResponse.json({ settings });
   } catch (err) {
-    console.error('[Admin /settings GET]', err);
+    logger.error('[Admin /settings GET]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -83,7 +84,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('[Admin /settings PUT]', err);
+    logger.error('[Admin /settings PUT]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

@@ -128,7 +128,6 @@ export async function initiatePayment(
 
   if (!response.ok) {
     const err = await response.text();
-    console.error('[Jeko initiatePayment]', response.status, err);
     throw new JekoApiError(response.status, err);
   }
 
@@ -145,7 +144,7 @@ export function verifyWebhookSignature(rawBody: string, signature: string): bool
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JEKO_WEBHOOK_SECRET must be set in production');
     }
-    console.warn('[Jeko] JEKO_WEBHOOK_SECRET not set — skipping signature verification (dev only)');
+    // Dev-only: secret not set, skip verification
     return true;
   }
 

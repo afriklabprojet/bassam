@@ -4,6 +4,7 @@ import { revalidateTag } from 'next/cache'
 import { headers } from 'next/headers'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 
 // ── In-memory rate limiter (3 tentatives / 10 min par IP) ────────────────────
 // Note: fonctionne sur instance unique. Pour multi-instances, migrer vers Redis.
@@ -117,7 +118,7 @@ export async function subscribeToNewsletter(
         }
       }
 
-      console.error('Newsletter subscription error:', insertError)
+      logger.error('newsletter.action', 'Insert failed')
       return {
         success: false,
         message: '',
@@ -140,7 +141,7 @@ export async function subscribeToNewsletter(
         created_at: new Date().toISOString(),
       })
       .then(({ error }) => {
-        if (error) console.error('Audit log error:', error)
+        if (error) logger.warn('newsletter.action', 'Audit log failed')
       })
 
     return {
@@ -148,7 +149,7 @@ export async function subscribeToNewsletter(
       message: 'Merci ! Vous êtes maintenant inscrit à notre newsletter.'
     }
   } catch (error) {
-    console.error('Newsletter subscription error:', error)
+    logger.error('newsletter.action', 'Unexpected error', error)
     return {
       success: false,
       message: '',

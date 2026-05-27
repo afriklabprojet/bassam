@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin, getAdminOrders, updateOrderStatus } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/orders
 export async function GET(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     const result = await getAdminOrders(page, limit, status);
     return NextResponse.json(result);
   } catch (error) {
-    console.error('[Admin GET /orders]', error);
+    logger.error('[Admin GET /orders]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -48,7 +49,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[Admin PATCH /orders]', error);
+    logger.error('[Admin PATCH /orders]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

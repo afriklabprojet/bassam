@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 import { getShippingConfig, getShippingFee } from '@/lib/shipping';
+import { logger } from '@/lib/logger';
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Supabase Order Queries
@@ -107,7 +108,7 @@ async function buildVerifiedOrder(
     .in('id', productIds);
 
   if (error || !data) {
-    console.error('[createOrder products]', error?.message);
+    logger.error('createOrder', 'Failed to fetch products for verification');
     return { ok: false, error: 'Impossible de vérifier les produits' };
   }
 
@@ -151,6 +152,27 @@ async function buildVerifiedOrder(
   };
 }
 
+const IDEMPOTENCY_WINDOW_MS = 30_000;
+
+async function findDuplicateOrder(
+  supabase: SupabaseClient,
+  phone: string,
+  email: string,
+  totalAmount: number
+): Promise<string | null> {
+  const since = new Date(Date.now() - IDEMPOTENCY_WINDOW_MS).toISOString();
+  const { data } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('phone', phone)
+    .eq('email', email)
+    .eq('total_amount', totalAmount)
+    .gte('created_at', since)
+    .limit(1)
+    .single();
+  return data?.id ?? null;
+}
+
 /** Create a new order with items. */
 export async function createOrder(
   userId: string | null,
@@ -162,6 +184,22 @@ export async function createOrder(
 
   if (!verifiedOrder.ok) {
     return { order: null, error: verifiedOrder.error };
+  }
+
+  // Idempotency guard — prevent duplicate orders from rapid retries
+  const duplicateId = await findDuplicateOrder(
+    supabase,
+    input.phone,
+    input.email,
+    verifiedOrder.data.totalAmount
+  );
+  if (duplicateId) {
+    const { data: existing } = await supabase
+      .from('orders')
+      .select()
+      .eq('id', duplicateId)
+      .single();
+    if (existing) return { order: mapOrder(existing as OrderRow), error: null };
   }
 
   // Insert the order
@@ -181,7 +219,7 @@ export async function createOrder(
     .single();
 
   if (orderError || !order) {
-    console.error('[createOrder]', orderError?.message);
+    logger.error('createOrder', 'Failed to insert order');
     return { order: null, error: orderError?.message ?? 'Erreur création commande' };
   }
 
@@ -198,7 +236,7 @@ export async function createOrder(
     .insert(itemsToInsert);
 
   if (itemsError) {
-    console.error('[createOrder items]', itemsError.message);
+    logger.error('createOrder', 'Failed to insert order items');
     // Order was created but items failed — return partial
     return { order: mapOrder(order), error: 'Commande créée mais erreur sur les articles' };
   }
@@ -226,18 +264,25 @@ export async function getUserOrders(userId: string): Promise<Order[]> {
     .order('created_at', { ascending: false });
 
   if (error || !data) {
-    console.error('[getUserOrders]', error?.message);
+    logger.error('getUserOrders', 'Failed to fetch user orders');
     return [];
   }
 
   return data.map((row) => {
     const mapped = mapOrder(row);
-    mapped.items = ((row as Record<string, unknown>).order_items as Array<Record<string, unknown>> ?? []).map((item) => ({
-      id: item.id as string,
-      productId: item.product_id as string,
-      quantity: item.quantity as number,
-      unitPrice: item.unit_price as number,
-      product: item.products as { name: string; brand: string; slug: string; images: string[] } | undefined,
+    const items = row.order_items as Array<{
+      id: string;
+      product_id: string;
+      quantity: number;
+      unit_price: number;
+      products: { name: string; brand: string; slug: string; images: string[] } | null;
+    }> ?? [];
+    mapped.items = items.map((item) => ({
+      id: item.id,
+      productId: item.product_id,
+      quantity: item.quantity,
+      unitPrice: Number(item.unit_price),
+      product: item.products ?? undefined,
     }));
     return mapped;
   });
@@ -265,27 +310,48 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   if (error || !data) return null;
 
   const mapped = mapOrder(data);
-  mapped.items = ((data as Record<string, unknown>).order_items as Array<Record<string, unknown>> ?? []).map((item) => ({
-    id: item.id as string,
-    productId: item.product_id as string,
-    quantity: item.quantity as number,
-    unitPrice: item.unit_price as number,
-    product: item.products as { name: string; brand: string; slug: string; images: string[] } | undefined,
+  const items = data.order_items as Array<{
+    id: string;
+    product_id: string;
+    quantity: number;
+    unit_price: number;
+    products: { name: string; brand: string; slug: string; images: string[] } | null;
+  }> ?? [];
+  mapped.items = items.map((item) => ({
+    id: item.id,
+    productId: item.product_id,
+    quantity: item.quantity,
+    unitPrice: Number(item.unit_price),
+    product: item.products ?? undefined,
   }));
   return mapped;
 }
 
-function mapOrder(row: Record<string, unknown>): Order {
+type OrderRow = {
+  id: string;
+  status: string;
+  total_amount: number | string;
+  payment_method: string;
+  payment_status: string;
+  shipping_address: Record<string, unknown>;
+  phone: string;
+  email: string;
+  notes?: string | null;
+  created_at: string;
+  order_items?: unknown;
+};
+
+function mapOrder(row: OrderRow): Order {
   return {
-    id: row.id as string,
-    status: row.status as string,
+    id: row.id,
+    status: row.status,
     totalAmount: Number(row.total_amount),
-    paymentMethod: row.payment_method as string,
-    paymentStatus: row.payment_status as string,
-    shippingAddress: row.shipping_address as Record<string, unknown>,
-    phone: row.phone as string,
-    email: row.email as string,
-    notes: (row.notes as string) ?? null,
-    createdAt: row.created_at as string,
+    paymentMethod: row.payment_method,
+    paymentStatus: row.payment_status,
+    shippingAddress: row.shipping_address,
+    phone: row.phone,
+    email: row.email,
+    notes: row.notes ?? null,
+    createdAt: row.created_at,
   };
 }

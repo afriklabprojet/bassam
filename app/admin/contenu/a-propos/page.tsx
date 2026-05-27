@@ -9,6 +9,7 @@ import {
   type AboutValeur,
   type AboutEngagement,
 } from '@/lib/supabase/about-content';
+import { logger } from '@/lib/logger';
 
 /* ── Styles & helpers ───────────────────────────────────────────────────────── */
 
@@ -31,11 +32,11 @@ function inputStyle(): React.CSSProperties {
 }
 
 interface FieldProps {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  multiline?: boolean;
-  hint?: string;
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (v: string) => void;
+  readonly multiline?: boolean;
+  readonly hint?: string;
 }
 
 function Field({ label, value, onChange, multiline, hint }: FieldProps) {
@@ -66,21 +67,7 @@ function Field({ label, value, onChange, multiline, hint }: FieldProps) {
 
 /* ── Merge helpers ───────────────────────────────────────────────────────────── */
 
-function mergeStats(defaults: AboutStat[], dbRows: AboutStat[]): AboutStat[] {
-  return defaults.map((def) => {
-    const db = dbRows.find((r) => r.slug === def.slug);
-    return db ? { ...def, ...db } : def;
-  });
-}
-
-function mergeValeurs(defaults: AboutValeur[], dbRows: AboutValeur[]): AboutValeur[] {
-  return defaults.map((def) => {
-    const db = dbRows.find((r) => r.slug === def.slug);
-    return db ? { ...def, ...db } : def;
-  });
-}
-
-function mergeEngagements(defaults: AboutEngagement[], dbRows: AboutEngagement[]): AboutEngagement[] {
+function mergeBySlug<T extends { slug: string }>(defaults: T[], dbRows: T[]): T[] {
   return defaults.map((def) => {
     const db = dbRows.find((r) => r.slug === def.slug);
     return db ? { ...def, ...db } : def;
@@ -89,7 +76,7 @@ function mergeEngagements(defaults: AboutEngagement[], dbRows: AboutEngagement[]
 
 /* ── Section header ─────────────────────────────────────────────────────────── */
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children }: { readonly children: React.ReactNode }) {
   return (
     <h2 style={{ fontSize: 16, fontWeight: 700, color: GOLD, marginBottom: 20, marginTop: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
       <span style={{ width: 4, height: 18, background: GOLD, borderRadius: 2, display: 'inline-block' }} />
@@ -112,11 +99,11 @@ export default function AdminAProposPage() {
     fetch('/api/admin/about')
       .then((r) => r.json())
       .then((d) => {
-        setStats(mergeStats(DEFAULT_STATS, d.stats ?? []));
-        setValeurs(mergeValeurs(DEFAULT_VALEURS, d.valeurs ?? []));
-        setEngagements(mergeEngagements(DEFAULT_ENGAGEMENTS, d.engagements ?? []));
+        setStats(mergeBySlug(DEFAULT_STATS, d.stats ?? []));
+        setValeurs(mergeBySlug(DEFAULT_VALEURS, d.valeurs ?? []));
+        setEngagements(mergeBySlug(DEFAULT_ENGAGEMENTS, d.engagements ?? []));
       })
-      .catch(console.error)
+      .catch((e) => logger.error('admin', 'Request failed', e))
       .finally(() => setLoading(false));
   }, []);
 
@@ -170,23 +157,32 @@ export default function AdminAProposPage() {
             Gérez les stats, valeurs et engagements affichés sur la page À propos
           </p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || loading}
-          style={{
-            background: saving || loading ? 'rgba(197,165,90,0.3)' : GOLD,
-            color: '#1a1008',
-            border: 'none',
-            borderRadius: 8,
-            padding: '11px 24px',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: saving || loading ? 'not-allowed' : 'pointer',
-            transition: 'background .2s',
-          }}
-        >
-          {saving ? 'Enregistrement…' : loading ? 'Chargement…' : 'Enregistrer tout'}
-        </button>
+        {(() => {
+          const isDisabled = saving || loading;
+          let label: string;
+          if (saving) label = 'Enregistrement…';
+          else if (loading) label = 'Chargement…';
+          else label = 'Enregistrer tout';
+          return (
+            <button
+              onClick={handleSave}
+              disabled={isDisabled}
+              style={{
+                background: isDisabled ? 'rgba(197,165,90,0.3)' : GOLD,
+                color: '#1a1008',
+                border: 'none',
+                borderRadius: 8,
+                padding: '11px 24px',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                transition: 'background .2s',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })()}
       </div>
 
       {/* Toast */}

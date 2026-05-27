@@ -8,6 +8,7 @@ import {
   sanitizeFontFamily,
   type BrandingConfig,
 } from '@/lib/branding';
+import { logger } from '@/lib/logger';
 
 // Clés acceptées (toutes les clés de BrandingConfig)
 const ALLOWED_KEYS = Object.keys(BRANDING_DB_KEYS) as Array<keyof BrandingConfig>;
@@ -36,9 +37,40 @@ export async function GET() {
 
     return NextResponse.json({ settings });
   } catch (err) {
-    console.error('[Admin /branding GET]', err);
+    logger.error('[Admin /branding GET]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
+}
+
+const COLOR_KEYS = ['colorAccent', 'colorAccentLight', 'colorAccentDark', 'colorAccentMuted'] as const;
+const FONT_IMPORT_KEYS = ['fontSerifImport', 'fontSansImport'] as const;
+const FONT_FAMILY_KEYS = ['fontSerifFamily', 'fontSansFamily'] as const;
+
+function validateAndNormalizeBrandingField(
+  k: keyof BrandingConfig,
+  raw: unknown
+): { value: string } | { error: string } {
+  if (typeof raw !== 'string') return { error: `Valeur invalide pour "${k}"` };
+
+  let value = raw.trim();
+
+  if ((COLOR_KEYS as readonly string[]).includes(k)) {
+    if (!isValidColor(value)) return { error: `Couleur invalide pour "${k}" (attendu : hex ou rgba)` };
+  }
+
+  if ((FONT_IMPORT_KEYS as readonly string[]).includes(k)) {
+    if (!isValidGFontUrl(value)) return { error: `URL de police invalide pour "${k}" (Google Fonts uniquement)` };
+  }
+
+  if ((FONT_FAMILY_KEYS as readonly string[]).includes(k)) {
+    value = sanitizeFontFamily(value);
+  }
+
+  if (k === 'preset') {
+    value = value.replace(/[^a-z0-9-]/gi, '').substring(0, 50);
+  }
+
+  return { value };
 }
 
 // ─── PUT /api/admin/branding ──────────────────────────────────────────────────
@@ -54,56 +86,13 @@ export async function PUT(req: NextRequest) {
 
     for (const k of ALLOWED_KEYS) {
       if (!(k in body)) continue;
-      const raw = body[k];
 
-      if (typeof raw !== 'string') {
-        return NextResponse.json(
-          { error: `Valeur invalide pour "${k}"` },
-          { status: 400 }
-        );
+      const result = validateAndNormalizeBrandingField(k, body[k]);
+      if ('error' in result) {
+        return NextResponse.json({ error: result.error }, { status: 400 });
       }
 
-      let value = raw.trim();
-
-      // ── Validation par champ ─────────────────────────────────────────────
-      if (['colorAccent', 'colorAccentLight', 'colorAccentDark'].includes(k)) {
-        if (!isValidColor(value)) {
-          return NextResponse.json(
-            { error: `Couleur invalide pour "${k}" (attendu : hex ou rgba)` },
-            { status: 400 }
-          );
-        }
-      }
-
-      if (k === 'colorAccentMuted') {
-        // Autoriser rgba() ET hex
-        if (!isValidColor(value)) {
-          return NextResponse.json(
-            { error: `Couleur muette invalide pour "${k}"` },
-            { status: 400 }
-          );
-        }
-      }
-
-      if (['fontSerifImport', 'fontSansImport'].includes(k)) {
-        if (!isValidGFontUrl(value)) {
-          return NextResponse.json(
-            { error: `URL de police invalide pour "${k}" (Google Fonts uniquement)` },
-            { status: 400 }
-          );
-        }
-      }
-
-      if (['fontSerifFamily', 'fontSansFamily'].includes(k)) {
-        value = sanitizeFontFamily(value);
-      }
-
-      if (k === 'preset') {
-        // On accepte n'importe quelle chaîne alphanumérique+tiret
-        value = value.replace(/[^a-z0-9-]/gi, '').substring(0, 50);
-      }
-
-      rows.push({ key: BRANDING_DB_KEYS[k], value });
+      rows.push({ key: BRANDING_DB_KEYS[k], value: result.value });
     }
 
     if (rows.length === 0) {
@@ -121,7 +110,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('[Admin /branding PUT]', err);
+    logger.error('Admin /branding PUT', 'Unexpected error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

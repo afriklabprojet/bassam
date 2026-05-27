@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin, getAdminCustomers } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/customers
 export async function GET(request: NextRequest) {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const result = await getAdminCustomers(page, limit);
     return NextResponse.json(result);
   } catch (error) {
-    console.error('[Admin GET /customers]', error);
+    logger.error('[Admin GET /customers]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

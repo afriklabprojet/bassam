@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
+import { logger } from '@/lib/logger';
 
 const BUCKET = 'product-images';
 const MAX_SIZE = 2 * 1024 * 1024; // 2 Mo
@@ -60,7 +61,7 @@ export async function GET() {
       favicon_url: map.favicon_url ?? '',
     });
   } catch (error) {
-    console.error('[logo GET]', error);
+    logger.error('[logo GET]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('[logo upload] Storage error:', uploadError.message);
+      logger.error('[logo upload] Storage error:', 'Error', uploadError.message);
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
@@ -139,13 +140,13 @@ export async function POST(req: NextRequest) {
       .upsert({ key: settingKey, value: publicUrl }, { onConflict: 'key' });
 
     if (upsertError) {
-      console.error('[logo upsert]', upsertError.message);
+      logger.error('[logo upsert]', 'Error', upsertError.message);
       return NextResponse.json({ error: 'Erreur sauvegarde en base' }, { status: 500 });
     }
 
     return NextResponse.json({ url: publicUrl, type, key: settingKey });
   } catch (error) {
-    console.error('[logo POST]', error);
+    logger.error('[logo POST]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

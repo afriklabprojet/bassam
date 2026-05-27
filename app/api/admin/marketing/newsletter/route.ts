@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/marketing/newsletter?page=1&limit=50
 export async function GET(request: NextRequest) {
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
       campaigns: campaigns ?? [],
     });
   } catch (err) {
-    console.error('[Admin GET /newsletter]', err);
+    logger.error('[Admin GET /newsletter]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -109,12 +110,12 @@ export async function POST(request: NextRequest) {
         }
         status = allOk ? 'sent' : 'failed';
       } catch (e) {
-        console.error('[Newsletter] Resend error:', e);
+        logger.error('[Newsletter] Resend error:', 'Error', e);
         status = 'failed';
       }
     } else {
       // No RESEND_API_KEY — dev/demo mode: log and mark sent
-      console.log(`[Newsletter Campaign] No RESEND_API_KEY — would send "${subject}" to ${recipientsCount} subscriber(s).`);
+      logger.info('[Newsletter Campaign] No RESEND_API_KEY — would send "${subject}" to ${recipientsCount} subscriber(s).', 'Info');
       status = 'sent';
     }
 
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ campaign, status, recipientsCount });
   } catch (err) {
-    console.error('[Admin POST /newsletter]', err);
+    logger.error('[Admin POST /newsletter]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -160,7 +161,7 @@ export async function PATCH(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Admin PATCH /newsletter]', err);
+    logger.error('[Admin PATCH /newsletter]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -184,7 +185,7 @@ export async function DELETE(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Admin DELETE /newsletter]', err);
+    logger.error('[Admin DELETE /newsletter]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

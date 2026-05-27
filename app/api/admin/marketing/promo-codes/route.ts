@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // GET /api/admin/marketing/promo-codes
 export async function GET() {
@@ -16,7 +17,7 @@ export async function GET() {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ codes: data ?? [] });
   } catch (err) {
-    console.error('[Admin GET /promo-codes]', err);
+    logger.error('[Admin GET /promo-codes]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ code: data }, { status: 201 });
   } catch (err) {
-    console.error('[Admin POST /promo-codes]', err);
+    logger.error('[Admin POST /promo-codes]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -92,7 +93,7 @@ export async function PATCH(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Admin PATCH /promo-codes]', err);
+    logger.error('[Admin PATCH /promo-codes]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -112,7 +113,7 @@ export async function DELETE(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('[Admin DELETE /promo-codes]', err);
+    logger.error('[Admin DELETE /promo-codes]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

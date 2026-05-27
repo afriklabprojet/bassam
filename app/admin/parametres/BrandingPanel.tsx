@@ -8,6 +8,7 @@ import {
   type BrandingConfig,
   type BrandingPreset,
 } from '@/lib/branding';
+import { logger } from '@/lib/logger';
 
 const GOLD = '#C5A55A';
 
@@ -32,10 +33,10 @@ function mapDbToConfig(raw: Record<string, string>): Partial<BrandingConfig> {
 }
 
 function fontPairIdFromPreset(preset: BrandingPreset): string {
+  const match = /'([^']+)'/.exec(preset.fontSerifFamily);
+  const serifName = match?.[1] ?? '';
   for (const id of FONT_PAIR_IDS) {
-    if (FONT_PAIR_LABELS[id].includes(
-      preset.fontSerifFamily.match(/'([^']+)'/)?.[1] ?? ''
-    )) return id;
+    if (FONT_PAIR_LABELS[id].includes(serifName)) return id;
   }
   return 'cormorant_inter';
 }
@@ -59,7 +60,7 @@ export default function BrandingPanel() {
           setCurrent((prev) => ({ ...prev, ...mapped }));
         }
       })
-      .catch(console.error)
+      .catch((e) => logger.error('admin', 'Request failed', e))
       .finally(() => setLoading(false));
   }, []);
 
@@ -231,7 +232,7 @@ export default function BrandingPanel() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input
                   type="color"
-                  value={(current[key] ?? '').startsWith('#') ? (current[key] as string).substring(0, 7) : '#C5A55A'}
+                  value={(current[key] ?? '').startsWith('#') ? (current[key] ?? '').substring(0, 7) : '#C5A55A'}
                   onChange={(e) => {
                     const hex = e.target.value;
                     setCurrent((prev) => ({ ...prev, [key]: hex, preset: 'custom' }));
@@ -387,26 +388,34 @@ export default function BrandingPanel() {
         </p>
       )}
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        style={{
-          alignSelf: 'flex-start',
-          padding: '0.65rem 1.8rem',
-          background: saved ? '#1a3a1a' : `${GOLD}22`,
-          border: `1px solid ${saved ? '#4ade80' : GOLD}`,
-          borderRadius: 8,
-          color: saved ? '#4ade80' : GOLD,
-          fontSize: '0.85rem',
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          cursor: saving ? 'not-allowed' : 'pointer',
-          opacity: saving ? 0.6 : 1,
-          transition: 'all 0.2s',
-        }}
-      >
-        {saving ? 'Sauvegarde…' : (saved ? '✓ Branding enregistré' : 'Enregistrer le branding')}
-      </button>
+      {(() => {
+        let btnLabel: string;
+        if (saving) btnLabel = 'Sauvegarde…';
+        else if (saved) btnLabel = '✓ Branding enregistré';
+        else btnLabel = 'Enregistrer le branding';
+        return (
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              alignSelf: 'flex-start',
+              padding: '0.65rem 1.8rem',
+              background: saved ? '#1a3a1a' : `${GOLD}22`,
+              border: `1px solid ${saved ? '#4ade80' : GOLD}`,
+              borderRadius: 8,
+              color: saved ? '#4ade80' : GOLD,
+              fontSize: '0.85rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.6 : 1,
+              transition: 'all 0.2s',
+            }}
+          >
+            {btnLabel}
+          </button>
+        );
+      })()}
     </div>
   );
 }

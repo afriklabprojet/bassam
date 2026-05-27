@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 
 // POST /api/promo-codes/validate
 // Body: { code: string, orderAmount: number }
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       value: data.value as number,
     });
   } catch (err) {
-    console.error('[POST /api/promo-codes/validate]', err);
+    logger.error('[POST /api/promo-codes/validate]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { verifyWebhookSignature, type JekoWebhookPayload } from '@/lib/payment/jeko';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/payment/webhook
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   // ── 2. Verify signature ───────────────────────────────────────────────────
   if (!verifyWebhookSignature(rawBody, signature)) {
-    console.warn('[webhook] Invalid Jeko signature — rejected');
+    logger.warn('webhook', 'Invalid Jeko signature — rejected');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
 
   type OrderRow = { id: string; status: string; payment_status: string };
 
-  let resolvedOrder: OrderRow | null = order as OrderRow | null;
+  let resolvedOrder: OrderRow | null = order;
 
   if (findError || !resolvedOrder) {
     // Fallback: try matching via payment_reference (Jeko transactionId)
@@ -57,12 +58,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!orderByTxn) {
-      console.error('[webhook] Order not found for reference:', payload.reference);
+      logger.warn('webhook', 'Order not found for reference');
       // Return 200 to prevent Jeko from retrying indefinitely
       return NextResponse.json({ ok: true });
     }
 
-    resolvedOrder = orderByTxn as OrderRow;
+    resolvedOrder = orderByTxn;
   }
 
   // ── 5. Idempotency — skip if already in a final state ────────────────────
@@ -83,11 +84,11 @@ export async function POST(request: NextRequest) {
     .eq('id', resolvedOrder.id);
 
   if (updateError) {
-    console.error('[webhook] Failed to update order', resolvedOrder.id, updateError.message);
+    logger.error('webhook', 'Failed to update order');
     return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
   }
 
-  console.log(`[webhook] Order ${resolvedOrder.id} → ${updates.status} (${payload.event})`);
+  logger.info('webhook', `Order updated → ${updates.status} (${payload.event})`);
 
   return NextResponse.json({ ok: true });
 }

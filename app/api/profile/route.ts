@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getProfile, updateProfile } from '@/lib/supabase/profile';
+import { logger } from '@/lib/logger';
 
 const updateProfileSchema = z.object({
   fullName: z.string().min(1).optional(),
@@ -36,7 +37,7 @@ export async function GET() {
 
     return NextResponse.json({ profile });
   } catch (error) {
-    console.error('[API GET /profile]', error);
+    logger.error('[API GET /profile]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }
@@ -75,7 +76,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ profile });
   } catch (error) {
-    console.error('[API PATCH /profile]', error);
+    logger.error('[API PATCH /profile]', 'Error', error);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

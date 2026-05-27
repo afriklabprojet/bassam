@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { normalizeOrderItemsForPersistence } from '@/lib/supabase/custom-order-items';
 import { createOrder, getUserOrders } from '@/lib/supabase/orders';
+import { logger } from '@/lib/logger';
 
 const customCreationSchema = z.object({
   formulaId: z.enum(['essentiel', 'signature', 'prestige']),
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ order }, { status: 201 });
   } catch (error) {
-    console.error('[API POST /orders]', error);
+    logger.error('[API POST /orders]', 'Error', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }
@@ -111,7 +112,7 @@ export async function GET() {
     const orders = await getUserOrders(user.id);
     return NextResponse.json({ orders });
   } catch (error) {
-    console.error('[API GET /orders]', error);
+    logger.error('[API GET /orders]', 'Error', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

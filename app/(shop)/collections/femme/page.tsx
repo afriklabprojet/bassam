@@ -22,14 +22,6 @@ export const metadata: Metadata = {
   },
 };
 
-// ─── Olfactive families ───────────────────────────────────────────────────────
-const FAMILIES = [
-  { nom: 'Floral', icon: '✦', description: "Rose, pivoine, jasmin, fleur d'oranger", exemples: ['Chanel N°5', 'Miss Dior', 'La Vie est Belle'] },
-  { nom: 'Oriental', icon: '◆', description: 'Ambre, vanille, musc chaud, résines précieuses', exemples: ['Black Opium YSL', 'Hypnôse Lancôme', 'Guilty Gucci'] },
-  { nom: 'Boisé Floral', icon: '○', description: 'Cèdre, santal, rose, iris', exemples: ['Mon Guerlain', 'Coco Mademoiselle', 'Flora Gucci'] },
-  { nom: 'Fruité', icon: '△', description: 'Pêche, framboise, litchi, fruit de la passion', exemples: ['Si Armani', 'Chance Eau Vive', 'Irresistible Givenchy'] },
-];
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function FemmePage() {
   const { products } = await getProducts({ gender: 'femme', limit: 12 });
@@ -138,35 +130,8 @@ export default async function FemmePage() {
         </div>
       </section>
 
-      {/* ── Familles olfactives ───────────────────────────────────────────── */}
-      <section style={{ border: 'none', borderTop: '1px solid rgba(197,165,90,0.10)', borderBottom: '1px solid rgba(197,165,90,0.10)', background: 'var(--noir-soft)', padding: '4rem 0' }}>
-        <div className="container mx-auto">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-            <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              Familles olfactives
-            </span>
-          </div>
-          <div className="femme-fam-grid">
-            {FAMILIES.map((fam) => (
-              <div key={fam.nom} style={{ padding: '1.75rem', border: '1px solid rgba(197,165,90,0.10)', background: 'var(--noir)' }}>
-                <div style={{ fontFamily: 'var(--font-sans)', fontSize: '1.2rem', color: 'var(--gold)', marginBottom: '0.75rem' }} aria-hidden="true">{fam.icon}</div>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 400, color: 'var(--surface)', marginBottom: '0.4rem' }}>{fam.nom}</h3>
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7125rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.65, marginBottom: '1rem' }}>{fam.description}</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {fam.exemples.map((ex) => (
-                    <span key={ex} style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em' }}>
-                      -- {ex}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Produits ─────────────────────────────────────────────────────── */}
+      <div style={{ background: 'var(--offwhite)' }}>
       <section id="produits" className="container mx-auto" style={{ padding: '5rem 0' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
@@ -176,13 +141,13 @@ export default async function FemmePage() {
                 Parfums Femme
               </span>
             </div>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'var(--text-pale)' }}>
               {products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
             </p>
           </div>
           <Link href="/produits?gender=femme" style={{
             fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
+            color: 'var(--text-secondary)', textDecoration: 'none',
           }}>
             Filtres avancés →
           </Link>
@@ -190,13 +155,13 @@ export default async function FemmePage() {
 
         {products.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '5rem 0' }}>
-            <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
+            <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--text-pale)', marginBottom: '2rem' }}>
               Chargement de la collection en cours…
             </p>
             <Link href="/produits?gender=femme" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'transparent', border: '1px solid rgba(197,165,90,0.35)',
-              color: 'var(--gold)', padding: '0.75rem 1.5rem',
+              background: 'transparent', border: '1px solid rgba(197,165,90,0.5)',
+              color: 'var(--gold-dark)', padding: '0.75rem 1.5rem',
               fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
               textDecoration: 'none',
             }}>
@@ -223,7 +188,7 @@ export default async function FemmePage() {
             <div style={{ textAlign: 'center', marginTop: '3rem' }}>
               <Link href="/produits?gender=femme" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                border: '1px solid rgba(197,165,90,0.35)', color: 'var(--gold)',
+                border: '1px solid rgba(197,165,90,0.5)', color: 'var(--gold-dark)',
                 padding: '0.8rem 2rem',
                 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
                 textDecoration: 'none',
@@ -234,6 +199,7 @@ export default async function FemmePage() {
           </>
         )}
       </section>
+      </div>
 
       {/* ── CTA footer ───────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--noir)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
@@ -273,18 +239,8 @@ export default async function FemmePage() {
           gap: 4rem;
           align-items: start;
         }
-        .femme-fam-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 1px;
-          background: rgba(197,165,90,0.08);
-        }
         @media (max-width: 900px) {
           .femme-hero-grid { grid-template-columns: 1fr; gap: 2rem; }
-          .femme-fam-grid  { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 480px) {
-          .femme-fam-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>

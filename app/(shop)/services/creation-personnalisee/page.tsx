@@ -54,57 +54,11 @@ const etapes = [
   },
 ];
 
-const formules = [
-  {
-    nom: 'Essentiel',
-    volume: '30 ml',
-    prix: '85\u202F000 FCFA',
-    description: 'Pour découvrir votre fragrance signature dans un format élégant.',
-    inclus: [
-      'Accord sur-mesure',
-      'Flacon 30 ml gravé prénom',
-      'Coffret kraft noir & or',
-      'Certificat de création',
-      'Formule conservée 1 an',
-    ],
-    featured: false,
-  },
-  {
-    nom: 'Signature',
-    volume: '50 ml',
-    prix: '135\u202F000 FCFA',
-    description: "Le parfum sur-mesure dans sa version complète. La référence absolue.",
-    inclus: [
-      'Accord sur-mesure + 2 cycles d\u2019affinage',
-      'Flacon 50 ml gravé nom & date',
-      'Coffret luxe velours noir tissu',
-      'Numéro de série & certificat',
-      'Formule conservée 3 ans',
-      'Réapprovisionnement possible',
-    ],
-    featured: true,
-  },
-  {
-    nom: 'Cadeau Prestige',
-    volume: '30 ml + carte',
-    prix: '95\u202F000 FCFA',
-    description: "Offrez la création d'un parfum unique. Le cadeau le plus mémorable.",
-    inclus: [
-      'Coffret-cadeau premium personnalisé',
-      'Bon de création (valable 12 mois)',
-      'Accord sur-mesure pour le bénéficiaire',
-      'Flacon 30 ml gravé',
-      'Message manuscrit inclus',
-    ],
-    featured: false,
-  },
-];
-
 const familles = [
   { nom: 'Floral', notes: 'Rose de Grasse, Jasmin Sambac, Pivoine, Tubéreuse', icone: '✦' },
   { nom: 'Oriental', notes: 'Oud Méditerranée, Vanille Bourbon, Ambre, Benjoin', icone: '◈' },
-  { nom: 'Boisé', notes: 'Santal Mysore, Vétiver d\u2019Haïti, Cèdre, Patchouli', icone: '◉' },
-  { nom: 'Frais', notes: 'Bergamote, Thé vert, Aldéhydes, Fleur d\u2019oranger', icone: '◇' },
+  { nom: 'Boisé', notes: "Santal Mysore, Vétiver d'Haïti, Cèdre, Patchouli", icone: '◉' },
+  { nom: 'Frais', notes: "Bergamote, Thé vert, Aldéhydes, Fleur d'oranger", icone: '◇' },
   { nom: 'Gourmand', notes: 'Caramel, Praliné, Miel sauvage, Cacao fin', icone: '◆' },
   { nom: 'Cuir & Fumé', notes: 'Encens, Tabac blond, Birch tar, Iris poudré', icone: '◻' },
 ];
@@ -160,14 +114,9 @@ export default async function CreationPersonnalisee() {
                 flacon gravé, numéroté. Un objet de luxe signé à votre nom
                 que personne d&rsquo;autre au monde ne portera.
               </p>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <a href="#commander" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 48, padding: '0 28px', background: 'var(--gold)', color: 'var(--noir)', textDecoration: 'none', fontSize: '0.6875rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 3 }}>
-                  Créer mon parfum
-                </a>
-                <a href="#formules" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 48, padding: '0 24px', background: 'transparent', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)', textDecoration: 'none', fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, borderRadius: 3 }}>
-                  Voir les formules
-                </a>
-              </div>
+              <a href="#commander" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 48, padding: '0 28px', background: 'var(--gold)', color: 'var(--noir)', textDecoration: 'none', fontSize: '0.6875rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 3 }}>
+                Créer mon parfum
+              </a>
             </div>
 
             {/* Ornement flacon */}
@@ -289,69 +238,6 @@ export default async function CreationPersonnalisee() {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          FORMULES
-      ══════════════════════════════════════════════════ */}
-      <section id="formules" style={{ background: 'var(--noir)', padding: '88px 0' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 56 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 20, height: '1px', background: 'var(--gold)' }} />
-              <span style={{ fontSize: '0.5625rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>Tarifs & Formules</span>
-              <div style={{ width: 20, height: '1px', background: 'var(--gold)' }} />
-            </div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 300, color: '#fff', margin: 0, lineHeight: 1.2 }}>
-              Choisissez votre{' '}
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>formule.</em>
-            </h2>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }} className="formules-grid">
-            {formules.map((f) => (
-              <div key={f.nom} style={{
-                background: f.featured ? 'var(--gold)' : 'rgba(255,255,255,0.04)',
-                border: f.featured ? 'none' : '1px solid rgba(197,165,90,0.12)',
-                borderRadius: 3,
-                padding: '40px 32px',
-                position: 'relative',
-              }}>
-                {f.featured && (
-                  <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: 'var(--noir)', color: 'var(--gold)', fontSize: '0.5625rem', letterSpacing: '0.18em', textTransform: 'uppercase', padding: '4px 14px', border: '1px solid rgba(197,165,90,0.4)', borderRadius: 20, whiteSpace: 'nowrap' }}>
-                    Le plus populaire
-                  </div>
-                )}
-                <p style={{ fontSize: '0.5625rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: f.featured ? 'rgba(8,8,8,0.5)' : 'var(--text-pale)', margin: '0 0 6px', fontWeight: 500 }}>{f.volume}</p>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 300, color: f.featured ? 'var(--noir)' : '#fff', margin: '0 0 6px' }}>{f.nom}</h3>
-                <p style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 300, color: f.featured ? 'var(--noir)' : 'var(--gold)', margin: '0 0 12px' }}>{f.prix}</p>
-                <div style={{ width: 30, height: '1px', background: f.featured ? 'rgba(8,8,8,0.2)' : 'rgba(197,165,90,0.3)', margin: '0 0 16px' }} aria-hidden="true" />
-                <p style={{ fontSize: '0.8125rem', color: f.featured ? 'rgba(8,8,8,0.65)' : 'rgba(255,255,255,0.45)', lineHeight: 1.65, margin: '0 0 24px' }}>{f.description}</p>
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'flex', flexDirection: 'column', gap: 9 }}>
-                  {f.inclus.map((item) => (
-                    <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                      <svg width={13} height={13} fill="none" stroke={f.featured ? 'var(--noir)' : 'var(--gold)'} strokeWidth={2} viewBox="0 0 24 24" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                      <span style={{ fontSize: '0.8125rem', color: f.featured ? 'rgba(8,8,8,0.7)' : 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a href="#commander" style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  height: 46, borderRadius: 3,
-                  background: f.featured ? 'var(--noir)' : 'transparent',
-                  border: f.featured ? 'none' : '1px solid rgba(197,165,90,0.35)',
-                  color: f.featured ? '#fff' : 'var(--gold)',
-                  textDecoration: 'none',
-                  fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600,
-                }}>
-                  Commander · {f.nom}
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
           CTA bas
       ══════════════════════════════════════════════════ */}
       <section style={{ background: 'var(--noir)', padding: '56px 0' }}>
@@ -378,7 +264,6 @@ export default async function CreationPersonnalisee() {
           .hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
           .hero-ornement { display: none; }
           .familles-grid { grid-template-columns: 1fr 1fr !important; }
-          .formules-grid { grid-template-columns: 1fr !important; }
           .etape-row { grid-template-columns: 60px 1fr !important; }
           .etape-row > :last-child { display: none; }
         }

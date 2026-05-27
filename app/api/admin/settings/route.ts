@@ -15,6 +15,9 @@ const ALLOWED_KEYS: Array<keyof SiteSettings> = [
   'tiktok_url',
   'address_display',
   'address_detail',
+  'consultant_name',
+  'consultant_photo_url',
+  'consultant_response_hours',
 ];
 
 /* ─── GET /api/admin/settings ────────────────────────────────────────────── */

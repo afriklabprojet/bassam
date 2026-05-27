@@ -7,6 +7,7 @@ import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
 import { DEFAULT_SHIPPING_CONFIG, getShippingFee, type ShippingConfig, type DeliveryMode } from '@/lib/shipping';
 
 type Step = 1 | 2 | 3 | 4;
+type Direction = 'forward' | 'back';
 
 type DeliveryInfo = {
   firstName: string;
@@ -99,58 +100,208 @@ const PAYMENT_OPTIONS = [
   { value: 'djamo' as const, label: 'Djamo', desc: 'Carte virtuelle Djamo', recommended: false, accent: '#5B2FD4', Icon: IconDjamo },
 ];
 
-function stepCircleBg(done: boolean, active: boolean): string {
-  if (done) return 'var(--text-primary)';
-  if (active) return 'var(--gold)';
-  return '#fff';
-}
+/* ── Progress bar ─────────────────────────────────────────────── */
 
-function stepLabelColor(done: boolean, active: boolean): string {
-  if (active) return 'var(--text-primary)';
-  if (done) return 'var(--text-secondary)';
-  return 'var(--text-pale)';
-}
-
-function StepIndicator({ step }: Readonly<{ step: Step }>) {
+function ProgressBar({ step }: Readonly<{ step: Step }>) {
+  const pct = ((step - 1) / (STEPS.length - 1)) * 100;
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', marginBottom: '2.5rem', gap: 0 }}>
-      {STEPS.map((s, i) => {
-        const num = (i + 1) as Step;
-        const active = step === num;
-        const done = step > num;
-        const circleBg = stepCircleBg(done, active);
-        const labelColor = stepLabelColor(done, active);
-        return (
-          <div key={s.label} style={{ display: 'flex', alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+    <div style={{ marginBottom: '2.5rem' }}>
+      {/* Chips row with line behind */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
+        {/* Full background track */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0,
+          top: '50%', transform: 'translateY(-50%)',
+          height: '4px', background: 'var(--line-light)',
+          borderRadius: '2px', zIndex: 0,
+        }} />
+        {/* Filled portion */}
+        <div style={{
+          position: 'absolute', left: 0,
+          top: '50%', transform: 'translateY(-50%)',
+          height: '4px', width: `${pct}%`,
+          background: 'var(--gold)',
+          borderRadius: '2px', zIndex: 0,
+          transition: 'width 0.35s ease',
+        }} />
+        {/* Step chips */}
+        {STEPS.map((s, i) => {
+          const num = (i + 1) as Step;
+          const isActive = step === num;
+          const isDone = step > num;
+
+          let chipBg: string;
+          if (isActive) chipBg = 'var(--gold)';
+          else if (isDone) chipBg = 'var(--text-primary)';
+          else chipBg = 'var(--offwhite)';
+
+          let chipBorder: string;
+          if (isActive) chipBorder = 'var(--gold)';
+          else if (isDone) chipBorder = 'var(--text-primary)';
+          else chipBorder = 'var(--line-light)';
+
+          let labelColor: string;
+          if (isActive) labelColor = 'var(--text-primary)';
+          else if (isDone) labelColor = 'var(--text-secondary)';
+          else labelColor = 'var(--text-pale)';
+
+          return (
+            <div key={s.label} style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.375rem' }}>
               <div style={{
-                width: '34px', height: '34px', borderRadius: '50%',
+                width: '32px', height: '32px', borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.75rem', fontWeight: 600, transition: 'all 0.3s',
-                background: circleBg,
-                border: `2px solid ${circleBg === '#fff' ? 'var(--line-light)' : circleBg}`,
-                color: done || active ? '#fff' : 'var(--text-pale)',
-                boxShadow: active ? '0 0 0 4px rgba(197,165,90,0.15)' : 'none',
+                fontSize: '0.6875rem', fontWeight: 600,
+                transition: 'all 0.3s',
+                background: chipBg,
+                border: `2px solid ${chipBorder}`,
+                color: isActive || isDone ? '#fff' : 'var(--text-pale)',
+                boxShadow: isActive ? '0 0 0 4px rgba(197,165,90,0.18)' : 'none',
               }}>
-                {done ? (
-                  <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                {isDone ? (
+                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                 ) : num}
               </div>
-              <p style={{ fontSize: '0.5625rem', fontWeight: active ? 600 : 400, color: labelColor, letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.2 }}>
+              <span style={{
+                fontSize: '0.5625rem', fontWeight: isActive ? 600 : 400,
+                color: labelColor,
+                letterSpacing: '0.05em', textTransform: 'uppercase',
+                textAlign: 'center', lineHeight: 1.2, whiteSpace: 'nowrap',
+              }}>
                 {s.label}
-              </p>
+              </span>
             </div>
-            {i < STEPS.length - 1 && (
-              <div style={{ flex: 1, height: '2px', margin: '16px 6px 0', background: done ? 'var(--text-primary)' : 'var(--line-light)', transition: 'background 0.3s' }} />
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      {/* Sub-label */}
+      <p style={{
+        textAlign: 'center', fontSize: '0.6875rem',
+        letterSpacing: '0.08em', textTransform: 'uppercase',
+        color: 'var(--gold)', fontWeight: 600,
+      }}>
+        Étape {step} sur {STEPS.length} · {STEPS[step - 1].label}
+      </p>
     </div>
   );
 }
+
+/* ── Step recap strip ─────────────────────────────────────────── */
+
+type StepRecapProps = Readonly<{
+  step: Step;
+  selectedMode: DeliveryMode | null;
+  shipping: number;
+  delivery: DeliveryInfo;
+  paymentMethod: PaymentMethod;
+  onGoToStep: (s: Step) => void;
+}>;
+
+function StepRecap({ step, selectedMode, shipping, delivery, paymentMethod, onGoToStep }: StepRecapProps) {
+  if (step <= 1) return null;
+
+  const paymentLabel = PAYMENT_OPTIONS.find((o) => o.value === paymentMethod)?.label ?? paymentMethod;
+
+  const stripStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+    background: 'var(--offwhite)', border: '1px solid var(--line-light)',
+    borderRadius: '3px', padding: '10px 16px', marginBottom: '0.5rem',
+  };
+
+  const checkStyle: React.CSSProperties = {
+    color: 'var(--gold)', fontWeight: 700, flexShrink: 0, fontSize: '0.75rem',
+  };
+
+  const textStyle: React.CSSProperties = {
+    flex: 1, fontSize: '0.8125rem', color: 'var(--text-secondary)',
+    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+  };
+
+  const modifierStyle: React.CSSProperties = {
+    fontSize: '0.6875rem', color: 'var(--gold)', textDecoration: 'underline',
+    cursor: 'pointer', background: 'none', border: 'none', padding: 0, flexShrink: 0,
+  };
+
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      {/* Step 1 recap — always shown from step 2 onwards */}
+      {step >= 2 && selectedMode && (
+        <div style={stripStyle}>
+          <span style={checkStyle}>✓</span>
+          <span style={textStyle}>
+            Livraison : {selectedMode.label}
+            {' — '}
+            <span style={{ fontWeight: 500 }}>{shipping === 0 ? 'Gratuit' : formatPrice(shipping)}</span>
+          </span>
+          <button type="button" style={modifierStyle} onClick={() => onGoToStep(1)}>
+            Modifier
+          </button>
+        </div>
+      )}
+      {/* Step 2 recap — shown from step 3 onwards */}
+      {step >= 3 && delivery.firstName && (
+        <div style={stripStyle}>
+          <span style={checkStyle}>✓</span>
+          <span style={textStyle}>
+            Contact : {delivery.firstName} {delivery.lastName} · {delivery.phone}
+          </span>
+          <button type="button" style={modifierStyle} onClick={() => onGoToStep(2)}>
+            Modifier
+          </button>
+        </div>
+      )}
+      {/* Step 3 recap — shown on step 4 */}
+      {step >= 4 && (
+        <div style={stripStyle}>
+          <span style={checkStyle}>✓</span>
+          <span style={textStyle}>Paiement : {paymentLabel}</span>
+          <button type="button" style={modifierStyle} onClick={() => onGoToStep(3)}>
+            Modifier
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Animated step wrapper ────────────────────────────────────── */
+
+function StepTransition({ step, direction, children }: Readonly<{ step: Step; direction: Direction; children: React.ReactNode }>) {
+  return (
+    <div
+      key={step}
+      style={{
+        animation: `${direction === 'forward' ? 'slideInRight' : 'slideInLeft'} 0.28s ease both`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ── Step card accent header helpers ─────────────────────────── */
+
+function StepCardHeader({ stepNum, title, subtitle }: Readonly<{ stepNum: number; title: string; subtitle: string }>) {
+  return (
+    <div style={{ borderLeft: '3px solid var(--gold)', paddingLeft: '0.875rem', marginBottom: '1.75rem' }}>
+      <p style={{
+        fontSize: '0.5625rem', fontWeight: 600, letterSpacing: '0.12em',
+        textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '0.25rem',
+      }}>
+        Étape {stepNum}
+      </p>
+      <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, marginBottom: '0.25rem' }}>
+        {title}
+      </h2>
+      <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', fontWeight: 300 }}>
+        {subtitle}
+      </p>
+    </div>
+  );
+}
+
+/* ── Sub-components ───────────────────────────────────────────── */
 
 function DeliveryModeButton({
   mode, selected, onSelect,
@@ -265,14 +416,14 @@ function DeliveryContactBlock({ hasWhatsappSupport: waSup }: Readonly<{ hasWhats
   );
 }
 
-function OrderRecap({
-  items, shipping, total, selectedMode,
-}: Readonly<{
+type OrderRecapProps = Readonly<{
   items: ReturnType<typeof useCart>['items'];
   shipping: number;
   total: number;
   selectedMode: DeliveryMode | null;
-}>) {
+}>;
+
+function OrderRecapBody({ items, shipping, total, selectedMode }: OrderRecapProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -321,6 +472,56 @@ function OrderRecap({
   );
 }
 
+function OrderRecap(props: OrderRecapProps) {
+  return <OrderRecapBody {...props} />;
+}
+
+/* ── Mobile sticky recap drawer ──────────────────────────────── */
+
+function MobileRecap({ items, shipping, total, selectedMode }: OrderRecapProps) {
+  const [open, setOpen] = useState(false);
+  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  return (
+    <div className="mobile-recap">
+      {/* Collapsed bar — always visible */}
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.875rem 1rem', background: 'var(--noir)', border: 'none', cursor: 'pointer',
+          borderBottom: open ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#fff', fontWeight: 500 }}>
+          <svg width="16" height="16" fill="none" stroke="var(--gold)" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+          </svg>
+          Récapitulatif · {itemCount} article{itemCount > 1 ? 's' : ''}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.0625rem', fontWeight: 500, color: 'var(--gold)' }}>
+            {formatPrice(total)}
+          </span>
+          <svg
+            width="14" height="14" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" viewBox="0 0 24 24"
+            style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </span>
+      </button>
+
+      {/* Expanded panel */}
+      {open && (
+        <div style={{ padding: '1.25rem 1rem', background: '#fff', borderTop: '1px solid var(--line-light)' }}>
+          <OrderRecapBody items={items} shipping={shipping} total={total} selectedMode={selectedMode} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Step sub-components ────────────────────────────────────── */
 
 function Step1Delivery({
@@ -333,12 +534,11 @@ function Step1Delivery({
 }>) {
   return (
     <div className="card" style={{ padding: '2rem', transition: 'none' }}>
-      <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, marginBottom: '0.375rem' }}>
-        Mode de livraison
-      </h2>
-      <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.75rem', fontWeight: 300 }}>
-        Choisissez comment vous souhaitez recevoir votre commande.
-      </p>
+      <StepCardHeader
+        stepNum={1}
+        title="Mode de livraison"
+        subtitle="Choisissez comment vous souhaitez recevoir votre commande."
+      />
       {enabledModes.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.75rem' }}>
           {enabledModes.map((mode) => (
@@ -390,12 +590,11 @@ function Step2Contact({
   const fieldError = (val: boolean) => attempted && !val;
   return (
     <div className="card" style={{ padding: '2rem', transition: 'none' }}>
-      <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, marginBottom: '0.375rem' }}>
-        Vos coordonnées
-      </h2>
-      <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.75rem', fontWeight: 300 }}>
-        {isPickup ? 'Indiquez vos informations de contact.' : 'Indiquez vos informations de contact et adresse de livraison.'}
-      </p>
+      <StepCardHeader
+        stepNum={2}
+        title="Vos coordonnées"
+        subtitle={isPickup ? 'Indiquez vos informations de contact.' : 'Indiquez vos informations de contact et adresse de livraison.'}
+      />
       <FieldGroup>
         <FieldRow>
           <Field id="firstName" label="Prénom" required error={fieldError(!!delivery.firstName)}>
@@ -464,7 +663,7 @@ function Step2Contact({
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button type="button" onClick={onBack} className="btn-ghost" style={{ flex: '0 0 auto' }}>← Retour</button>
           <button type="button" onClick={onNext} className="btn-primary" style={{ flex: 1 }}>
-            Continuer vers le paiement →
+            Continuer →
           </button>
         </div>
       </div>
@@ -488,10 +687,11 @@ function Step3Payment({
   const submitDisabled = isSubmitting;
   return (
     <div className="card" style={{ padding: '2rem', transition: 'none' }}>
-      <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, marginBottom: '0.375rem' }}>Mode de paiement</h2>
-      <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1.75rem', fontWeight: 300 }}>
-        Choisissez votre méthode de paiement préférée.
-      </p>
+      <StepCardHeader
+        stepNum={3}
+        title="Mode de paiement"
+        subtitle="Choisissez votre méthode de paiement préférée."
+      />
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {PAYMENT_OPTIONS.map((opt) => {
           const sel = paymentMethod === opt.value;
@@ -601,6 +801,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const hasWhatsappSupport = hasWhatsAppSupport();
   const [step, setStep] = useState<Step>(1);
+  const [direction, setDirection] = useState<Direction>('forward');
   const [attempted, setAttempted] = useState(false);
 
   const [guestEmail, setGuestEmail] = useState('');
@@ -639,6 +840,16 @@ export default function CheckoutPage() {
 
   function handleDeliveryChange(field: keyof DeliveryInfo, value: string) {
     setDelivery((p) => ({ ...p, [field]: value }));
+  }
+
+  function goForward(target: Step) {
+    setDirection('forward');
+    setStep(target);
+  }
+
+  function goBack(target: Step) {
+    setDirection('back');
+    setStep(target);
   }
 
   const step2Valid = isPickup
@@ -703,6 +914,7 @@ export default function CheckoutPage() {
         }
       }
       clearCart();
+      setDirection('forward');
       setStep(4);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -741,126 +953,139 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="container mx-auto py-10" style={{ maxWidth: '960px' }}>
-        <StepIndicator step={step} />
+      <div className="checkout-main container mx-auto py-10" style={{ maxWidth: '960px' }}>
+        <ProgressBar step={step} />
 
         <div className="checkout-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.75rem', alignItems: 'start' }}>
           <div style={{ minWidth: 0 }}>
-
-            {step === 1 && (
-              <Step1Delivery
-                enabledModes={enabledModes}
-                selectedModeId={selectedModeId}
-                onSelectMode={setSelectedModeId}
-                onNext={() => setStep(2)}
-              />
-            )}
-
-            {step === 2 && (
-              <Step2Contact
-                delivery={delivery}
-                guestEmail={guestEmail}
-                isPickup={isPickup}
+            {/* Step recap strip — shows completed steps above current card */}
+            {step !== 4 && (
+              <StepRecap
+                step={step}
                 selectedMode={selectedMode}
-                attempted={attempted}
-                step2Valid={step2Valid}
-                hasWhatsappSupport={hasWhatsappSupport}
-                onChange={handleDeliveryChange}
-                onGuestEmail={setGuestEmail}
-                onBack={() => { setAttempted(false); setStep(1); }}
-                onNext={() => { setAttempted(true); if (step2Valid) { setAttempted(false); setStep(3); } }}
-              />
-            )}
-
-            {step === 3 && (
-              <Step3Payment
+                shipping={shipping}
+                delivery={delivery}
                 paymentMethod={paymentMethod}
-                isSubmitting={isSubmitting}
-                submitError={submitError}
-                onPaymentMethod={setPaymentMethod}
-                onBack={() => setStep(2)}
-                onSubmit={handleSubmit}
+                onGoToStep={(s) => goBack(s)}
               />
             )}
 
-            {/* ── Step 4 : Confirmation ── */}
-            {step === 4 && (
-              <div className="card" style={{ padding: '3rem', textAlign: 'center', transition: 'none', animation: 'fadeSlideUp 0.5s ease both' }}>
+            <StepTransition step={step} direction={direction}>
+              {step === 1 && (
+                <Step1Delivery
+                  enabledModes={enabledModes}
+                  selectedModeId={selectedModeId}
+                  onSelectMode={setSelectedModeId}
+                  onNext={() => goForward(2)}
+                />
+              )}
 
-                {/* Animated checkmark + confetti */}
-                <div style={{ position: 'relative', width: '88px', height: '88px', margin: '0 auto 1.75rem' }}>
-                  <ConfettiParticles />
+              {step === 2 && (
+                <Step2Contact
+                  delivery={delivery}
+                  guestEmail={guestEmail}
+                  isPickup={isPickup}
+                  selectedMode={selectedMode}
+                  attempted={attempted}
+                  step2Valid={step2Valid}
+                  hasWhatsappSupport={hasWhatsappSupport}
+                  onChange={handleDeliveryChange}
+                  onGuestEmail={setGuestEmail}
+                  onBack={() => { setAttempted(false); goBack(1); }}
+                  onNext={() => { setAttempted(true); if (step2Valid) { setAttempted(false); goForward(3); } }}
+                />
+              )}
 
-                  {/* Outer pulse ring */}
-                  <div style={{ position: 'absolute', inset: '-10px', borderRadius: '50%', border: '1.5px solid rgba(197,165,90,0.25)', animation: 'ringPulse 2s ease-out 0.6s infinite' }} />
-                  {/* Middle ring */}
-                  <div style={{ position: 'absolute', inset: '-4px', borderRadius: '50%', border: '1px solid rgba(197,165,90,0.35)', animation: 'ringPulse 2s ease-out 0.9s infinite' }} />
+              {step === 3 && (
+                <Step3Payment
+                  paymentMethod={paymentMethod}
+                  isSubmitting={isSubmitting}
+                  submitError={submitError}
+                  onPaymentMethod={setPaymentMethod}
+                  onBack={() => goBack(2)}
+                  onSubmit={handleSubmit}
+                />
+              )}
 
-                  {/* Circle */}
-                  <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'rgba(197,165,90,0.08)', border: '1.5px solid rgba(197,165,90,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'circlePop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.15s both' }}>
-                    <svg width="36" height="36" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M4.5 12.75l6 6 9-13.5" style={{ strokeDasharray: 30, strokeDashoffset: 30, animation: 'drawCheck 0.45s ease 0.55s forwards' }} />
-                    </svg>
-                  </div>
-                </div>
+              {/* ── Step 4 : Confirmation ── */}
+              {step === 4 && (
+                <div className="card" style={{ padding: '3rem', textAlign: 'center', transition: 'none', animation: 'fadeSlideUp 0.5s ease both' }}>
 
-                <h2 className="heading-lg" style={{ marginBottom: '0.75rem', fontSize: '1.75rem', animation: 'fadeSlideUp 0.45s ease 0.35s both' }}>
-                  {paymentPending ? 'Paiement en cours' : 'Commande confirmée !'}
-                </h2>
-                <p style={{ color: 'var(--text-secondary)', fontWeight: 300, maxWidth: '28rem', margin: '0 auto 2rem', lineHeight: 1.7, animation: 'fadeSlideUp 0.45s ease 0.45s both' }}>
-                  {paymentPending
-                    ? `Merci ${delivery.firstName} ! Confirmez le paiement sur votre téléphone. Votre commande sera traitée dès réception.`
-                    : `Merci ${delivery.firstName}, votre commande a été enregistrée avec succès.`}
-                </p>
+                  {/* Animated checkmark + confetti */}
+                  <div style={{ position: 'relative', width: '88px', height: '88px', margin: '0 auto 1.75rem' }}>
+                    <ConfettiParticles />
 
-                <div style={{ display: 'inline-block', background: 'var(--offwhite)', borderRadius: 'var(--r-md)', padding: '1.25rem 2rem', marginBottom: '1.5rem', border: '1px solid var(--line-light)', animation: 'fadeSlideUp 0.45s ease 0.55s both' }}>
-                  <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.375rem' }}>Numéro de commande</p>
-                  <p style={{ fontFamily: 'monospace', fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.08em' }}>{orderNumber}</p>
-                </div>
+                    {/* Outer pulse ring */}
+                    <div style={{ position: 'absolute', inset: '-10px', borderRadius: '50%', border: '1.5px solid rgba(197,165,90,0.25)', animation: 'ringPulse 2s ease-out 0.6s infinite' }} />
+                    {/* Middle ring */}
+                    <div style={{ position: 'absolute', inset: '-4px', borderRadius: '50%', border: '1px solid rgba(197,165,90,0.35)', animation: 'ringPulse 2s ease-out 0.9s infinite' }} />
 
-                {selectedMode && (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', animation: 'fadeSlideUp 0.45s ease 0.62s both' }}>
-                    <span>{selectedMode.type === 'pickup' ? '🏪' : '🚚'}</span>
-                    <span>{selectedMode.label}</span>
-                    {selectedMode.description && <span style={{ color: 'var(--text-pale)' }}>· {selectedMode.description}</span>}
-                  </div>
-                )}
-
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '2rem', fontWeight: 300, animation: 'fadeSlideUp 0.45s ease 0.68s both' }}>
-                  Notre équipe vous contactera au <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{delivery.phone}</strong> pour confirmer.
-                </p>
-
-                <div style={{ animation: 'fadeSlideUp 0.45s ease 0.76s both' }}>
-                  {hasWhatsappSupport ? (
-                    <a
-                      href={buildWhatsAppHref(`Bonjour, j'ai passé la commande ${orderNumber}.`)}
-                      target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45z"/>
+                    {/* Circle */}
+                    <div style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'rgba(197,165,90,0.08)', border: '1.5px solid rgba(197,165,90,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'circlePop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.15s both' }}>
+                      <svg width="36" height="36" fill="none" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M4.5 12.75l6 6 9-13.5" style={{ strokeDasharray: 30, strokeDashoffset: 30, animation: 'drawCheck 0.45s ease 0.55s forwards' }} />
                       </svg>
-                      Suivre via WhatsApp
-                    </a>
-                  ) : (
-                    <Link href="/contact" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
-                      Contacter le service client
-                    </Link>
-                  )}
-                </div>
+                    </div>
+                  </div>
 
-                <div style={{ marginTop: '1.75rem', animation: 'fadeSlideUp 0.45s ease 0.84s both' }}>
-                  <Link href="/" style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', textDecoration: 'none', letterSpacing: '0.04em' }}>
-                    ← Retour à l&apos;accueil
-                  </Link>
+                  <h2 className="heading-lg" style={{ marginBottom: '0.75rem', fontSize: '1.75rem', animation: 'fadeSlideUp 0.45s ease 0.35s both' }}>
+                    {paymentPending ? 'Paiement en cours' : 'Commande confirmée !'}
+                  </h2>
+                  <p style={{ color: 'var(--text-secondary)', fontWeight: 300, maxWidth: '28rem', margin: '0 auto 2rem', lineHeight: 1.7, animation: 'fadeSlideUp 0.45s ease 0.45s both' }}>
+                    {paymentPending
+                      ? `Merci ${delivery.firstName} ! Confirmez le paiement sur votre téléphone. Votre commande sera traitée dès réception.`
+                      : `Merci ${delivery.firstName}, votre commande a été enregistrée avec succès.`}
+                  </p>
+
+                  <div style={{ display: 'inline-block', background: 'var(--offwhite)', borderRadius: 'var(--r-md)', padding: '1.25rem 2rem', marginBottom: '1.5rem', border: '1px solid var(--line-light)', animation: 'fadeSlideUp 0.45s ease 0.55s both' }}>
+                    <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.375rem' }}>Numéro de commande</p>
+                    <p style={{ fontFamily: 'monospace', fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.08em' }}>{orderNumber}</p>
+                  </div>
+
+                  {selectedMode && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', animation: 'fadeSlideUp 0.45s ease 0.62s both' }}>
+                      <span>{selectedMode.type === 'pickup' ? '🏪' : '🚚'}</span>
+                      <span>{selectedMode.label}</span>
+                      {selectedMode.description && <span style={{ color: 'var(--text-pale)' }}>· {selectedMode.description}</span>}
+                    </div>
+                  )}
+
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '2rem', fontWeight: 300, animation: 'fadeSlideUp 0.45s ease 0.68s both' }}>
+                    Notre équipe vous contactera au <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{delivery.phone}</strong> pour confirmer.
+                  </p>
+
+                  <div style={{ animation: 'fadeSlideUp 0.45s ease 0.76s both' }}>
+                    {hasWhatsappSupport ? (
+                      <a
+                        href={buildWhatsAppHref(`Bonjour, j'ai passé la commande ${orderNumber}.`)}
+                        target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45z"/>
+                        </svg>
+                        Suivre via WhatsApp
+                      </a>
+                    ) : (
+                      <Link href="/contact" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+                        Contacter le service client
+                      </Link>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: '1.75rem', animation: 'fadeSlideUp 0.45s ease 0.84s both' }}>
+                    <Link href="/" style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', textDecoration: 'none', letterSpacing: '0.04em' }}>
+                      ← Retour à l&apos;accueil
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </StepTransition>
           </div>
 
-          {/* ── Sticky recap ── */}
+          {/* ── Sticky recap (desktop only) ── */}
           {step !== 4 && (
-            <div style={{ position: 'sticky', top: '100px' }}>
+            <div className="desktop-recap" style={{ position: 'sticky', top: '100px' }}>
               <div className="card" style={{ padding: '1.5rem', transition: 'none' }}>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.125rem', fontWeight: 400, marginBottom: '1.25rem' }}>
                   Récapitulatif
@@ -878,6 +1103,16 @@ export default function CheckoutPage() {
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+          from { opacity: 0; transform: translateX(24px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateX(-24px); }
+          to   { opacity: 1; transform: translateX(0); }
         }
 
         @keyframes circlePop {
@@ -900,11 +1135,36 @@ export default function CheckoutPage() {
           100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0.4); }
         }
 
+        /* Mobile: single column, desktop recap hidden */
         @media (max-width: 768px) {
           .checkout-layout { grid-template-columns: 1fr !important; }
-          .checkout-layout > *:last-child { order: -1; }
+          .desktop-recap { display: none !important; }
+          .mobile-recap-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 40;
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.12);
+          }
+          .mobile-recap { display: block; }
+          /* Pad so sticky bar never overlaps the CTA button */
+          .checkout-main { padding-bottom: 80px !important; }
+        }
+
+        /* Desktop: mobile recap hidden */
+        @media (min-width: 769px) {
+          .mobile-recap-wrapper { display: none; }
+          .mobile-recap { display: none; }
         }
       `}</style>
+
+      {/* ── Mobile fixed recap bar (hidden on desktop via CSS) ── */}
+      {step !== 4 && (
+        <div className="mobile-recap-wrapper">
+          <MobileRecap items={items} shipping={shipping} total={total} selectedMode={selectedMode} />
+        </div>
+      )}
     </div>
   );
 }

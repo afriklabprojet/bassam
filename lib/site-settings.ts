@@ -25,6 +25,12 @@ export interface SiteSettings {
   logo_url: string;
   /** URL du favicon/icône (Supabase Storage ou chemin local) */
   favicon_url: string;
+  /** Nom affiché de l'experte/consultante */
+  consultant_name: string;
+  /** Photo de profil de la consultante (URL Supabase Storage) */
+  consultant_photo_url: string;
+  /** Délai de réponse garanti en heures (affiché dans le compte à rebours) */
+  consultant_response_hours: string;
 }
 
 /** Fallback values from env vars (backward-compatible) */
@@ -41,6 +47,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   address_detail: process.env.NEXT_PUBLIC_ADDRESS_DETAIL ?? 'Livraison dans toute l\'Afrique de l\'Ouest',
   logo_url: '',
   favicon_url: '',
+  consultant_name: '',
+  consultant_photo_url: '',
+  consultant_response_hours: '24',
 };
 
 /** Fetch settings from DB, falling back to env vars. Server-side only. */
@@ -72,6 +81,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       address_detail: map.address_detail ?? DEFAULT_SETTINGS.address_detail,
       logo_url: map.logo_url ?? '',
       favicon_url: map.favicon_url ?? '',
+      consultant_name: map.consultant_name ?? '',
+      consultant_photo_url: map.consultant_photo_url ?? '',
+      consultant_response_hours: map.consultant_response_hours ?? '24',
     };
   } catch {
     return DEFAULT_SETTINGS;

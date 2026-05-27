@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import BrandingPanel from './BrandingPanel';
 
 interface SettingsForm {
@@ -14,6 +15,9 @@ interface SettingsForm {
   instagram_url: string;
   facebook_url: string;
   tiktok_url: string;
+  consultant_name: string;
+  consultant_photo_url: string;
+  consultant_response_hours: string;
 }
 
 const EMPTY: SettingsForm = {
@@ -27,6 +31,9 @@ const EMPTY: SettingsForm = {
   instagram_url: '',
   facebook_url: '',
   tiktok_url: '',
+  consultant_name: '',
+  consultant_photo_url: '',
+  consultant_response_hours: '24',
 };
 
 const GOLD = '#C5A55A';
@@ -128,6 +135,105 @@ function Field({
   );
 }
 
+/* ─── Photo upload widget ─────────────────────────────────────────────────── */
+function PhotoUpload({
+  value,
+  onChange,
+}: Readonly<{ value: string; onChange: (url: string) => void }>) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleFile(file: File) {
+    setUploading(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      const json = await res.json() as { url?: string; error?: string };
+      if (!res.ok) throw new Error(json.error ?? 'Erreur upload');
+      onChange(json.url ?? '');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <span style={{ color: '#A0A0A0', fontSize: 12, letterSpacing: '0.04em' }}>
+        Photo de la consultante
+      </span>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        {/* Preview */}
+        <div style={{ width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', border: `2px solid rgba(197,165,90,0.3)`, background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {value ? (
+            <Image src={value} alt="Photo consultante" width={64} height={64} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+          ) : (
+            <svg width={24} height={24} fill="none" stroke="rgba(197,165,90,0.4)" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+          )}
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {(() => {
+            const idleLabel = value ? 'Changer la photo' : 'Choisir une photo';
+            const btnLabel = uploading ? 'Téléversement…' : idleLabel;
+            return (
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+                style={{
+                  background: 'rgba(197,165,90,0.12)',
+                  border: '1px solid rgba(197,165,90,0.3)',
+                  borderRadius: 6,
+                  color: GOLD,
+                  fontSize: 12,
+                  padding: '8px 14px',
+                  cursor: uploading ? 'not-allowed' : 'pointer',
+                  opacity: uploading ? 0.6 : 1,
+                  textAlign: 'left',
+                }}
+              >
+                {btnLabel}
+              </button>
+            );
+          })()}
+          {value && (
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              style={{ background: 'transparent', border: 'none', color: '#666', fontSize: 11, cursor: 'pointer', textAlign: 'left', padding: 0 }}
+            >
+              Supprimer
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && <span style={{ color: '#fca5a5', fontSize: 11 }}>{error}</span>}
+      <span style={{ color: '#666', fontSize: 11 }}>JPEG, PNG ou WebP · max 5 Mo · affiché dans la confirmation de réservation</span>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void handleFile(file);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
+}
+
 /* ─── Main page ───────────────────────────────────────────────────────────── */
 export default function ParametresPage() {
   const [form, setForm] = useState<SettingsForm>(EMPTY);
@@ -135,7 +241,6 @@ export default function ParametresPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  /* Load current settings */
   useEffect(() => {
     const load = async () => {
       try {
@@ -173,7 +278,6 @@ export default function ParametresPage() {
       setToast({ ok: false, msg: err instanceof Error ? err.message : 'Erreur inconnue' });
     } finally {
       setSaving(false);
-      // Auto-dismiss
       setTimeout(() => setToast(null), 4000);
     }
   };
@@ -190,19 +294,11 @@ export default function ParametresPage() {
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 24px' }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
-        <h1
-          style={{
-            color: '#fff',
-            fontSize: 28,
-            fontWeight: 300,
-            letterSpacing: '0.08em',
-            marginBottom: 6,
-          }}
-        >
+        <h1 style={{ color: '#fff', fontSize: 28, fontWeight: 300, letterSpacing: '0.08em', marginBottom: 6 }}>
           Paramètres du site
         </h1>
         <p style={{ color: '#666', fontSize: 14 }}>
-          Contact, WhatsApp et réseaux sociaux — modifiez sans redéploiement.
+          Contact, consultation, WhatsApp et réseaux sociaux — modifiez sans redéploiement.
         </p>
       </div>
 
@@ -313,6 +409,65 @@ export default function ParametresPage() {
           hint="Texte affiché sur le bouton flottant"
         />
       </Section>
+
+      {/* 🗓 Consultation privée */}
+      <section
+        style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(197,165,90,0.2)',
+          borderRadius: 12,
+          padding: '24px 28px',
+          marginBottom: 20,
+        }}
+      >
+        <h2
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            color: GOLD,
+            fontSize: 15,
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            marginBottom: 4,
+          }}
+        >
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          </svg>
+          Consultation privée
+        </h2>
+        <p style={{ color: '#555', fontSize: 12, marginBottom: 20 }}>
+          Affiché dans l&apos;écran de confirmation après réservation.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+          <Field
+            label="Nom de l'experte"
+            name="consultant_name"
+            value={form.consultant_name}
+            onChange={handleChange}
+            placeholder="Ex : Aïcha Koné"
+            hint="Affiché sur la carte de confirmation"
+          />
+          <Field
+            label="Délai de réponse (heures)"
+            name="consultant_response_hours"
+            value={form.consultant_response_hours}
+            onChange={handleChange}
+            type="number"
+            placeholder="24"
+            hint="Durée du compte à rebours après réservation"
+          />
+          <div style={{ gridColumn: '1 / -1' }}>
+            <PhotoUpload
+              value={form.consultant_photo_url}
+              onChange={(url) => handleChange('consultant_photo_url', url)}
+            />
+          </div>
+        </div>
+      </section>
 
       {/* 📱 Réseaux sociaux */}
       <Section

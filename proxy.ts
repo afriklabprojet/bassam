@@ -29,6 +29,7 @@ const PUBLIC_ROUTES = [
   '/api/promo-codes',
   '/api/reviews',
   '/api/shipping-config',
+  '/api/consultation',
   '/panier',
   '/commande',
   '/cgv',
@@ -73,6 +74,10 @@ function createSupabaseClient(
           response.cookies.set(name, value, options)
         })
       },
+    },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   })
 }
@@ -164,16 +169,11 @@ export async function proxy(request: NextRequest) {
   }
 
   let user: AuthUser = null
-  try {
-    // Refresh session if expired (only when auth context is needed)
-    const { data } = await supabase.auth.getUser() as { data: { user: AuthUser } }
-    user = data.user
-  } catch (error) {
-    console.warn('[proxy] getUser failed', {
-      pathname,
-      error: error instanceof Error ? error.message : 'unknown error',
-    })
+  const { data, error: authError } = await supabase.auth.getUser()
+  if (!authError) {
+    user = data.user as AuthUser
   }
+  // authError is expected when refresh token is expired/reused — treat as unauthenticated
 
   const adminResponse = handleAdminRoute(pathname, user, request, response)
   if (adminResponse) return adminResponse

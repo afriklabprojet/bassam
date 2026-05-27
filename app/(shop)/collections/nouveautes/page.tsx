@@ -16,13 +16,6 @@ type: 'website',
 locale: 'fr_CI',
 },
 };
-// ─── Featured arrivals ────────────────────────────────────────────────────────
-const FEATURED: { num: string; nom: string; maison: string; famille: string; note: string }[] = [
-{ num: '01', nom: 'Sauvage Elixir', maison: 'Christian Dior', famille: 'Boisé Aromatique', note: 'Lavande, Bois de Santal, Ambre' },
-{ num: '02', nom: 'Baccarat Rouge 540', maison: 'Maison Francis Kurkdjian', famille: 'Floral Ambré', note: 'Safran, Cèdre, Musc' },
-{ num: '03', nom: 'Black Phantom', maison: 'Kilian Paris', famille: 'Oriental Gourmand', note: 'Rhum, Caramel, Vanille' },
-{ num: '04', nom: 'Oud Satin Mood', maison: 'Maison Francis Kurkdjian', famille: 'Oriental Boisé', note: 'Oud, Rose, Vanille' },
-];
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
 async function getNewArrivals(): Promise<Product[]> {
 try {
@@ -89,38 +82,6 @@ Ce qui vient de poser ses valises chez nous -- les lancements mondiaux les plus 
 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>Mis à jour chaque semaine</span>
 </div>
 </div>
-</div>
-</div>
-</section>
-{/* ── Featured ribbon ───────────────────────────────────────────────── */}
-<section style={{ background: 'var(--noir-soft)', borderBottom: '1px solid rgba(197,165,90,0.10)', padding: '3.5rem 0' }}>
-<div className="container mx-auto">
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2rem' }}>
-<span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-Sélection de la semaine
-</span>
-</div>
-<div className="nov-feat-grid">
-{FEATURED.map((item) => (
-<div key={item.num} className="nov-feat-card" style={{ border: '1px solid rgba(197,165,90,0.12)', padding: '1.75rem' }}>
-<span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.5rem', fontWeight: 300, color: 'rgba(197,165,90,0.15)', lineHeight: 1, display: 'block', marginBottom: '0.75rem' }}>
-{item.num}
-</span>
-<div style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '0.4rem', fontWeight: 500 }}>
-{item.maison}
-</div>
-<h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 400, color: 'var(--surface)', marginBottom: '0.5rem' }}>
-{item.nom}
-</h3>
-<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
-{item.famille}
-</p>
-<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6 }}>
-{item.note}
-</p>
-</div>
-))}
 </div>
 </div>
 </section>
@@ -221,22 +182,6 @@ Toutes les collections
 </div>
 </div>
 </section>
-<style>{`
-.nov-feat-grid {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 1px;
-background: rgba(197,165,90,0.08);
-}
-.nov-feat-card { background: var(--noir); transition: background 0.2s; }
-.nov-feat-card:hover { background: var(--noir-soft); }
-@media (max-width: 900px) {
-.nov-feat-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 480px) {
-.nov-feat-grid { grid-template-columns: 1fr; }
-}
-`}</style>
 </div>
 );
 }

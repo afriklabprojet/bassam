@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
+import { getSiteSettings } from '@/lib/site-settings';
 import ConsultationForm from '@/components/ConsultationForm';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
@@ -63,7 +64,19 @@ const faq = [
 /* ─── Page ─────────────────────────────────────────────────────────────────── */
 
 export default async function ConsultationPage() {
-  const reviews = await getApprovedReviews(2).catch(() => []);
+  const [reviews, settings] = await Promise.all([
+    getApprovedReviews(2).catch(() => []),
+    getSiteSettings(),
+  ]);
+
+  const consultant = {
+    name: settings.consultant_name || 'VIP Parfumerie Bar',
+    photoUrl: settings.consultant_photo_url || '',
+    whatsappNumber: settings.whatsapp_number || '',
+    whatsappDisplay: settings.whatsapp_display || '',
+    email: settings.support_email || 'contact@vipparfumeriebar.com',
+  };
+
   return (
     <main>
 
@@ -152,7 +165,7 @@ export default async function ConsultationPage() {
               </p>
             </div>
 
-            <ConsultationForm siteUrl={SITE_URL} />
+            <ConsultationForm siteUrl={SITE_URL} consultant={consultant} />
           </div>
         </div>
       </section>

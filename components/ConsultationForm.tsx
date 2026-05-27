@@ -98,15 +98,68 @@ function Label({ htmlFor, children, required }: Readonly<{ htmlFor: string; chil
 
 /* ─── Confirmation card ─────────────────────────────────── */
 
-function ConfirmationCard({ deadlineMs }: Readonly<{ deadlineMs: number }>) {
-  const countdown = useCountdown(deadlineMs);
-  const consultantPhoto = process.env.NEXT_PUBLIC_CONSULTANT_PHOTO ?? null;
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '';
-  const whatsappDisplay = process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ?? whatsappNumber;
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? 'contact@vipparfumeriebar.com';
+interface ConsultantCardProps {
+  name: string;
+  photoUrl: string;
+  whatsappNumber: string;
+  whatsappDisplay: string;
+  email: string;
+}
+
+function ConsultantCard({ name, photoUrl, whatsappNumber, whatsappDisplay, email }: Readonly<ConsultantCardProps>) {
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent("Bonjour, j'ai envoyé une demande de consultation sur le site. Pouvez-vous me confirmer le créneau ?")}`
     : undefined;
+
+  return (
+    <div style={{
+      width: '100%',
+      background: 'var(--surface)',
+      border: '1px solid var(--line-light)',
+      borderRadius: 3,
+      padding: '20px 18px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+      textAlign: 'left',
+    }}>
+      <div style={{ flexShrink: 0, width: 52, height: 52, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(197,165,90,0.3)', background: 'var(--noir)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {photoUrl ? (
+          <Image src={photoUrl} alt={name} width={52} height={52} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+        ) : (
+          <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', color: 'var(--gold)', fontWeight: 300 }}>
+            {name.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', margin: '0 0 3px', fontWeight: 500 }}>Votre experte</p>
+        <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 10px' }}>{name}</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {whatsappHref && (
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 30, padding: '0 12px', background: '#25D366', color: '#fff', textDecoration: 'none', fontSize: '0.6875rem', fontWeight: 600, borderRadius: 3, letterSpacing: '0.06em' }}
+            >
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.115 1.524 5.843L.054 23.61a.5.5 0 00.611.637l5.938-1.556A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.857a9.83 9.83 0 01-5.032-1.383l-.36-.214-3.73.978.995-3.636-.235-.374A9.818 9.818 0 012.143 12C2.143 6.55 6.55 2.143 12 2.143S21.857 6.55 21.857 12 17.45 21.857 12 21.857z" />
+              </svg>
+              WhatsApp{whatsappDisplay ? ` · ${whatsappDisplay}` : ''}
+            </a>
+          )}
+          <a href={`mailto:${email}`}
+            style={{ display: 'inline-flex', alignItems: 'center', height: 30, padding: '0 12px', background: 'transparent', border: '1px solid var(--line-light)', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.6875rem', borderRadius: 3, letterSpacing: '0.06em' }}
+          >
+            {email}
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmationCard({ deadlineMs, consultant }: Readonly<{ deadlineMs: number; consultant: ConsultantCardProps }>) {
+  const countdown = useCountdown(deadlineMs);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -171,63 +224,22 @@ function ConfirmationCard({ deadlineMs }: Readonly<{ deadlineMs: number }>) {
         )}
       </div>
 
-      {/* Consultant card */}
-      <div style={{
-        width: '100%',
-        background: 'var(--surface)',
-        border: '1px solid var(--line-light)',
-        borderRadius: 3,
-        padding: '24px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 18,
-        textAlign: 'left',
-      }}>
-        {/* Avatar */}
-        <div style={{ flexShrink: 0, width: 64, height: 64, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(197,165,90,0.3)', background: 'var(--noir)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {consultantPhoto ? (
-            <Image src={consultantPhoto} alt="Votre experte" width={64} height={64} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
-          ) : (
-            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', color: 'var(--gold)', fontWeight: 300 }}>V</span>
-          )}
-        </div>
-
-        {/* Info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', margin: '0 0 4px', fontWeight: 500 }}>Votre experte</p>
-          <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 10px' }}>VIP Parfumerie Bar</p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {whatsappHref && (
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 14px', background: '#25D366', color: '#fff', textDecoration: 'none', fontSize: '0.6875rem', fontWeight: 600, borderRadius: 3, letterSpacing: '0.06em' }}
-              >
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.115 1.524 5.843L.054 23.61a.5.5 0 00.611.637l5.938-1.556A11.94 11.94 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.857a9.83 9.83 0 01-5.032-1.383l-.36-.214-3.73.978.995-3.636-.235-.374A9.818 9.818 0 012.143 12C2.143 6.55 6.55 2.143 12 2.143S21.857 6.55 21.857 12 17.45 21.857 12 21.857z" />
-                </svg>
-                WhatsApp{whatsappDisplay ? ` · ${whatsappDisplay}` : ''}
-              </a>
-            )}
-            <a
-              href={`mailto:${supportEmail}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 14px', background: 'transparent', border: '1px solid var(--line-light)', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '0.6875rem', borderRadius: 3, letterSpacing: '0.06em' }}
-            >
-              {supportEmail}
-            </a>
-          </div>
-        </div>
-      </div>
+      <ConsultantCard {...consultant} />
     </div>
   );
 }
 
 /* ─── Main component ────────────────────────────────────── */
 
-export default function ConsultationForm({ siteUrl: _siteUrl }: Readonly<{ siteUrl: string }>) {
+interface ConsultantInfo {
+  name: string;
+  photoUrl: string;
+  whatsappNumber: string;
+  whatsappDisplay: string;
+  email: string;
+}
+
+export default function ConsultationForm({ siteUrl: _siteUrl, consultant }: Readonly<{ siteUrl: string; consultant: ConsultantInfo }>) {
   const [step, setStep] = useState(0);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -292,6 +304,13 @@ export default function ConsultationForm({ siteUrl: _siteUrl }: Readonly<{ siteU
   return (
     <div style={{ background: '#fff', padding: '40px 36px', borderRadius: 3 }}>
       <StepDots step={step} total={STEP_LABELS.length} />
+
+      {/* Consultant card — visible sur tous les steps sauf confirmation */}
+      {step < 2 && (
+        <div style={{ marginBottom: 28 }}>
+          <ConsultantCard {...consultant} />
+        </div>
+      )}
 
       {/* ── Step 0: Coordonnées ── */}
       {step === 0 && (
@@ -411,7 +430,7 @@ export default function ConsultationForm({ siteUrl: _siteUrl }: Readonly<{ siteU
 
       {/* ── Step 2: Confirmation ── */}
       {step === 2 && deadlineMs && (
-        <ConfirmationCard deadlineMs={deadlineMs} />
+        <ConfirmationCard deadlineMs={deadlineMs} consultant={consultant} />
       )}
 
       <style>{`

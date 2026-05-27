@@ -10,7 +10,7 @@ vitest.config.ts
 vitest.setup.ts
 playwright.config.ts
 test-results
-supabase
+/supabase
 scripts
 CLAUDE.md
 *.md

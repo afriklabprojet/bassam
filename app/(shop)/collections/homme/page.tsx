@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
-import { getApprovedReviews } from '@/lib/supabase/reviews';
 export const dynamic = 'force-dynamic';
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 export const metadata: Metadata = {
@@ -32,10 +31,7 @@ return [];
 }
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function HommePage() {
-const [products, reviews] = await Promise.all([
-getHommeProducts(),
-getApprovedReviews(4).catch(() => []),
-]);
+const products = await getHommeProducts();
 const productCountSuffix = products.length > 1 ? 's' : '';
 const productCountLabel = products.length > 0
 ? `${products.length} référence${productCountSuffix}`
@@ -214,32 +210,6 @@ Voir tous les parfums homme →
 )}
 </section>
 </div>
-{/* ── Témoignages ──────────────────────────────────────────────────── */}
-<section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
-<div className="container mx-auto">
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2rem' }}>
-<span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-Ils en parlent
-</span>
-</div>
-<div className="homme-temo-grid">
-{reviews.length === 0 ? (
-<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'rgba(255,255,255,0.4)', gridColumn: '1/-1', textAlign: 'center' }}>Les premiers avis arrivent bientôt…</p>
-) : reviews.map((t) => (
-<div key={t.id} style={{ background: 'var(--noir)', padding: '2rem', borderLeft: '2px solid var(--gold)' }}>
-<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.75, marginBottom: '1.25rem' }}>
-&ldquo;{t.texte}&rdquo;
-</p>
-<div>
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.7rem', color: 'var(--gold)', fontWeight: 500 }}>{t.name}</span>
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginLeft: 8 }}>{t.ville}</span>
-</div>
-</div>
-))}
-</div>
-</div>
-</section>
 {/* ── CTA footer ───────────────────────────────────────────────────── */}
 <section style={{ background: 'var(--noir)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
 <div className="container mx-auto" style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -275,14 +245,8 @@ grid-template-columns: 3fr 2fr;
 gap: 4rem;
 align-items: start;
 }
-.homme-temo-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 1.5rem;
-}
 @media (max-width: 900px) {
 .homme-hero-grid  { grid-template-columns: 1fr; gap: 2rem; }
-.homme-temo-grid  { grid-template-columns: 1fr; }
 }
 `}</style>
 </div>

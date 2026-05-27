@@ -16,42 +16,6 @@ type: 'website',
 locale: 'fr_CI',
 },
 };
-// ─── Manifesto sections ───────────────────────────────────────────────────────
-const PHILOSOPHIE = [
-{
-num: '01',
-titre: 'Au-delà des codes',
-texte: "La parfumerie unisexe refuse la catégorisation binaire. Elle valorise l'essence pure de la fragrance, sans contexte de genre.",
-},
-{
-num: '02',
-titre: 'La peau comme territoire',
-texte: "Sur chaque peau, un parfum mixte donne un résultat différent. C'est ce qui rend ces compositions si intimes.",
-},
-{
-num: '03',
-titre: 'Sélectionné à la main',
-texte: 'Nous choisissons uniquement les mixtes de caractère -- ceux qui ont leur propre signature, reconnaissables entre mille.',
-},
-];
-// ─── Signature accords ────────────────────────────────────────────────────────
-const ACCORDS = [
-{ accord: 'Oud & Vanille', profil: 'Chaud · Enveloppant · Sensuel', repere: 'Baccarat Rouge 540' },
-{ accord: 'Boisé Sec', profil: 'Austere · Moderne · Durable', repere: 'Oud Wood TF' },
-{ accord: 'Iris & Musc', profil: 'Poudré · Délicat · Signature', repere: "Infusion d'Iris Prada" },
-{ accord: 'Agrumes & Ambre', profil: 'Vivant · Solaire · Élégant', repere: 'Neroli Portofino TF' },
-{ accord: 'Cuir & Rose', profil: 'Fort · Dramatique · Contrasté', repere: 'Portrait of a Lady Frederic Malle' },
-{ accord: 'Cédre & Musc', profil: 'Propre · Minimal · Inédit', repere: 'Escentric 01' },
-];
-// ─── Marques mixtes phares ────────────────────────────────────────────────────
-const MAISONS = [
-{ nom: 'Maison Francis Kurkdjian', specialite: "L'avant-garde olfactive" },
-{ nom: 'Tom Ford', specialite: 'Luxe hédoniste' },
-{ nom: 'Le Labo', specialite: 'Minimalisme signature' },
-{ nom: 'Byredo', specialite: 'Identité sensorielle' },
-{ nom: 'Initio Parfums', specialite: 'Aphrodiésiaques scientifiques' },
-{ nom: 'Frederic Malle', specialite: 'Haute couture olfactive' },
-];
 // ─── Data ─────────────────────────────────────────────────────────────────────
 async function getMixteProducts(): Promise<Product[]> {
 try {
@@ -67,6 +31,10 @@ return [];
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function MixtePage() {
 const products = await getMixteProducts();
+const referenceSuffix = products.length > 1 ? 's' : '';
+const productCountLabel = products.length > 0
+? `${products.length} référence${referenceSuffix}`
+: 'Sélection disponible en boutique';
 return (
 <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
 {/* ── Hero -- full width manifesto ────────────────────────────────────── */}
@@ -134,64 +102,8 @@ Quiz olfactif
 </div>
 </div>
 </section>
-{/* ── Philosophie ──────────────────────────────────────────────────── */}
-<section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.10)', borderBottom: '1px solid rgba(197,165,90,0.10)', padding: '4.5rem 0' }}>
-<div className="container mx-auto">
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-<span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-Notre approche
-</span>
-</div>
-<div className="mixte-phil-grid">
-{PHILOSOPHIE.map((p) => (
-<div key={p.num} style={{ padding: '2rem', border: '1px solid rgba(197,165,90,0.10)', background: 'var(--noir)' }}>
-<span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.5rem', fontWeight: 300, color: 'rgba(197,165,90,0.15)', display: 'block', marginBottom: '1rem', lineHeight: 1 }}>{p.num}</span>
-<h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.15rem', fontWeight: 400, color: 'var(--surface)', marginBottom: '0.75rem' }}>{p.titre}</h3>
-<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.75 }}>{p.texte}</p>
-</div>
-))}
-</div>
-</div>
-</section>
-{/* ── Accords signatures ────────────────────────────────────────────── */}
-<section className="container mx-auto" style={{ padding: '4.5rem 0', borderBottom: '1px solid rgba(197,165,90,0.08)' }}>
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-<span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-Accords signatures
-</span>
-</div>
-<div className="mixte-accords-grid">
-{ACCORDS.map((a) => (
-<div key={a.accord} style={{ padding: '1.5rem', border: '1px solid rgba(197,165,90,0.09)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-<h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 400, color: 'var(--surface)' }}>{a.accord}</h3>
-<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>{a.profil}</p>
-<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.28)', marginTop: '0.25rem' }}>{a.repere}</p>
-</div>
-))}
-</div>
-</section>
-{/* ── Maisons ──────────────────────────────────────────────────────── */}
-<section style={{ background: 'var(--noir-soft)', borderBottom: '1px solid rgba(197,165,90,0.08)', padding: '4rem 0' }}>
-<div className="container mx-auto">
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-<span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-Maisons représentées
-</span>
-</div>
-<div className="mixte-maisons-grid">
-{MAISONS.map((m) => (
-<div key={m.nom} style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(197,165,90,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-<span style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', fontWeight: 400, color: 'var(--surface)' }}>{m.nom}</span>
-<span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.3)' }}>{m.specialite}</span>
-</div>
-))}
-</div>
-</div>
-</section>
 {/* ── Produits ─────────────────────────────────────────────────────── */}
+<div style={{ background: 'var(--offwhite)' }}>
 <section id="produits" className="container mx-auto" style={{ padding: '5rem 0' }}>
 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
 <div>
@@ -201,26 +113,26 @@ Maisons représentées
 Parfums Mixtes
 </span>
 </div>
-<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)' }}>
-{products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
+<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'var(--text-pale)' }}>
+{productCountLabel}
 </p>
 </div>
 <Link href="/produits?gender=mixte" style={{
 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
-color: 'rgba(255,255,255,0.4)', textDecoration: 'none',
+color: 'var(--text-secondary)', textDecoration: 'none',
 }}>
 Filtres avancés →
 </Link>
 </div>
 {products.length === 0 ? (
 <div style={{ textAlign: 'center', padding: '5rem 0' }}>
-<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(255,255,255,0.3)', marginBottom: '2rem' }}>
+<p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--text-pale)', marginBottom: '2rem' }}>
 Chargement de la collection mixte…
 </p>
 <Link href="/produits?gender=mixte" style={{
 display: 'inline-flex', alignItems: 'center', gap: 8,
-background: 'transparent', border: '1px solid rgba(197,165,90,0.35)',
-color: 'var(--gold)', padding: '0.75rem 1.5rem',
+background: 'transparent', border: '1px solid rgba(197,165,90,0.5)',
+color: 'var(--gold-dark)', padding: '0.75rem 1.5rem',
 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
 textDecoration: 'none',
 }}>
@@ -247,7 +159,7 @@ inStock={p.stockQuantity > 0}
 <div style={{ textAlign: 'center', marginTop: '3rem' }}>
 <Link href="/produits?gender=mixte" style={{
 display: 'inline-flex', alignItems: 'center', gap: 8,
-border: '1px solid rgba(197,165,90,0.35)', color: 'var(--gold)',
+border: '1px solid rgba(197,165,90,0.5)', color: 'var(--gold-dark)',
 padding: '0.8rem 2rem',
 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase',
 textDecoration: 'none',
@@ -258,6 +170,7 @@ Voir tous les parfums mixtes →
 </>
 )}
 </section>
+</div>
 {/* ── CTA footer ───────────────────────────────────────────────────── */}
 <section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.08)', padding: '4.5rem 0' }}>
 <div className="container mx-auto" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
@@ -301,28 +214,6 @@ Création personnalisée
 </div>
 </div>
 </section>
-<style>{`
-.mixte-phil-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 1px;
-background: rgba(197,165,90,0.08);
-}
-.mixte-accords-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 1px;
-background: rgba(197,165,90,0.08);
-}
-.mixte-maisons-grid { display: block; }
-@media (max-width: 900px) {
-.mixte-phil-grid    { grid-template-columns: 1fr; }
-.mixte-accords-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 640px) {
-.mixte-accords-grid { grid-template-columns: 1fr; }
-}
-`}</style>
 </div>
 );
 }

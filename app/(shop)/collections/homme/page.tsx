@@ -19,32 +19,6 @@ locale: 'fr_CI',
 },
 };
 // ─── Fragrance guides ─────────────────────────────────────────────────────────
-const GUIDES = [
-{
-titre: 'Le Boisé Élégant',
-description: "Cèdre, vétiver, santal -- l'arche tempérée du gentleman contemporain. Tenue 8-12h.",
-icone: '□',
-rep: ['Bleu de Chanel', "Terre d'Hermès", 'Wood & Fresh TF'],
-},
-{
-titre: "L'Oriental Puissant",
-description: 'Oud, ambre, résine -- pour ceux qui assument leur présence et laissent un sillage mémorable.',
-icone: '◆',
-rep: ['Oud Wood TF', 'Sauvage Elixir Dior', 'Roja Enigma'],
-},
-{
-titre: 'Le Fraîcs Aquatique',
-description: "Bergamote, cédrat, notes marines -- léger, d'une modernité impeccable. Idéal au bureau.",
-icone: '○',
-rep: ['Acqua di Giò', "L'Homme YSL", 'Gentleman Givenchy'],
-},
-{
-titre: 'La Signature Chaude',
-description: "Vanille, cuir, tabac -- une chaleur sensuelle qui s'intensifie sur la peau.",
-icone: '▲',
-rep: ['Spicebomb TF', 'A*Men Mugler', 'Dior Homme Intense'],
-},
-];
 async function getHommeProducts(): Promise<Product[]> {
 try {
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
@@ -168,33 +142,6 @@ Trouver ma signature
 </div>
 </div>
 </div>
-</div>
-</div>
-</section>
-{/* ── Guide des familles ────────────────────────────────────────────── */}
-<section style={{ background: 'var(--noir-soft)', borderTop: '1px solid rgba(197,165,90,0.10)', borderBottom: '1px solid rgba(197,165,90,0.10)', padding: '4.5rem 0' }}>
-<div className="container mx-auto">
-<div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '2.5rem' }}>
-<span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
-<span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-Guide olfactif
-</span>
-</div>
-<div className="homme-guide-grid">
-{GUIDES.map((g) => (
-<div key={g.titre} style={{ padding: '2rem', border: '1px solid rgba(197,165,90,0.10)', background: 'var(--noir)' }}>
-<div style={{ fontFamily: 'var(--font-sans)', fontSize: '1.25rem', color: 'var(--gold)', marginBottom: '0.75rem' }} aria-hidden="true">{g.icone}</div>
-<h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 400, color: 'var(--surface)', marginBottom: '0.6rem' }}>{g.titre}</h3>
-<p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, marginBottom: '1.25rem' }}>{g.description}</p>
-<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-{g.rep.map((r) => (
-<span key={r} style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em' }}>
--- {r}
-</span>
-))}
-</div>
-</div>
-))}
 </div>
 </div>
 </section>
@@ -326,12 +273,6 @@ grid-template-columns: 3fr 2fr;
 gap: 4rem;
 align-items: start;
 }
-.homme-guide-grid {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 1px;
-background: rgba(197,165,90,0.08);
-}
 .homme-temo-grid {
 display: grid;
 grid-template-columns: repeat(2, 1fr);
@@ -339,11 +280,7 @@ gap: 1.5rem;
 }
 @media (max-width: 900px) {
 .homme-hero-grid  { grid-template-columns: 1fr; gap: 2rem; }
-.homme-guide-grid { grid-template-columns: repeat(2, 1fr); }
 .homme-temo-grid  { grid-template-columns: 1fr; }
-}
-@media (max-width: 480px) {
-.homme-guide-grid { grid-template-columns: 1fr; }
 }
 `}</style>
 </div>

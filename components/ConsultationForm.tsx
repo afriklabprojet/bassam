@@ -101,12 +101,13 @@ function Label({ htmlFor, children, required }: Readonly<{ htmlFor: string; chil
 interface ConsultantCardProps {
   name: string;
   photoUrl: string;
+  specialty: string;
   whatsappNumber: string;
   whatsappDisplay: string;
   email: string;
 }
 
-function ConsultantCard({ name, photoUrl, whatsappNumber, whatsappDisplay, email }: Readonly<ConsultantCardProps>) {
+function ConsultantCard({ name, photoUrl, specialty, whatsappNumber, whatsappDisplay, email }: Readonly<ConsultantCardProps>) {
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent("Bonjour, j'ai envoyé une demande de consultation sur le site. Pouvez-vous me confirmer le créneau ?")}`
     : undefined;
@@ -134,7 +135,8 @@ function ConsultantCard({ name, photoUrl, whatsappNumber, whatsappDisplay, email
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: '0.625rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', margin: '0 0 3px', fontWeight: 500 }}>Votre experte</p>
-        <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 10px' }}>{name}</p>
+        <p style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)', margin: specialty ? '0 0 2px' : '0 0 10px' }}>{name}</p>
+        {specialty && <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', margin: '0 0 10px' }}>{specialty}</p>}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {whatsappHref && (
             <a href={whatsappHref} target="_blank" rel="noopener noreferrer"
@@ -234,17 +236,20 @@ function ConfirmationCard({ deadlineMs, consultant }: Readonly<{ deadlineMs: num
 interface ConsultantInfo {
   name: string;
   photoUrl: string;
+  specialty: string;
   whatsappNumber: string;
   whatsappDisplay: string;
   email: string;
 }
 
-export default function ConsultationForm({ siteUrl: _siteUrl, consultant }: Readonly<{ siteUrl: string; consultant: ConsultantInfo }>) {
+export default function ConsultationForm({ siteUrl: _siteUrl, consultants }: Readonly<{ siteUrl: string; consultants: ConsultantInfo[] }>) {
   const [step, setStep] = useState(0);
+  const [selectedIdx, setSelectedIdx] = useState(0);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [deadlineMs, setDeadlineMs] = useState<number | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const activeConsultant = consultants[selectedIdx] ?? consultants[0];
 
   const [data, setData] = useState<FormData>({
     nom: '',
@@ -305,10 +310,51 @@ export default function ConsultationForm({ siteUrl: _siteUrl, consultant }: Read
     <div style={{ background: '#fff', padding: '40px 36px', borderRadius: 3 }}>
       <StepDots step={step} total={STEP_LABELS.length} />
 
-      {/* Consultant card — visible sur tous les steps sauf confirmation */}
+      {/* Sélecteur d'expert — visible sur steps 0 et 1 */}
       {step < 2 && (
         <div style={{ marginBottom: 28 }}>
-          <ConsultantCard {...consultant} />
+          {consultants.length > 1 ? (
+            <div>
+              <p style={{ fontSize: '0.5625rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-pale)', fontWeight: 500, marginBottom: 10 }}>
+                Choisissez votre experte
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 4 }}>
+                {consultants.map((c, i) => (
+                  <button
+                    key={c.name}
+                    type="button"
+                    onClick={() => setSelectedIdx(i)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '12px 14px',
+                      border: `1.5px solid ${selectedIdx === i ? 'var(--gold)' : 'var(--line-light)'}`,
+                      borderRadius: 3,
+                      background: selectedIdx === i ? 'rgba(197,165,90,0.06)' : '#fff',
+                      cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s, background 0.15s',
+                      width: '100%',
+                    }}
+                  >
+                    <div style={{ flexShrink: 0, width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${selectedIdx === i ? 'var(--gold)' : 'rgba(197,165,90,0.2)'}`, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {c.photoUrl ? (
+                        <Image src={c.photoUrl} alt={c.name} width={44} height={44} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
+                      ) : (
+                        <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.125rem', color: 'var(--gold)', fontWeight: 300 }}>{c.name.charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{c.name}</p>
+                      {c.specialty && <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', margin: '2px 0 0' }}>{c.specialty}</p>}
+                    </div>
+                    <div style={{ flexShrink: 0, width: 18, height: 18, borderRadius: '50%', border: `2px solid ${selectedIdx === i ? 'var(--gold)' : 'var(--line-light)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {selectedIdx === i && <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <ConsultantCard {...activeConsultant} />
+          )}
         </div>
       )}
 
@@ -430,7 +476,7 @@ export default function ConsultationForm({ siteUrl: _siteUrl, consultant }: Read
 
       {/* ── Step 2: Confirmation ── */}
       {step === 2 && deadlineMs && (
-        <ConfirmationCard deadlineMs={deadlineMs} consultant={consultant} />
+        <ConfirmationCard deadlineMs={deadlineMs} consultant={activeConsultant} />
       )}
 
       <style>{`

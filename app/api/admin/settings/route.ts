@@ -17,6 +17,13 @@ const ALLOWED_KEYS: Array<keyof SiteSettings> = [
   'address_detail',
   'consultant_name',
   'consultant_photo_url',
+  'consultant_specialty',
+  'consultant_2_name',
+  'consultant_2_photo_url',
+  'consultant_2_specialty',
+  'consultant_3_name',
+  'consultant_3_photo_url',
+  'consultant_3_specialty',
   'consultant_response_hours',
 ];
 

@@ -17,6 +17,13 @@ interface SettingsForm {
   tiktok_url: string;
   consultant_name: string;
   consultant_photo_url: string;
+  consultant_specialty: string;
+  consultant_2_name: string;
+  consultant_2_photo_url: string;
+  consultant_2_specialty: string;
+  consultant_3_name: string;
+  consultant_3_photo_url: string;
+  consultant_3_specialty: string;
   consultant_response_hours: string;
 }
 
@@ -33,6 +40,13 @@ const EMPTY: SettingsForm = {
   tiktok_url: '',
   consultant_name: '',
   consultant_photo_url: '',
+  consultant_specialty: '',
+  consultant_2_name: '',
+  consultant_2_photo_url: '',
+  consultant_2_specialty: '',
+  consultant_3_name: '',
+  consultant_3_photo_url: '',
+  consultant_3_specialty: '',
   consultant_response_hours: '24',
 };
 
@@ -138,8 +152,9 @@ function Field({
 /* ─── Photo upload widget ─────────────────────────────────────────────────── */
 function PhotoUpload({
   value,
+  label = 'Photo',
   onChange,
-}: Readonly<{ value: string; onChange: (url: string) => void }>) {
+}: Readonly<{ value: string; label?: string; onChange: (url: string) => void }>) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -164,7 +179,7 @@ function PhotoUpload({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <span style={{ color: '#A0A0A0', fontSize: 12, letterSpacing: '0.04em' }}>
-        Photo de la consultante
+        {label}
       </span>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -410,7 +425,7 @@ export default function ParametresPage() {
         />
       </Section>
 
-      {/* 🗓 Consultation privée */}
+      {/* 🗓 Consultation privée — experts */}
       <section
         style={{
           background: 'rgba(255,255,255,0.03)',
@@ -436,21 +451,14 @@ export default function ParametresPage() {
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
           </svg>
-          Consultation privée
+          Consultation privée — Expertes
         </h2>
         <p style={{ color: '#555', fontSize: 12, marginBottom: 20 }}>
-          Affiché dans l&apos;écran de confirmation après réservation.
+          Jusqu&apos;à 3 expertes sélectionnables par le client sur la page de réservation. Laissez vide pour désactiver.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-          <Field
-            label="Nom de l'experte"
-            name="consultant_name"
-            value={form.consultant_name}
-            onChange={handleChange}
-            placeholder="Ex : Aïcha Koné"
-            hint="Affiché sur la carte de confirmation"
-          />
+        {/* Délai de réponse commun */}
+        <div style={{ marginBottom: 24 }}>
           <Field
             label="Délai de réponse (heures)"
             name="consultant_response_hours"
@@ -460,13 +468,51 @@ export default function ParametresPage() {
             placeholder="24"
             hint="Durée du compte à rebours après réservation"
           />
-          <div style={{ gridColumn: '1 / -1' }}>
-            <PhotoUpload
-              value={form.consultant_photo_url}
-              onChange={(url) => handleChange('consultant_photo_url', url)}
-            />
-          </div>
         </div>
+
+        {/* 3 blocs experte */}
+        {([
+          { num: 1, nameKey: 'consultant_name' as const, photoKey: 'consultant_photo_url' as const, specialtyKey: 'consultant_specialty' as const },
+          { num: 2, nameKey: 'consultant_2_name' as const, photoKey: 'consultant_2_photo_url' as const, specialtyKey: 'consultant_2_specialty' as const },
+          { num: 3, nameKey: 'consultant_3_name' as const, photoKey: 'consultant_3_photo_url' as const, specialtyKey: 'consultant_3_specialty' as const },
+        ] as const).map(({ num, nameKey, photoKey, specialtyKey }) => (
+          <div
+            key={num}
+            style={{
+              border: '1px solid rgba(197,165,90,0.15)',
+              borderRadius: 8,
+              padding: '16px 18px',
+              marginBottom: 12,
+            }}
+          >
+            <p style={{ color: GOLD, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 14 }}>
+              Experte {num}
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+              <Field
+                label="Nom"
+                name={nameKey}
+                value={form[nameKey]}
+                onChange={handleChange}
+                placeholder={`Ex : Experte ${num}`}
+              />
+              <Field
+                label="Spécialité (optionnel)"
+                name={specialtyKey}
+                value={form[specialtyKey]}
+                onChange={handleChange}
+                placeholder="Ex : Parfums orientaux, Niche"
+              />
+              <div style={{ gridColumn: '1 / -1' }}>
+                <PhotoUpload
+                  label="Photo de profil"
+                  value={form[photoKey]}
+                  onChange={(url) => handleChange(photoKey, url)}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* 📱 Réseaux sociaux */}

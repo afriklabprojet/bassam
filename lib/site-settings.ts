@@ -25,10 +25,18 @@ export interface SiteSettings {
   logo_url: string;
   /** URL du favicon/icône (Supabase Storage ou chemin local) */
   favicon_url: string;
-  /** Nom affiché de l'experte/consultante */
+  /** Consultant 1 (existant) */
   consultant_name: string;
-  /** Photo de profil de la consultante (URL Supabase Storage) */
   consultant_photo_url: string;
+  consultant_specialty: string;
+  /** Consultant 2 */
+  consultant_2_name: string;
+  consultant_2_photo_url: string;
+  consultant_2_specialty: string;
+  /** Consultant 3 */
+  consultant_3_name: string;
+  consultant_3_photo_url: string;
+  consultant_3_specialty: string;
   /** Délai de réponse garanti en heures (affiché dans le compte à rebours) */
   consultant_response_hours: string;
 }
@@ -49,6 +57,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   favicon_url: '',
   consultant_name: '',
   consultant_photo_url: '',
+  consultant_specialty: '',
+  consultant_2_name: '',
+  consultant_2_photo_url: '',
+  consultant_2_specialty: '',
+  consultant_3_name: '',
+  consultant_3_photo_url: '',
+  consultant_3_specialty: '',
   consultant_response_hours: '24',
 };
 
@@ -83,6 +98,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       favicon_url: map.favicon_url ?? '',
       consultant_name: map.consultant_name ?? '',
       consultant_photo_url: map.consultant_photo_url ?? '',
+      consultant_specialty: map.consultant_specialty ?? '',
+      consultant_2_name: map.consultant_2_name ?? '',
+      consultant_2_photo_url: map.consultant_2_photo_url ?? '',
+      consultant_2_specialty: map.consultant_2_specialty ?? '',
+      consultant_3_name: map.consultant_3_name ?? '',
+      consultant_3_photo_url: map.consultant_3_photo_url ?? '',
+      consultant_3_specialty: map.consultant_3_specialty ?? '',
       consultant_response_hours: map.consultant_response_hours ?? '24',
     };
   } catch {

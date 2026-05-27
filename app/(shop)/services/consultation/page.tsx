@@ -69,12 +69,27 @@ export default async function ConsultationPage() {
     getSiteSettings(),
   ]);
 
-  const consultant = {
-    name: settings.consultant_name || 'VIP Parfumerie Bar',
-    photoUrl: settings.consultant_photo_url || '',
+  const sharedContact = {
     whatsappNumber: settings.whatsapp_number || '',
     whatsappDisplay: settings.whatsapp_display || '',
     email: settings.support_email || 'contact@vipparfumeriebar.com',
+  };
+
+  const rawConsultants = [
+    { name: settings.consultant_name, photoUrl: settings.consultant_photo_url, specialty: settings.consultant_specialty },
+    { name: settings.consultant_2_name, photoUrl: settings.consultant_2_photo_url, specialty: settings.consultant_2_specialty },
+    { name: settings.consultant_3_name, photoUrl: settings.consultant_3_photo_url, specialty: settings.consultant_3_specialty },
+  ];
+
+  const consultants = rawConsultants
+    .filter((c) => c.name.trim().length > 0)
+    .map((c) => ({ ...c, ...sharedContact }));
+
+  const fallbackConsultant = {
+    name: 'VIP Parfumerie Bar',
+    photoUrl: '',
+    specialty: '',
+    ...sharedContact,
   };
 
   return (
@@ -165,7 +180,7 @@ export default async function ConsultationPage() {
               </p>
             </div>
 
-            <ConsultationForm siteUrl={SITE_URL} consultant={consultant} />
+            <ConsultationForm siteUrl={SITE_URL} consultants={consultants.length > 0 ? consultants : [fallbackConsultant]} />
           </div>
         </div>
       </section>

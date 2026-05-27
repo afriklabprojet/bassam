@@ -132,7 +132,7 @@ export default function Footer() {
             {/* Tagline */}
             <p style={{
               fontSize: '0.8125rem', lineHeight: 1.8,
-              color: 'rgba(255,255,255,0.3)', fontWeight: 300,
+              color: 'rgba(255,255,255,0.85)', fontWeight: 300,
               marginBottom: 28, letterSpacing: '0.01em',
             }}>
               Les plus grandes maisons de parfumerie, livrées chez vous en
@@ -155,7 +155,7 @@ export default function Footer() {
                       border: '1px solid rgba(197,165,90,0.2)',
                       borderRadius: '50%',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'rgba(255,255,255,0.3)',
+                      color: 'rgba(255,255,255,0.75)',
                       transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)',
                     }}
                   >
@@ -193,7 +193,7 @@ export default function Footer() {
                         className="footer-link"
                         style={{
                           fontSize: '0.8125rem',
-                          color: 'rgba(255,255,255,0.35)',
+                          color: 'rgba(255,255,255,0.85)',
                           textDecoration: 'none',
                           transition: 'color 0.25s, padding-left 0.25s',
                           display: 'inline-block',
@@ -226,7 +226,7 @@ export default function Footer() {
               key={item.text}
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
-                fontSize: '0.6875rem', color: 'rgba(255,255,255,0.3)',
+                fontSize: '0.6875rem', color: 'rgba(255,255,255,0.85)',
                 letterSpacing: '0.04em',
               }}
             >
@@ -244,7 +244,7 @@ export default function Footer() {
           justifyContent: 'space-between', gap: 16,
         }}>
           <p style={{
-            fontSize: '0.6875rem', color: 'rgba(255,255,255,0.18)',
+            fontSize: '0.6875rem', color: 'rgba(255,255,255,0.75)',
             letterSpacing: '0.04em', margin: 0,
           }}>
             © {new Date().getFullYear()} VIP Parfumerie Bar — Abidjan, Côte d&rsquo;Ivoire
@@ -257,7 +257,7 @@ export default function Footer() {
                 className="footer-link"
                 style={{
                   fontSize: '0.6875rem',
-                  color: 'rgba(255,255,255,0.18)',
+                  color: 'rgba(255,255,255,0.75)',
                   textDecoration: 'none',
                   transition: 'color 0.25s',
                   letterSpacing: '0.02em',

@@ -9,7 +9,7 @@
  * GET: retourne les URLs actuelles de logo et favicon
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createServerClient } from '@/lib/supabase/server';
+import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
 import { logger } from '@/lib/logger';
 
@@ -18,34 +18,14 @@ const MAX_SIZE = 2 * 1024 * 1024; // 2 Mo
 const LOGO_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
 const FAVICON_TYPES = ['image/png', 'image/svg+xml', 'image/x-icon'];
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-async function assertAdmin() {
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const service = createServiceClient();
-  const { data: profile } = await service
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  return profile?.role === 'admin' ? service : null;
-}
-
 // ── GET — retourne logo_url et favicon_url actuels ─────────────────────────
 
 export async function GET() {
   try {
-    const service = await assertAdmin();
-    if (!service) {
+    if (!(await isCurrentUserAdmin())) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
+    const service = createServiceClient();
 
     const { data } = await service
       .from('site_settings')
@@ -70,10 +50,10 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const service = await assertAdmin();
-    if (!service) {
+    if (!(await isCurrentUserAdmin())) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
+    const service = createServiceClient();
 
     let formData: FormData;
     try {

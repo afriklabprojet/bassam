@@ -6,11 +6,12 @@ import crypto from 'node:crypto';
    ══════════════════════════════════════════════════════════════════════════ */
 
 export type JekoProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
+export type JekoCurrency = 'XOF' | 'XAF' | 'GNF';
 
 export interface JekoInitiateParams {
   /** Amount in XOF (converted internally to amountCents) */
   amountXof: number;
-  currency: 'XOF' | 'XAF' | 'GNF';
+  currency: JekoCurrency;
   provider: JekoProvider;
   /** Our internal order ID — used as idempotency key + for webhook matching */
   reference: string;
@@ -57,7 +58,19 @@ export class JekoApiError extends Error {
   }
 }
 
-export const JEKO_CURRENCY = (process.env.JEKO_CURRENCY ?? 'XOF') as 'XOF' | 'XAF' | 'GNF';
+const REQUIRED_JEKO_ENV_KEYS = ['JEKO_API_KEY', 'JEKO_API_KEY_ID', 'JEKO_STORE_ID'] as const;
+
+type RequiredJekoEnvKey = (typeof REQUIRED_JEKO_ENV_KEYS)[number];
+
+export interface JekoConfigDiagnostics {
+  baseUrl: string;
+  currency: JekoCurrency;
+  hasWebhookSecret: boolean;
+  required: Record<RequiredJekoEnvKey, boolean>;
+  missingRequired: RequiredJekoEnvKey[];
+  isReadyForInitiation: boolean;
+}
+export const JEKO_CURRENCY = (process.env.JEKO_CURRENCY ?? 'XOF') as JekoCurrency;
 
 /** Map internal provider names (from checkout form) to Jeko's expected values */
 const PROVIDER_MAP: Record<string, JekoProvider> = {
@@ -74,6 +87,25 @@ export function mapProvider(internal: string): JekoProvider {
 
 export function normalizeJekoBaseUrl(rawUrl: string) {
   return rawUrl.replace(/\/+$/, '').replace(/\/v1$/, '');
+}
+
+export function getJekoConfigDiagnostics(): JekoConfigDiagnostics {
+  const required: Record<RequiredJekoEnvKey, boolean> = {
+    JEKO_API_KEY: Boolean(process.env.JEKO_API_KEY),
+    JEKO_API_KEY_ID: Boolean(process.env.JEKO_API_KEY_ID),
+    JEKO_STORE_ID: Boolean(process.env.JEKO_STORE_ID),
+  };
+
+  const missingRequired = REQUIRED_JEKO_ENV_KEYS.filter((key) => !required[key]);
+
+  return {
+    baseUrl: normalizeJekoBaseUrl(process.env.JEKO_API_URL ?? 'https://api.jeko.africa'),
+    currency: JEKO_CURRENCY,
+    hasWebhookSecret: Boolean(process.env.JEKO_WEBHOOK_SECRET),
+    required,
+    missingRequired,
+    isReadyForInitiation: missingRequired.length === 0,
+  };
 }
 
 /** Initiate a mobile money collection via Jeko Africa API (redirect flow) */

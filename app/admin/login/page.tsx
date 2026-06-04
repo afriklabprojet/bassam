@@ -2,11 +2,10 @@
 
 import { Suspense, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,8 +37,7 @@ function LoginForm() {
 
     const next = searchParams.get('next');
     const destination = next?.startsWith('/') ? next : '/admin';
-    router.push(destination);
-    router.refresh();
+    window.location.href = destination;
   };
 
   return (

@@ -8,7 +8,16 @@ const mockOrderSingle = vi.fn();
 const mockOrderInsert = vi.fn(() => ({
   select: () => ({ single: mockOrderSingle }),
 }));
+const mockDuplicateSingle = vi.fn();
 const mockItemsInsert = vi.fn();
+
+function buildDuplicateQuery(): Record<string, unknown> {
+  const chain: Record<string, unknown> = {};
+  chain.eq = vi.fn(() => chain);
+  chain.gte = vi.fn(() => chain);
+  chain.limit = vi.fn(() => ({ single: mockDuplicateSingle }));
+  return chain;
+}
 
 const mockFrom = vi.fn((table: string) => {
   if (table === 'products') {
@@ -18,7 +27,7 @@ const mockFrom = vi.fn((table: string) => {
   }
 
   if (table === 'orders') {
-    return { insert: mockOrderInsert };
+    return { insert: mockOrderInsert, select: () => buildDuplicateQuery() };
   }
 
   if (table === 'order_items') {
@@ -59,6 +68,7 @@ const baseInput = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockDuplicateSingle.mockResolvedValue({ data: null, error: null });
   mockOrderSingle.mockResolvedValue({
     data: {
       id: 'order-1',

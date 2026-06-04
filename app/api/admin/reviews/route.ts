@@ -1,30 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllReviews, setReviewApproval, deleteReview } from '@/lib/supabase/reviews';
-import { createClient } from '@/lib/supabase/server';
-
-async function requireAdmin() {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return false;
-  const { data } = await supabase
-    .from('admin_users')
-    .select('id')
-    .eq('id', user.id)
-    .single();
-  return !!data;
-}
+import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 
 export async function GET() {
-  if (!(await requireAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!(await isCurrentUserAdmin())) {
+    return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
   }
   const reviews = await getAllReviews();
   return NextResponse.json({ reviews });
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!(await requireAdmin())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!(await isCurrentUserAdmin())) {
+    return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
   }
 
   const body = await req.json() as { id?: string; action?: string };

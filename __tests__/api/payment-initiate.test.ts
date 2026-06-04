@@ -14,8 +14,18 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 const mockOrderUpdate = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }));
+const mockDuplicateOrderSingle = vi.fn();
+
+function buildDuplicateOrderQuery() {
+  return {
+    eq: vi.fn(() => buildDuplicateOrderQuery()),
+    gte: vi.fn(() => buildDuplicateOrderQuery()),
+    limit: vi.fn(() => ({ single: mockDuplicateOrderSingle })),
+  };
+}
+
 const mockServiceFrom = vi.fn((table: string) => {
-  if (table === 'orders') return { update: mockOrderUpdate };
+  if (table === 'orders') return { update: mockOrderUpdate, select: () => buildDuplicateOrderQuery() };
   if (table === 'products') return { select: () => ({ in: mockProductsIn }) };
   if (table === 'order_items') return { insert: mockItemsInsert };
   if (table === 'site_settings') return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null }) }) }) };
@@ -39,6 +49,7 @@ vi.mock('@/lib/supabase/custom-order-items', () => ({
 }));
 
 const mockInitiatePayment = vi.fn();
+const mockGetJekoConfigDiagnostics = vi.fn();
 class MockJekoApiError extends Error {
   status: number;
   details: string;
@@ -56,6 +67,7 @@ vi.mock('@/lib/payment/jeko', () => ({
   JekoApiError: MockJekoApiError,
   mapProvider: (p: string) => p + '_mapped',
   JEKO_CURRENCY: 'XOF',
+  getJekoConfigDiagnostics: mockGetJekoConfigDiagnostics,
 }));
 
 const PRODUCT_ID = '11111111-1111-4111-8111-111111111111';
@@ -111,6 +123,7 @@ beforeEach(() => {
     error: null,
   });
   mockItemsInsert.mockResolvedValue({ error: null });
+  mockDuplicateOrderSingle.mockResolvedValue({ data: null, error: null });
   mockInitiatePayment.mockResolvedValue({
     id: 'txn-abc-123',
     storeId: 'store-uuid',
@@ -122,9 +135,27 @@ beforeEach(() => {
     transaction: null,
     redirectUrl: 'https://pay.jeko.africa/payment/txn-abc-123',
   });
+  mockGetJekoConfigDiagnostics.mockReturnValue({
+    baseUrl: 'https://api.jeko.africa',
+    currency: 'XOF',
+    hasWebhookSecret: true,
+    required: {
+      JEKO_API_KEY: true,
+      JEKO_API_KEY_ID: true,
+      JEKO_STORE_ID: true,
+    },
+    missingRequired: [],
+    isReadyForInitiation: true,
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   mockServiceFrom.mockImplementation((table: string): any => {
-    if (table === 'orders') return { insert: mockOrderInsert, update: mockOrderUpdate };
+    if (table === 'orders') {
+      return {
+        insert: mockOrderInsert,
+        update: mockOrderUpdate,
+        select: () => buildDuplicateOrderQuery(),
+      };
+    }
     if (table === 'products') return { select: () => ({ in: mockProductsIn }) };
     if (table === 'order_items') return { insert: mockItemsInsert };
     if (table === 'site_settings') return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null }) }) }) };
@@ -136,6 +167,27 @@ beforeEach(() => {
 /* ── Tests ───────────────────────────────────────────────────────────────── */
 
 describe('POST /api/payment/initiate — validation', () => {
+  it('retourne 503 si la configuration Jeko est incomplète', async () => {
+    mockGetJekoConfigDiagnostics.mockReturnValue({
+      baseUrl: 'https://api.jeko.africa',
+      currency: 'XOF',
+      hasWebhookSecret: false,
+      required: {
+        JEKO_API_KEY: false,
+        JEKO_API_KEY_ID: true,
+        JEKO_STORE_ID: true,
+      },
+      missingRequired: ['JEKO_API_KEY'],
+      isReadyForInitiation: false,
+    });
+
+    const res = await POST(makeRequest(VALID_BODY));
+
+    expect(res.status).toBe(503);
+    expect(mockOrderInsert).not.toHaveBeenCalled();
+    expect(mockInitiatePayment).not.toHaveBeenCalled();
+  });
+
   it('rejette un montant négatif', async () => {
     const res = await POST(makeRequest({ ...VALID_BODY, totalAmount: -1 }));
     expect(res.status).toBe(400);

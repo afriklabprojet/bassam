@@ -7,7 +7,7 @@ const TEST_SECRET = 'test_webhook_secret_12345';
 vi.stubEnv('JEKO_WEBHOOK_SECRET', TEST_SECRET);
 
 // Import après stubEnv pour que la constante soit correctement initialisée.
-const { mapProvider, normalizeJekoBaseUrl, verifyWebhookSignature } = await import('@/lib/payment/jeko');
+const { mapProvider, normalizeJekoBaseUrl, verifyWebhookSignature, getJekoConfigDiagnostics } = await import('@/lib/payment/jeko');
 
 const BODY = JSON.stringify({ event: 'payment.success', amount: 50000 });
 
@@ -55,6 +55,29 @@ describe('normalizeJekoBaseUrl', () => {
 
   it('retire un suffixe /v1 incompatible avec le chemin partner_api', () => {
     expect(normalizeJekoBaseUrl('https://api.jeko.africa/v1')).toBe('https://api.jeko.africa');
+  });
+});
+
+describe('getJekoConfigDiagnostics', () => {
+  it('retourne un diagnostic sans exposer les secrets', () => {
+    vi.stubEnv('JEKO_API_URL', 'https://api.jeko.africa/v1');
+    vi.stubEnv('JEKO_API_KEY', 'test_api_key');
+    vi.stubEnv('JEKO_API_KEY_ID', 'test_api_key_id');
+    vi.stubEnv('JEKO_STORE_ID', 'test_store_id');
+    vi.stubEnv('JEKO_WEBHOOK_SECRET', TEST_SECRET);
+
+    expect(getJekoConfigDiagnostics()).toEqual({
+      baseUrl: 'https://api.jeko.africa',
+      currency: 'XOF',
+      hasWebhookSecret: true,
+      required: {
+        JEKO_API_KEY: true,
+        JEKO_API_KEY_ID: true,
+        JEKO_STORE_ID: true,
+      },
+      missingRequired: [],
+      isReadyForInitiation: true,
+    });
   });
 });
 

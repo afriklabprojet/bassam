@@ -84,7 +84,9 @@ function createSupabaseClient(
 
 function handleMissingSupabaseConfig(isPublicRoute: boolean, request: NextRequest, response: NextResponse) {
   if (!isPublicRoute) {
-    return redirectTo('/auth/login', request)
+    const { pathname } = request.nextUrl
+    const target = pathname.startsWith('/admin') ? '/admin/login' : '/auth/login'
+    return redirectTo(target, request)
   }
 
   return response

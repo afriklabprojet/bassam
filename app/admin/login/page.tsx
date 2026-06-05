@@ -18,26 +18,30 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const supabase = createClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (signInError) {
-      setError('Identifiants incorrects.');
+      if (signInError) {
+        setError('Identifiants incorrects.');
+        return;
+      }
+
+      const role = data.user?.app_metadata?.role;
+      if (role !== 'admin') {
+        await supabase.auth.signOut();
+        setError('Accès réservé aux administrateurs.');
+        return;
+      }
+
+      const next = searchParams.get('next');
+      const destination = next?.startsWith('/') ? next : '/admin';
+      window.location.href = destination;
+    } catch {
+      setError('Erreur de connexion. Veuillez réessayer.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const role = data.user?.app_metadata?.role;
-    if (role !== 'admin') {
-      await supabase.auth.signOut();
-      setError('Accès réservé aux administrateurs.');
-      setLoading(false);
-      return;
-    }
-
-    const next = searchParams.get('next');
-    const destination = next?.startsWith('/') ? next : '/admin';
-    window.location.href = destination;
   };
 
   return (

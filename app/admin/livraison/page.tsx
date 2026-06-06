@@ -3,8 +3,7 @@
 import { useEffect, useId, useState } from 'react';
 import type { DeliveryMode, ShippingConfig } from '@/lib/shipping';
 import { DEFAULT_SHIPPING_CONFIG } from '@/lib/shipping';
-
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
 
 function inputStyle(disabled = false): React.CSSProperties {
   return {

@@ -11,6 +11,7 @@ import {
   type CreationFormulaId,
   type CustomCreationSnapshot,
 } from '@/lib/custom-creation';
+import { formatPrice } from '@/lib/format';
 
 const DRAFT_KEY = 'vip-parfumerie-custom-creation-draft';
 const PLACEHOLDER_IMAGE = '/images/products/product-placeholder.svg';
@@ -47,14 +48,6 @@ const defaultDraft: Draft = {
   engraving: '',
   inspiration: '',
 };
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0,
-  }).format(price);
-}
 
 function getDraftSnapshot(draft: Draft, cfg: CreationConfiguratorConfig): CustomCreationSnapshot {
   const formula = cfg.formulas.find((f) => f.id === draft.formulaId) ?? cfg.formulas[1] ?? cfg.formulas[0];

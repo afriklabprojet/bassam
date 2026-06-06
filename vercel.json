@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "alias": ["vipparfumeriebar.com", "www.vipparfumeriebar.com"],
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "installCommand": "npm install",

@@ -50,7 +50,7 @@ const EMPTY: SettingsForm = {
   consultant_response_hours: '24',
 };
 
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
 
 /* ─── Section wrapper ─────────────────────────────────────────────────────── */
 function Section({

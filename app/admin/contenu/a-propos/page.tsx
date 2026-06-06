@@ -10,10 +10,9 @@ import {
   type AboutEngagement,
 } from '@/lib/supabase/about-content';
 import { logger } from '@/lib/logger';
+import { GOLD } from '@/lib/admin-theme';
 
 /* ── Styles & helpers ───────────────────────────────────────────────────────── */
-
-const GOLD = '#C5A55A';
 
 function inputStyle(): React.CSSProperties {
   return {

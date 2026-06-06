@@ -66,7 +66,7 @@ const DEFAULTS: ServiceRow[] = [
   },
 ];
 
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 function inputStyle(): React.CSSProperties {

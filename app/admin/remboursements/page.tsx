@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { GOLD } from '@/lib/admin-theme';
 
 interface Refund {
   id: string;
@@ -23,7 +24,6 @@ interface Stats {
   total_pending_amount: number; total_processed_amount: number;
 }
 
-const GOLD = '#C5A55A';
 const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 

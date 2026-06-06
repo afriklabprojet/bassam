@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useState, useEffect, useCallback, useRef, useId } from 'react';
 import { formatCFA } from '@/lib/format';
+import { GOLD } from '@/lib/admin-theme';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -53,8 +54,6 @@ interface NewsletterCampaign {
 }
 
 // ─── Constants ─────────────────────────────────────────────────────────────
-
-const GOLD = '#C5A55A';
 
 const INPUT_STYLE: React.CSSProperties = {
   background: 'rgba(255,255,255,0.05)',

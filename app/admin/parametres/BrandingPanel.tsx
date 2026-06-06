@@ -9,8 +9,7 @@ import {
   type BrandingPreset,
 } from '@/lib/branding';
 import { logger } from '@/lib/logger';
-
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

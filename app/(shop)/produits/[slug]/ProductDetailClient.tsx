@@ -10,6 +10,7 @@ import AddToCartCTA from '@/components/AddToCartCTA';
 import ProductCard from '@/components/ProductCard';
 import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
 import { normalizeProductImage } from '@/lib/product-images';
+import { formatPrice } from '@/lib/format';
 import type { Product } from '@/types/product.types';
 
 type ProductDetail = Product & {
@@ -30,10 +31,10 @@ function getTabLabel(tab: string): string {
   return 'Description';
 }
 
-function getGenderLabel(gender: Product['gender']): string {
-  if (gender === 'homme') return 'Homme';
-  if (gender === 'femme') return 'Femme';
-  if (gender === 'mixte') return 'Mixte';
+function getCategoryLabel(category: Product['category']): string {
+  if (category === 'homme') return 'Homme';
+  if (category === 'femme') return 'Femme';
+  if (category === 'mixte') return 'Mixte';
   return 'Signature';
 }
 
@@ -96,9 +97,6 @@ export default function ProductDetailClient({
     handleAddToCart();
     router.push('/commande');
   };
-
-  const formatPrice = (p: number) =>
-    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(p);
 
   if (loading) {
     return (
@@ -168,7 +166,7 @@ export default function ProductDetailClient({
     : 0;
   const notePreview = getNotePreview(product);
   const profileItems = [
-    { label: 'Univers', value: getGenderLabel(product.gender) },
+    { label: 'Catégorie', value: getCategoryLabel(product.category) },
     { label: 'Concentration', value: product.concentration ?? 'Eau de parfum' },
     { label: 'Format', value: product.volume ?? 'Flacon signature' },
   ];
@@ -223,11 +221,11 @@ export default function ProductDetailClient({
             >
               Parfums
             </Link>
-            {product.gender && (
+            {product.category && (
               <>
                 <span style={{ color: 'var(--gold)', opacity: 0.5 }}>/</span>
                 <Link
-                  href={`/collections/${product.gender}`}
+                  href={`/collections/${product.category}`}
                   className="breadcrumb-link"
                   style={{
                     color: 'var(--text-pale)',
@@ -236,7 +234,7 @@ export default function ProductDetailClient({
                     transition: 'color 0.2s',
                   }}
                 >
-                  {product.gender}
+                  {product.category}
                 </Link>
               </>
             )}
@@ -647,9 +645,9 @@ export default function ProductDetailClient({
                   { label: 'Concentration', value: (product as { concentration?: string }).concentration || '—' },
                   { label: 'Volume', value: (product as { volume?: string }).volume || '—' },
                   {
-                    label: 'Genre',
-                    value: product.gender
-                      ? product.gender.charAt(0).toUpperCase() + product.gender.slice(1)
+                    label: 'Catégorie',
+                    value: product.category
+                      ? product.category.charAt(0).toUpperCase() + product.category.slice(1)
                       : '—',
                   },
                   { label: 'Référence', value: product.id },
@@ -724,7 +722,7 @@ export default function ProductDetailClient({
                 price={relatedProduct.price}
                 originalPrice={relatedProduct.originalPrice ?? undefined}
                 image={relatedProduct.images[0] || '/images/products/product-placeholder.svg'}
-                category={relatedProduct.gender ?? 'mixte'}
+                category={relatedProduct.category ?? 'mixte'}
                 inStock={relatedProduct.stockQuantity > 0}
               />
             ))}

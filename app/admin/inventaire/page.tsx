@@ -54,7 +54,8 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
+
 const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 

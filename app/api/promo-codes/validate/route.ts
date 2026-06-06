@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
+import { formatPrice } from '@/lib/format';
 
 // POST /api/promo-codes/validate
 // Body: { code: string, orderAmount: number }
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     if (data.min_order_amount && orderAmount < data.min_order_amount) {
       return NextResponse.json({
         valid: false,
-        error: `Montant minimum requis : ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(data.min_order_amount)}`,
+        error: `Montant minimum requis : ${formatPrice(data.min_order_amount)}`,
       });
     }
 

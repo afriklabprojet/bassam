@@ -3,13 +3,10 @@
 import { useCart } from '@/lib/cart-context';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { DEFAULT_SHIPPING_CONFIG, getMinDeliveryFee, type ShippingConfig } from '@/lib/shipping';
+import { formatPrice } from '@/lib/format';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
-}
 
 function getDiscountAmount(totalPrice: number, promoData: { type: 'percentage' | 'fixed'; value: number } | null, promoApplied: boolean) {
   if (!promoApplied || !promoData) return 0;

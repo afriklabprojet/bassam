@@ -9,8 +9,8 @@ import {
   type CreationConfigBottle,
   type CreationFormulaId,
 } from '@/lib/custom-creation';
+import { GOLD } from '@/lib/admin-theme';
 
-const GOLD = '#C5A55A';
 const FORMULA_IDS: CreationFormulaId[] = ['essentiel', 'signature', 'prestige'];
 
 /* ─── Styles helpers ─────────────────────────────────────────────────────── */

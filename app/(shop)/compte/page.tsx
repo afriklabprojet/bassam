@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getLightOrderStatusStyle, getOrderStatusLabel } from '@/lib/order-status-theme';
 import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { formatPrice } from '@/lib/format';
 import type { User } from '@supabase/supabase-js';
 
 type Tab = 'commandes' | 'wishlist' | 'fidelite' | 'profil';
@@ -47,10 +48,6 @@ const LOYALTY_LEVELS = [
   { name: 'Argent', min: 50000,  max: 150000,  perks: ['4 échantillons/commande', 'Livraison -50%', 'Remise 5%'] },
   { name: 'Or',     min: 150000, max: Infinity, perks: ['Livraison gratuite', 'Remise 10%', 'Services VIP'] },
 ];
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
-}
 
 function isTabValue(value: string | null): value is Tab {
   return value === 'commandes' || value === 'wishlist' || value === 'fidelite' || value === 'profil';

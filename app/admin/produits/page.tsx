@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
+import { formatCFA } from '@/lib/format';
 
 function getStockStyle(qty: number): { background: string; color: string } {
   if (qty > 5) return { background: 'rgba(34,197,94,0.15)', color: '#22C55E' };
@@ -9,7 +10,13 @@ function getStockStyle(qty: number): { background: string; color: string } {
   return { background: 'rgba(239,68,68,0.15)', color: '#EF4444' };
 }
 
-interface Category {
+interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface CollectionOption {
   id: string;
   name: string;
   slug: string;
@@ -23,12 +30,12 @@ interface Product {
   description: string | null;
   price: number;
   originalPrice: number | null;
-  gender: string | null;
+  category: string | null;
   stockQuantity: number;
   isFeatured: boolean;
   images: string[];
-  categoryId: string | null;
-  categoryName: string | null;
+  collectionId: string | null;
+  collectionName: string | null;
   concentration: string | null;
   volume: string | null;
   notes: { top: string[]; heart: string[]; base: string[] } | null;
@@ -42,8 +49,8 @@ interface FormData {
   description: string;
   price: string;
   originalPrice: string;
-  categoryId: string;
-  gender: string;
+  collectionId: string;
+  category: string;
   stockQuantity: string;
   isFeatured: boolean;
   concentration: string;
@@ -56,7 +63,7 @@ interface FormData {
 
 const EMPTY_FORM: FormData = {
   name: '', slug: '', brand: '', description: '',
-  price: '', originalPrice: '', categoryId: '', gender: '', stockQuantity: '0',
+  price: '', originalPrice: '', collectionId: '', category: '', stockQuantity: '0',
   isFeatured: false, concentration: '', volume: '',
   notesTete: '', notesCoeur: '', notesFond: '',
   images: '',
@@ -69,8 +76,14 @@ function slugify(s: string) {
     .replaceAll(/^-+|-+$/gu, '');
 }
 
-function formatCFA(n: number) {
-  return new Intl.NumberFormat('fr-FR').format(n) + ' F';
+function formatCategoryLabel(value: string | null) {
+  if (value === 'homme') return 'Homme';
+  if (value === 'femme') return 'Femme';
+  if (value === 'mixte') return 'Mixte';
+  if (value) {
+    return value.replace(/[-_]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+  return '—';
 }
 
 const INPUT_STYLE: React.CSSProperties = {
@@ -90,7 +103,8 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [collections, setCollections] = useState<CollectionOption[]>([]);
 
   // Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -148,9 +162,14 @@ export default function AdminProducts() {
   }, [page, search]);
 
   useEffect(() => {
-    fetch('/api/admin/categories')
-      .then((r) => r.json())
-      .then((d) => { if (d.categories) setCategories(d.categories); })
+    void Promise.all([
+      fetch('/api/admin/categories').then((r) => r.json()),
+      fetch('/api/admin/product-collections').then((r) => r.json()),
+    ])
+      .then(([categoryPayload, collectionPayload]) => {
+        setCategories(categoryPayload.items ?? categoryPayload.categories ?? []);
+        setCollections(collectionPayload.items ?? collectionPayload.collections ?? []);
+      })
       .catch(() => {});
   }, []);
 
@@ -170,8 +189,8 @@ export default function AdminProducts() {
       description: p.description ?? '',
       price: String(p.price),
       originalPrice: p.originalPrice ? String(p.originalPrice) : '',
-      categoryId: p.categoryId ?? '',
-      gender: p.gender ?? '',
+      collectionId: p.collectionId ?? '',
+      category: p.category ?? '',
       stockQuantity: String(p.stockQuantity),
       isFeatured: p.isFeatured,
       concentration: p.concentration ?? '',
@@ -214,8 +233,8 @@ export default function AdminProducts() {
       ...(form.description.trim() ? { description: form.description.trim() } : {}),
       price,
       ...(form.originalPrice ? { originalPrice: Number.parseFloat(form.originalPrice) } : {}),
-      ...(form.categoryId ? { categoryId: form.categoryId } : { categoryId: null }),
-      ...(form.gender ? { gender: form.gender } : {}),
+      ...(form.collectionId ? { collectionId: form.collectionId } : { collectionId: null }),
+      ...(form.category ? { category: form.category } : {}),
       stockQuantity: Number.parseInt(form.stockQuantity, 10) || 0,
       isFeatured: form.isFeatured,
       ...(form.concentration.trim() ? { concentration: form.concentration.trim() } : {}),
@@ -298,7 +317,7 @@ export default function AdminProducts() {
         <table className="w-full" style={{ fontSize: '0.8125rem' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              {['', 'Produit', 'Marque', 'Prix', 'Stock', 'Genre', 'Vedette', 'Actions'].map((h) => (
+              {['', 'Produit', 'Marque', 'Prix', 'Stock', 'Catégorie', 'Vedette', 'Actions'].map((h) => (
                 <th key={h} className="px-5 py-3 text-left" style={{ color: '#666', fontWeight: 500, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   {h}
                 </th>
@@ -337,14 +356,14 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-5 py-3.5">
                     <div style={{ color: '#fff', fontWeight: 500 }}>{p.name}</div>
-                    {p.categoryName && (
-                      <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '2px' }}>{p.categoryName}</div>
+                    {p.collectionName && (
+                      <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '2px' }}>Collection commerciale: {p.collectionName}</div>
                     )}
                   </td>
                   <td className="px-5 py-3.5" style={{ color: '#ccc' }}>{p.brand}</td>
                   <td className="px-5 py-3.5">
                     <span style={{ color: '#fff', fontWeight: 600 }}>{formatCFA(p.price)}</span>
-                    {p.originalPrice && (
+                    {p.originalPrice !== null && (
                       <span style={{ color: '#666', textDecoration: 'line-through', marginLeft: '6px', fontSize: '0.75rem' }}>
                         {formatCFA(p.originalPrice)}
                       </span>
@@ -358,8 +377,8 @@ export default function AdminProducts() {
                       {p.stockQuantity}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5" style={{ color: '#999', textTransform: 'capitalize' }}>
-                    {p.gender ?? '—'}
+                  <td className="px-5 py-3.5" style={{ color: '#999' }}>
+                    {formatCategoryLabel(p.category)}
                   </td>
                   <td className="px-5 py-3.5">
                     <button
@@ -588,21 +607,24 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              {/* Gender + Stock */}
+              {/* Category + Stock */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="field-gender" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Genre</label>
+                  <label htmlFor="field-category" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Catégorie</label>
                   <select
-                    id="field-gender"
-                    value={form.gender}
-                    onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))}
+                    id="field-category"
+                    value={form.category}
+                    onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                     style={{ ...INPUT_STYLE, cursor: 'pointer' }}
                   >
                     <option value="">— Non défini —</option>
-                    <option value="homme">Homme</option>
-                    <option value="femme">Femme</option>
-                    <option value="mixte">Mixte</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.slug}>{category.name}</option>
+                    ))}
                   </select>
+                  <p style={{ color: '#555', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+                    Univers métier du produit. Gérez la liste depuis l&apos;écran Catégories produit.
+                  </p>
                 </div>
                 <div>
                   <label htmlFor="field-stock" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Stock</label>
@@ -617,18 +639,21 @@ export default function AdminProducts() {
 
               {/* Collection */}
               <div>
-                <label htmlFor="field-category" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Collection</label>
+                <label htmlFor="field-collection" className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: '#888' }}>Collection</label>
                 <select
-                  id="field-category"
-                  value={form.categoryId}
-                  onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
+                  id="field-collection"
+                  value={form.collectionId}
+                  onChange={(e) => setForm((f) => ({ ...f, collectionId: e.target.value }))}
                   style={{ ...INPUT_STYLE, cursor: 'pointer' }}
                 >
                   <option value="">— Aucune collection —</option>
-                  {categories.map((c) => (
+                  {collections.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                <p style={{ color: '#555', fontSize: '0.7rem', marginTop: '0.5rem' }}>
+                  Série commerciale du produit: Extrait Concentré, Collection Privée Gazelle, Collection Privée Convivium, Collection Manel…
+                </p>
               </div>
 
               {/* Concentration + Volume */}

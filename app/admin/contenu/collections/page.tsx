@@ -42,7 +42,7 @@ const DEFAULTS: CollectionRow[] = [
   },
 ];
 
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
 
 /* ─── Field ─────────────────────────────────────────────────────────────────── */
 function Field({

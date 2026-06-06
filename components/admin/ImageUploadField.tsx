@@ -11,10 +11,9 @@
  */
 
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { GOLD } from '@/lib/admin-theme';
 
 /* ── Constantes ──────────────────────────────────────────────────────────── */
-
-const GOLD = '#C5A55A';
 const BORDER_IDLE = 'rgba(255,255,255,0.1)';
 const BORDER_DRAG = GOLD;
 const BG_ZONE = 'rgba(255,255,255,0.03)';

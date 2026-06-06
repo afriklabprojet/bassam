@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle } from '@/lib/order-status-theme';
+import { formatCFA } from '@/lib/format';
 
 interface OrderItem {
   quantity: number;
@@ -19,10 +20,6 @@ interface Order {
   createdAt: string;
   customerEmail: string | null;
   customerName: string | null;
-}
-
-function formatCFA(n: number) {
-  return new Intl.NumberFormat('fr-FR').format(n) + ' F';
 }
 
 function formatDate(iso: string) {

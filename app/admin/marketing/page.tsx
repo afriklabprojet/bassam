@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useState, useEffect, useCallback, useRef, useId } from 'react';
+import { formatCFA } from '@/lib/format';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -82,10 +83,6 @@ function formatDate(iso: string) {
     month: '2-digit',
     year: 'numeric',
   });
-}
-
-function formatCFA(amount: number) {
-  return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
 }
 
 function getCampaignStatusLabel(status: string): string {

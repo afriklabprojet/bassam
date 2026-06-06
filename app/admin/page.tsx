@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle, getOrderStatusLabel } from '@/lib/order-status-theme';
+import { formatCFA } from '@/lib/format';
 
 /* ─── Types ────────────────────────────────────────────── */
 interface Stats {
@@ -76,10 +77,6 @@ const PAYMENT_LABELS: Record<string, string> = {
 
 /* ─── Constants ────────────────────────────────────────── */
 /* ─── Helpers ──────────────────────────────────────────── */
-function formatCFA(amount: number) {
-  return new Intl.NumberFormat('fr-FR').format(amount) + ' F';
-}
-
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('fr-FR', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',

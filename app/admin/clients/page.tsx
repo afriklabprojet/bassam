@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { formatDateShort as formatDate } from '@/lib/format';
 
 interface Customer {
   id: string;
@@ -8,10 +9,6 @@ interface Customer {
   phone: string | null;
   address: Record<string, unknown> | null;
   createdAt: string;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export default function AdminClients() {

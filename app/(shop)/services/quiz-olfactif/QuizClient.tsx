@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { formatPrice } from '@/lib/format';
 
 /* ─────────────────────────────────────────────────────────────
    TYPES
@@ -141,20 +142,20 @@ const TOTAL_STEPS = QUIZ_STEPS.length;
    HELPERS
 ───────────────────────────────────────────────────────────── */
 
-function getGenderParam(genderId: string): string {
-  if (genderId === 'femme') return 'femme';
-  if (genderId === 'homme') return 'homme';
-  if (genderId === 'unisex') return 'mixte';
+function getCategoryParam(categoryId: string): string {
+  if (categoryId === 'femme') return 'femme';
+  if (categoryId === 'homme') return 'homme';
+  if (categoryId === 'unisex') return 'mixte';
   return '';
 }
 
 function buildApiParams(answers: Readonly<Record<number, string[]>>): URLSearchParams {
   const params = new URLSearchParams({ limit: '5' });
 
-  const gender = answers[1]?.[0] ?? '';
-  const genderParam = getGenderParam(gender);
-  if (genderParam !== '') {
-    params.set('gender', genderParam);
+  const category = answers[1]?.[0] ?? '';
+  const categoryParam = getCategoryParam(category);
+  if (categoryParam !== '') {
+    params.set('category', categoryParam);
   }
 
   const ambiances = answers[2] ?? [];
@@ -175,13 +176,6 @@ function buildApiParams(answers: Readonly<Record<number, string[]>>): URLSearchP
   }
 
   return params;
-}
-
-function formatPrice(price: number): string {
-  return new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price) + ' FCFA';
 }
 
 function truncateDescription(text: string, max: number): string {
@@ -454,7 +448,7 @@ function OlfactiveCard({
         style={{
           fontSize: '0.9rem',
           fontWeight: 700,
-          color: selected ? 'var(--text-primary)' : 'var(--text-primary)',
+          color: 'var(--text-primary)',
           margin: 0,
           lineHeight: 1.2,
         }}
@@ -980,7 +974,7 @@ export default function QuizClient() {
   const [products, setProducts] = useState<ProductResult[]>([]);
   const [loadingResults, setLoadingResults] = useState(false);
 
-  const currentStep = QUIZ_STEPS.find((s) => s.num === step)!;
+  const currentStep = QUIZ_STEPS.find((s) => s.num === step) ?? QUIZ_STEPS[0]!;
   const currentAnswers = useMemo(() => answers[step] ?? [], [answers, step]);
   const isMultiple = currentStep.multiple === true;
   const isGridTwo = currentStep.gridTwo === true;

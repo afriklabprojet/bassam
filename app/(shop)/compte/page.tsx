@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getLightOrderStatusStyle, getOrderStatusLabel } from '@/lib/order-status-theme';
@@ -55,6 +55,7 @@ function isTabValue(value: string | null): value is Tab {
 
 export default function AccountPage() {
   const router = useRouter();
+  const routerRef = useRef(router);
   const [user, setUser]       = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [orders, setOrders]   = useState<Order[]>([]);
@@ -77,7 +78,7 @@ export default function AccountPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (cancelled) return;
-      if (!user) { router.replace('/auth/login'); return; }
+      if (!user) { routerRef.current.replace('/auth/login'); return; }
       setUser(user);
 
       const [profileRes, ordersRes] = await Promise.all([
@@ -100,11 +101,6 @@ export default function AccountPage() {
     }
     load();
     return () => { cancelled = true; };
-  // router is intentionally omitted: this effect must run once on mount only.
-  // Including router would create an infinite loop because router.replace()
-  // updates the AppRouter context, which changes the router reference,
-  // which would re-trigger the effect.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const wishlist: WishlistItem[] =

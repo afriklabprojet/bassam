@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle } from '@/lib/order-status-theme';
-import { formatCFA } from '@/lib/format';
+import { formatCFA, formatDateTime as formatDate } from '@/lib/format';
 
 interface OrderItem {
   quantity: number;
@@ -20,10 +20,6 @@ interface Order {
   createdAt: string;
   customerEmail: string | null;
   customerName: string | null;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 export default function AdminOrders() {

@@ -5,9 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart-context';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
-
-const fmt = (p: number) =>
-  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(p);
+import { formatPrice as fmt } from '@/lib/format';
 
 export default function CartSidebar() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, totalPrice, totalItems } = useCart();

@@ -1,8 +1,7 @@
 import BrandingPanel from '@/app/admin/parametres/BrandingPanel';
 import LogoPanel from './LogoPanel';
 import { getSiteSettings } from '@/lib/site-settings';
-
-const GOLD = '#C5A55A';
+import { GOLD } from '@/lib/admin-theme';
 
 export default async function BrandingPage() {
   const settings = await getSiteSettings();

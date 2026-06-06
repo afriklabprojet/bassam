@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
 import { DEFAULT_SHIPPING_CONFIG, getShippingFee, type ShippingConfig, type DeliveryMode } from '@/lib/shipping';
+import { formatPrice } from '@/lib/format';
 
 type Step = 1 | 2 | 3 | 4;
 type Direction = 'forward' | 'back';
@@ -20,10 +21,6 @@ type DeliveryInfo = {
 };
 
 type PaymentMethod = 'livraison' | 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
-}
 
 const STEPS: { label: string }[] = [
   { label: 'Livraison' },

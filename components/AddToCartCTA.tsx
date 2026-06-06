@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { formatPrice } from '@/lib/format';
 
 interface AddToCartCTAProps {
   onAddToCart: () => void;
@@ -35,13 +36,6 @@ export default function AddToCartCTA({
     setIsPulsing(true);
     setTimeout(() => setIsPulsing(false), 600);
   };
-
-  const formatPrice = (p: number) =>
-    new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      maximumFractionDigits: 0,
-    }).format(p);
 
   const total = price * quantity;
 

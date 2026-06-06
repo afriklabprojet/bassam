@@ -13,10 +13,9 @@ import {
   type HeroStat,
   type HomeHeroContent,
 } from '@/lib/supabase/home-hero';
+import { GOLD } from '@/lib/admin-theme';
 
 /* ── Styles & helpers ───────────────────────────────────────────────────────── */
-
-const GOLD = '#C5A55A';
 
 function inputStyle(): React.CSSProperties {
   return {

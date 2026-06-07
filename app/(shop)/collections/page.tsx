@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getProductCountsByGender } from '@/lib/supabase/products';
+import { getProductCountsByCategory } from '@/lib/supabase/products';
 import { getCollectionsContent } from '@/lib/supabase/collections-content';
+import { getPublicCategories } from '@/lib/supabase/taxonomies';
 
 export const revalidate = 300;
 
@@ -99,10 +100,12 @@ const COLLECTIONS = [
 export default async function CollectionsPage() {
   let counts: Record<string, number> = {};
   let content: Awaited<ReturnType<typeof getCollectionsContent>> = {};
+  let categoryRows: Awaited<ReturnType<typeof getPublicCategories>> = [];
   try {
-    [counts, content] = await Promise.all([
-      getProductCountsByGender(),
+    [counts, content, categoryRows] = await Promise.all([
+      getProductCountsByCategory(),
       getCollectionsContent(),
+      getPublicCategories(),
     ]);
   } catch {
     // non-blocking
@@ -117,6 +120,28 @@ export default async function CollectionsPage() {
       ? null
       : counts[col.slug] ?? null,
   }));
+
+  const dynamicCategories = categoryRows
+    .filter((category) => !collectionsWithCounts.some((existing) => existing.slug === category.slug))
+    .map((category) => ({
+      slug: category.slug,
+      label: category.name,
+      eyebrow: 'Catégorie produit',
+      tagline: category.description ?? `Découvrez ${category.name}`,
+      description: category.description ?? `Explorez les produits de la catégorie ${category.name}.`,
+      accent: 'rgba(197,165,90,0.10)',
+      textLight: true,
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <rect x="8" y="10" width="24" height="20" rx="4" stroke="#C5A55A" strokeWidth="1.5" />
+          <path d="M14 18h12M14 23h8" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+      bg: '#0B0B0B',
+      count: counts[category.slug] ?? null,
+    }));
+
+  const cards = [...collectionsWithCounts, ...dynamicCategories];
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
@@ -148,7 +173,7 @@ export default async function CollectionsPage() {
       {/* ── Collection Cards ─────────────────────────────────────────────── */}
       <section className="container mx-auto" style={{ padding: '0 var(--px, 1.5rem) 6rem' }}>
         <div className="coll-grid">
-          {collectionsWithCounts.map((col, i) => (
+          {cards.map((col, i) => (
             <Link
               key={col.slug}
               href={`/collections/${col.slug}`}

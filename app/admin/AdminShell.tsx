@@ -139,7 +139,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: 'Catégories',
+    label: 'Catégories produit',
     href: '/admin/categories',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -148,7 +148,16 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: 'Collections',
+    label: 'Collections produit',
+    href: '/admin/collections',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h10M4 18h6" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Contenu collections',
     href: '/admin/contenu/collections',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>

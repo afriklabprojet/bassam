@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const categoryParam = searchParams.get('category') || searchParams.get('gender') || undefined;
 
     // Endpoint: GET /api/products?brands=true → returns distinct brand list
     if (searchParams.get('brands') === 'true') {
@@ -17,8 +18,7 @@ export async function GET(request: NextRequest) {
 
     const filters: ProductFilters = {
       q: searchParams.get('q') || undefined,
-      category: searchParams.get('category') || undefined,
-      gender: (searchParams.get('gender') as ProductFilters['gender']) || undefined,
+      category: categoryParam as ProductFilters['category'],
       minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
       maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
       brand: searchParams.get('brand') || undefined,

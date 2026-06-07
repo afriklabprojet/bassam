@@ -1,3 +1,4 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
@@ -8,7 +9,6 @@ import {
 // ISR — revalide toutes les 5 minutes
 export const revalidate = 300;
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'À propos — VIP Parfumerie Bar Abidjan',

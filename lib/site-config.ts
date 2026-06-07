@@ -1,3 +1,7 @@
+/** Single source of truth for the production domain. Never duplicate this. */
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
+export const SITE_NAME = 'VIP Parfumerie Bar';
+
 const sanitizePhoneNumber = (value?: string) => value?.replaceAll(/\D/gu, '') ?? '';
 
 const whatsappNumber = sanitizePhoneNumber(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER);

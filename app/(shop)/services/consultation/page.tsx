@@ -1,10 +1,10 @@
+import { SITE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getSiteSettings } from '@/lib/site-settings';
 import ConsultationForm from '@/components/ConsultationForm';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const dynamic = 'force-dynamic';
 

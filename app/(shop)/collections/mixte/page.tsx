@@ -1,8 +1,8 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 export const metadata: Metadata = {
 title: 'Parfums Mixtes & Unisexes à Abidjan -- Baccarat Rouge, Oud Wood | VIP Parfumerie Bar',
 description: "Collection parfums unisexes à Abidjan -- Fragrances qui transcendent les genres. Baccarat Rouge 540, Oud Wood Tom Ford, Santal 33. Livraison Côte d'Ivoire.",
@@ -19,8 +19,7 @@ locale: 'fr_CI',
 // ─── Data ─────────────────────────────────────────────────────────────────────
 async function getMixteProducts(): Promise<Product[]> {
 try {
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
-const res = await fetch(`${baseUrl}/api/products?category=mixte`, { next: { revalidate: 60 } });
+const res = await fetch(`${BASE_URL}/api/products?category=mixte`, { next: { revalidate: 60 } });
 if (!res.ok) return [];
 const data = await res.json();
 return data.products || [];

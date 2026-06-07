@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import { getProducts } from '@/lib/supabase/products';
+import { getPublicCategoryBySlug, getPublicCollectionBySlug } from '@/lib/supabase/taxonomies';
 import type { Product } from '@/types/product.types';
 
 interface PageProps {
@@ -14,21 +15,21 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar
 // ISR: revalidate every 5 minutes
 export const revalidate = 300;
 
-const CATEGORY_META: Record<string, { title: string; description: string; gender?: 'homme' | 'femme' | 'mixte' }> = {
+const CATEGORY_META: Record<string, { title: string; description: string; category?: string; collectionId?: string }> = {
   homme: {
     title: 'Parfums Homme',
     description: 'Découvrez notre sélection de parfums masculins de luxe — boisés, frais, orientaux. Livraison en Afrique.',
-    gender: 'homme',
+    category: 'homme',
   },
   femme: {
     title: 'Parfums Femme',
     description: 'Explorez nos fragrances féminines élégantes — floraux, gourmands, orientaux. Paiement Mobile Money.',
-    gender: 'femme',
+    category: 'femme',
   },
   mixte: {
     title: 'Parfums Mixtes',
     description: 'Des fragrances unisexes modernes qui transcendent les genres.',
-    gender: 'mixte',
+    category: 'mixte',
   },
   nouveautes: {
     title: 'Nouveautés',
@@ -52,9 +53,37 @@ const CATEGORY_META: Record<string, { title: string; description: string; gender
 // Cela évite les timeouts Supabase au moment du build
 export const dynamicParams = true;
 
+async function resolveCategoryMeta(category: string) {
+  const staticMeta = CATEGORY_META[category];
+  if (staticMeta) {
+    return staticMeta;
+  }
+
+  const dbCategory = await getPublicCategoryBySlug(category);
+  if (dbCategory) {
+    return {
+      title: dbCategory.name,
+      description: dbCategory.description ?? `Découvrez la catégorie ${dbCategory.name} chez VIP Parfumerie Bar.`,
+      category: dbCategory.slug,
+    };
+  }
+
+  // Chercher dans la table collections (collections commerciales du menu nav)
+  const dbCollection = await getPublicCollectionBySlug(category);
+  if (!dbCollection) {
+    return null;
+  }
+
+  return {
+    title: dbCollection.name,
+    description: dbCollection.description ?? `Découvrez la collection ${dbCollection.name} chez VIP Parfumerie Bar.`,
+    collectionId: dbCollection.id,
+  };
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category } = await params;
-  const meta = CATEGORY_META[category];
+  const meta = await resolveCategoryMeta(category);
 
   if (!meta) {
     return { title: 'Collection | VIP Parfumerie Bar' };
@@ -74,15 +103,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 async function getProductsByCategory(category: string): Promise<Product[]> {
-  const meta = CATEGORY_META[category];
+  const meta = await resolveCategoryMeta(category);
   try {
     let filters: Parameters<typeof getProducts>[0];
-    if (meta?.gender) {
-      filters = { gender: meta.gender, limit: 48 };
-    } else if (category === 'nouveautes') {
+    if (category === 'nouveautes') {
       filters = { tri: 'nouveautes' as const, limit: 48 };
+    } else if (meta?.collectionId) {
+      filters = { collectionId: meta.collectionId, limit: 48 };
+    } else if (meta?.category) {
+      filters = { category: meta.category, limit: 48 };
     } else {
-      filters = { limit: 48 };
+      filters = { category, limit: 48 };
     }
     const { products } = await getProducts(filters);
     return products;
@@ -93,7 +124,7 @@ async function getProductsByCategory(category: string): Promise<Product[]> {
 
 export default async function CategoryPage({ params }: Readonly<PageProps>) {
   const { category } = await params;
-  const meta = CATEGORY_META[category];
+  const meta = await resolveCategoryMeta(category);
 
   if (!meta) notFound();
 
@@ -147,14 +178,14 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
               Tous
             </Link>
             <Link
-              href={`/produits?gender=${meta.gender || ''}&tri=nouveautes`}
+              href={`/produits?category=${meta.category || ''}&tri=nouveautes`}
               className="px-3 py-1.5 rounded text-xs font-medium bg-white border border-line text-txt2 hover:border-txt2 transition-colors"
               style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}
             >
               Nouveautés
             </Link>
             <Link
-              href={`/produits?gender=${meta.gender || ''}&filtre=promo`}
+              href={`/produits?category=${meta.category || ''}&filtre=promo`}
               className="px-3 py-1.5 rounded text-xs font-medium bg-white border border-line text-txt2 hover:border-txt2 transition-colors"
               style={{ letterSpacing: '0.06em', textTransform: 'uppercase' }}
             >
@@ -182,7 +213,7 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
                 price={product.price}
                 originalPrice={product.originalPrice ?? undefined}
                 image={product.images[0] || '/images/products/product-placeholder.svg'}
-                category={product.gender || 'mixte'}
+                category={product.category || 'mixte'}
                 inStock={product.stockQuantity > 0}
               />
             ))}

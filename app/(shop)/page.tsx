@@ -1,3 +1,4 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Hero from '@/components/Hero';
 import ProductCard from '@/components/ProductCard';
@@ -12,7 +13,6 @@ import { getHomeHero } from '@/lib/supabase/home-hero';
 
 export const dynamic = 'force-dynamic';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan, Côte d\'Ivoire',

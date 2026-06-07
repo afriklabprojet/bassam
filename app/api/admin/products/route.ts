@@ -3,6 +3,19 @@ import { z } from 'zod';
 import { isCurrentUserAdmin, getAdminProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
 
+function normalizeProductPayload(body: unknown) {
+  if (!body || typeof body !== 'object') {
+    return body;
+  }
+
+  const payload = body as Record<string, unknown>;
+  return {
+    ...payload,
+    collectionId: payload.collectionId ?? payload.categoryId,
+    category: payload.category ?? payload.gender,
+  };
+}
+
 const updateProductSchema = z.object({
   name: z.string().min(1).optional(),
   slug: z.string().min(1).optional(),
@@ -10,8 +23,8 @@ const updateProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive().optional(),
   originalPrice: z.number().positive().nullable().optional(),
-  categoryId: z.string().uuid().nullable().optional(),
-  gender: z.enum(['homme', 'femme', 'mixte']).optional(),
+  collectionId: z.string().uuid().nullable().optional(),
+  category: z.string().min(1).optional(),
   stockQuantity: z.number().int().min(0).optional(),
   isFeatured: z.boolean().optional(),
   images: z.array(z.string()).optional(),
@@ -31,8 +44,8 @@ const createProductSchema = z.object({
   description: z.string().optional(),
   price: z.number().positive(),
   originalPrice: z.number().positive().optional(),
-  categoryId: z.string().uuid().optional(),
-  gender: z.enum(['homme', 'femme', 'mixte']).optional(),
+  collectionId: z.string().uuid().optional(),
+  category: z.string().min(1).optional(),
   stockQuantity: z.number().int().min(0).optional(),
   isFeatured: z.boolean().optional(),
   images: z.array(z.string()).optional(),
@@ -72,7 +85,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const body = await request.json();
+    const body = normalizeProductPayload(await request.json());
     const parsed = createProductSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -102,7 +115,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 });
     }
 
-    const body = await request.json();
+    const body = normalizeProductPayload(await request.json()) as Record<string, unknown>;
     const { id, ...rest } = body;
 
     if (!id || typeof id !== 'string') {

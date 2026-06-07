@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isCurrentUserAdmin, getAdminOrders, updateOrderStatus } from '@/lib/supabase/admin';
+import { isCurrentUserAdmin, getAdminOrders, getOrderCountByPhone, updateOrderStatus } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
 
 // GET /api/admin/orders
+// GET /api/admin/orders?phone=&excludeId= → returns { previousCount }
 export async function GET(request: NextRequest) {
   try {
     if (!(await isCurrentUserAdmin())) {
@@ -10,6 +11,15 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+
+    // Count previous orders for a phone
+    const phone = searchParams.get('phone');
+    const excludeId = searchParams.get('excludeId');
+    if (phone && excludeId) {
+      const previousCount = await getOrderCountByPhone(phone, excludeId);
+      return NextResponse.json({ previousCount });
+    }
+
     const page = Number(searchParams.get('page') ?? 1);
     const limit = Number(searchParams.get('limit') ?? 20);
     const status = searchParams.get('status') || undefined;

@@ -25,9 +25,9 @@ async function getRelatedProducts(product: Product): Promise<Product[]> {
     }
   };
 
-  if (product.gender) {
-    const sameGender = await getProducts({ gender: product.gender, limit: 8 });
-    appendUnique(sameGender.products);
+  if (product.category) {
+    const sameCategory = await getProducts({ category: product.category, limit: 8 });
+    appendUnique(sameCategory.products);
   }
 
   if (relatedProducts.length < 4) {

@@ -17,9 +17,9 @@ function mapRow(row: Record<string, unknown>): Product {
     description: (row.description as string) ?? null,
     price: Number(row.price),
     originalPrice: row.original_price ? Number(row.original_price) : null,
-    categoryId: (row.category_id as string) ?? null,
-    categoryName: (row.categories as { name: string } | null)?.name ?? null,
-    gender: (row.gender as Product['gender']) ?? null,
+    collectionId: (row.collection_id as string) ?? null,
+    collectionName: (row.collections as { name: string } | null)?.name ?? null,
+    category: (row.category as Product['category']) ?? null,
     stockQuantity: Number(row.stock_quantity ?? 0),
     isFeatured: Boolean(row.is_featured),
     images: (row.images as string[]) ?? [],
@@ -38,7 +38,6 @@ type ProductsFallbackReason = 'empty-primary' | 'primary-error';
 type ProductsFallbackContext = {
   reason: ProductsFallbackReason;
   tri: ProductFilters['tri'] | null;
-  gender: ProductFilters['gender'] | null;
   category: string | null;
   brand: string | null;
   featured: boolean;
@@ -57,7 +56,6 @@ function createFallbackContext(
   return {
     reason,
     tri: filters.tri ?? null,
-    gender: filters.gender ?? null,
     category: filters.category ?? null,
     brand: filters.brand ?? null,
     featured: Boolean(filters.featured),
@@ -86,14 +84,12 @@ function applyProductFilters(query: any, filters: ProductFilters) {
     query = query.or(`name.ilike.${q},brand.ilike.${q},description.ilike.${q}`);
   }
 
-  // Gender filter
-  if (filters.gender) {
-    query = query.eq('gender', filters.gender);
+  if (filters.category) {
+    query = query.eq('category', filters.category);
   }
 
-  // Category slug → gender mapping (homme/femme/mixte slugs)
-  if (filters.category && ['homme', 'femme', 'mixte'].includes(filters.category)) {
-    query = query.eq('gender', filters.category);
+  if (filters.collectionId) {
+    query = query.eq('collection_id', filters.collectionId);
   }
 
   // Price range
@@ -146,7 +142,7 @@ async function runProductsQuery(supabase: AnySupabaseClient, filters: ProductFil
 
   let query = supabase
     .from('products')
-    .select('*, categories(name)', { count: 'exact' });
+    .select('*, collections(name)', { count: 'exact' });
 
   query = applyProductFilters(query, filters);
   query = applyProductSorting(query, filters.tri);
@@ -217,7 +213,7 @@ export async function getProductBySlug(slug: string): Promise<(Product & { notes
 
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, collections(name)')
     .eq('slug', slug)
     .single();
 
@@ -246,20 +242,20 @@ export async function getBrands(): Promise<string[]> {
   return [...new Set(data.map((r) => r.brand as string))];
 }
 
-/** Count products by gender (for collection pages) */
-export async function getProductCountsByGender(): Promise<Record<string, number>> {
+/** Count products by category (for collection pages) */
+export async function getProductCountsByCategory(): Promise<Record<string, number>> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('products')
-    .select('gender');
+    .select('category');
 
   if (error || !data) return {};
 
   const counts: Record<string, number> = {};
   for (const row of data) {
-    const g = (row.gender as string) ?? 'autre';
-    counts[g] = (counts[g] ?? 0) + 1;
+    const category = (row.category as string) ?? 'autre';
+    counts[category] = (counts[category] ?? 0) + 1;
   }
   return counts;
 }

@@ -58,7 +58,8 @@ const DEMO_PRODUCTS = [
     description: 'Un parfum brut et noble, magistralement composé autour du Calabrian bergamot et de l\'ambroxan. Une fragrance masculine puissante et raffinée.',
     price: 85000,
     original_price: 95000,
-    gender: 'homme',
+    collection_slug: 'extrait-concentre',
+    category: 'homme',
     stock_quantity: 25,
     is_featured: true,
     images: ['/images/products/dior-sauvage.svg'],
@@ -73,7 +74,8 @@ const DEMO_PRODUCTS = [
     description: 'Une interprétation intense et sensuelle du bouquet floral emblématique de J\'adore. Un nectar de fleurs absolues.',
     price: 92000,
     original_price: null,
-    gender: 'femme',
+    collection_slug: 'collection-manel',
+    category: 'femme',
     stock_quantity: 18,
     is_featured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -88,7 +90,8 @@ const DEMO_PRODUCTS = [
     description: 'L\'essence même de la liberté masculine. Un parfum boisé aromatique profond et envoûtant.',
     price: 78000,
     original_price: null,
-    gender: 'homme',
+    collection_slug: 'collection-privee-gazelle',
+    category: 'homme',
     stock_quantity: 30,
     is_featured: true,
     images: ['/images/products/bleu-de-chanel.svg'],
@@ -103,7 +106,8 @@ const DEMO_PRODUCTS = [
     description: 'L\'Eau de Parfum iconique. Un iris gourmand, premier du genre, qui exhale un bonheur intense.',
     price: 65000,
     original_price: 72000,
-    gender: 'femme',
+    collection_slug: 'collection-manel',
+    category: 'femme',
     stock_quantity: 22,
     is_featured: true,
     images: ['/images/products/la-vie-est-belle.svg'],
@@ -118,7 +122,8 @@ const DEMO_PRODUCTS = [
     description: 'Célèbre la force, le pouvoir, la vision et le succès. Un chef-d\'œuvre fruité boisé unique.',
     price: 195000,
     original_price: null,
-    gender: 'homme',
+    collection_slug: 'collection-privee-convivium',
+    category: 'homme',
     stock_quantity: 8,
     is_featured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -133,7 +138,8 @@ const DEMO_PRODUCTS = [
     description: 'Un oriental frais, irrévérencieux et indéfinissable. Le parfum d\'une femme qui ose.',
     price: 82000,
     original_price: null,
-    gender: 'femme',
+    collection_slug: 'collection-privee-gazelle',
+    category: 'femme',
     stock_quantity: 20,
     is_featured: false,
     images: ['/images/products/coco-mademoiselle.svg'],
@@ -148,7 +154,8 @@ const DEMO_PRODUCTS = [
     description: 'Un boisé rare et exotique. L\'oud, le bois de rose et la cardamome créent un sillage hypnotique.',
     price: 145000,
     original_price: null,
-    gender: 'mixte',
+    collection_slug: 'collection-privee-gazelle',
+    category: 'mixte',
     stock_quantity: 12,
     is_featured: true,
     images: ['/images/products/oud-wood.svg'],
@@ -163,7 +170,8 @@ const DEMO_PRODUCTS = [
     description: 'Luxueux et sensuel. Un bouquet d\'orchidée noire et d\'épices enveloppé de chocolat noir.',
     price: 125000,
     original_price: 138000,
-    gender: 'mixte',
+    collection_slug: 'collection-privee-convivium',
+    category: 'mixte',
     stock_quantity: 15,
     is_featured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -178,7 +186,8 @@ const DEMO_PRODUCTS = [
     description: 'La profondeur de l\'océan capturée dans un flacon. Un aquatique aromatique moderne.',
     price: 62000,
     original_price: null,
-    gender: 'homme',
+    collection_slug: 'extrait-concentre',
+    category: 'homme',
     stock_quantity: 28,
     is_featured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -193,7 +202,8 @@ const DEMO_PRODUCTS = [
     description: 'Chef-d\'œuvre olfactif lumineux et cristallin. Le safran et le cèdre se mêlent à l\'ambre et au musc.',
     price: 220000,
     original_price: null,
-    gender: 'mixte',
+    collection_slug: 'collection-privee-convivium',
+    category: 'mixte',
     stock_quantity: 5,
     is_featured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -208,7 +218,8 @@ const DEMO_PRODUCTS = [
     description: 'Un bouquet de pivoine et de rose fraîche, léger et romantique comme une promenade printanière.',
     price: 58000,
     original_price: null,
-    gender: 'femme',
+    collection_slug: 'collection-manel',
+    category: 'femme',
     stock_quantity: 35,
     is_featured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -223,7 +234,8 @@ const DEMO_PRODUCTS = [
     description: 'Opulent, chaud et moderne. Le tabac doux et la vanille créent une signature inoubliable.',
     price: 165000,
     original_price: null,
-    gender: 'mixte',
+    collection_slug: 'collection-privee-gazelle',
+    category: 'mixte',
     stock_quantity: 10,
     is_featured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -265,10 +277,11 @@ async function main() {
 
   // ── 2. Vérifier si les tables existent ──
   console.log('📋 2/4 — Vérification des tables…');
-  const { error: catError } = await supabase.from('categories').select('id').limit(1);
+  const { error: collectionError } = await supabase.from('collections').select('id').limit(1);
+  const { error: categoryError } = await supabase.from('categories').select('id').limit(1);
   
-  if (catError) {
-    console.error(`\n❌ La table 'categories' n'existe pas.`);
+  if (collectionError || categoryError) {
+    console.error(`\n❌ Les tables 'categories' et 'collections' doivent exister.`);
     console.log('\n👉 Copiez le contenu de supabase/schema.sql et collez-le dans :');
     console.log(`   ${SUPABASE_URL.replace('.supabase.co', '')}/project/sql/new`);
     console.log('   Puis exécutez ce script à nouveau.\n');
@@ -276,12 +289,18 @@ async function main() {
   }
   console.log('   ✅ Tables détectées\n');
 
-  // ── 3. Seed catégories ──
-  console.log('📋 3/4 — Insertion des catégories…');
+  // ── 3. Seed catégories métier + collections commerciales ──
+  console.log('📋 3/4 — Insertion des catégories et collections…');
   const categories = [
-    { name: 'Parfums Homme', slug: 'homme', description: 'Des fragrances masculines puissantes et raffinées', display_order: 1 },
-    { name: 'Parfums Femme', slug: 'femme', description: 'Des senteurs féminines élégantes et envoûtantes', display_order: 2 },
-    { name: 'Parfums Mixtes', slug: 'mixte', description: 'Des fragrances unisexes modernes et audacieuses', display_order: 3 },
+    { name: 'Homme', slug: 'homme', description: 'Univers olfactif masculin', display_order: 1 },
+    { name: 'Femme', slug: 'femme', description: 'Univers olfactif féminin', display_order: 2 },
+    { name: 'Mixte', slug: 'mixte', description: 'Univers olfactif sans distinction de genre', display_order: 3 },
+  ];
+  const collections = [
+    { name: 'Extrait Concentré', slug: 'extrait-concentre', description: 'Sélection concentrée des signatures les plus iconiques', display_order: 1 },
+    { name: 'Collection Privée Gazelle', slug: 'collection-privee-gazelle', description: 'Fragrances racées au sillage vif et sophistiqué', display_order: 2 },
+    { name: 'Collection Privée Convivium', slug: 'collection-privee-convivium', description: 'Compositions intenses pensées pour les amateurs de signatures profondes', display_order: 3 },
+    { name: 'Collection Manel', slug: 'collection-manel', description: 'Sélection élégante et lumineuse pour les créations florales et tendres', display_order: 4 },
   ];
 
   for (const cat of categories) {
@@ -290,21 +309,28 @@ async function main() {
       console.warn(`   ⚠️  Catégorie "${cat.name}": ${error.message}`);
     }
   }
-  console.log('   ✅ 3 catégories\n');
+  for (const collection of collections) {
+    const { error } = await supabase.from('collections').upsert(collection, { onConflict: 'slug' });
+    if (error) {
+      console.warn(`   ⚠️  Collection "${collection.name}": ${error.message}`);
+    }
+  }
+  console.log(`   ✅ ${categories.length} catégories et ${collections.length} collections\n`);
 
-  // ── 4. Récupérer les IDs catégories ──
-  const { data: cats } = await supabase.from('categories').select('id, slug');
-  const catMap = new Map(cats?.map(c => [c.slug, c.id]) || []);
+  // ── 4. Récupérer les IDs collections ──
+  const { data: collectionRows } = await supabase.from('collections').select('id, slug');
+  const collectionMap = new Map(collectionRows?.map(c => [c.slug, c.id]) || []);
 
   // ── 5. Seed produits ──
   console.log('📋 4/4 — Insertion des produits démo…');
   let inserted = 0;
   for (const product of DEMO_PRODUCTS) {
-    const categoryId = catMap.get(product.gender) || null;
+    const { collection_slug, ...productData } = product;
+    const collectionId = collectionMap.get(collection_slug) || null;
     const { error } = await supabase.from('products').upsert(
       {
-        ...product,
-        category_id: categoryId,
+        ...productData,
+        collection_id: collectionId,
       },
       { onConflict: 'slug' }
     );
@@ -319,12 +345,14 @@ async function main() {
   // ── Résumé ──
   const { count: productCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
   const { count: catCount } = await supabase.from('categories').select('*', { count: 'exact', head: true });
+  const { count: collectionCount } = await supabase.from('collections').select('*', { count: 'exact', head: true });
 
   console.log('┌──────────────────────────────────────────┐');
   console.log('│     🎉 Base de données prête !            │');
   console.log('├──────────────────────────────────────────┤');
   console.log(`│  📦 Produits    : ${String(productCount).padEnd(22)}│`);
-  console.log(`│  📁 Catégories  : ${String(catCount).padEnd(22)}│`);
+  console.log(`│  🏷️ Catégories  : ${String(catCount).padEnd(22)}│`);
+  console.log(`│  📁 Collections : ${String(collectionCount).padEnd(22)}│`);
   console.log('│  👤 Admin       : admin@vip-parfumerie.com │');
   console.log('├──────────────────────────────────────────┤');
   console.log('│  → npm run dev   (lancer le site)        │');

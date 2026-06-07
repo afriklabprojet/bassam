@@ -13,7 +13,7 @@ const SORT_OPTIONS = [
   { value: 'marque', label: 'Marque A-Z' },
 ];
 
-const GENDER_OPTIONS = [
+const CATEGORY_OPTIONS = [
   { value: '', label: 'Tous' },
   { value: 'femme', label: 'Femme' },
   { value: 'homme', label: 'Homme' },
@@ -33,7 +33,7 @@ function ProduitsContent() {
   // Derive filters from URL
   const currentFilters: ProductFilters = {
     q: searchParams.get('q') || undefined,
-    gender: (searchParams.get('gender') as ProductFilters['gender']) || undefined,
+    category: ((searchParams.get('category') || searchParams.get('gender')) as ProductFilters['category']) || undefined,
     minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
     maxPrice: searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
     tri: (searchParams.get('tri') as ProductFilters['tri']) || undefined,
@@ -48,14 +48,14 @@ function ProduitsContent() {
     const sp = new URLSearchParams(searchKey);
     const params = new URLSearchParams();
     const q = sp.get('q');
-    const gender = sp.get('gender');
+    const category = sp.get('category') || sp.get('gender');
     const minPrice = sp.get('minPrice');
     const maxPrice = sp.get('maxPrice');
     const tri = sp.get('tri');
     const filtre = sp.get('filtre');
     const page = sp.get('page');
     if (q) params.set('q', q);
-    if (gender) params.set('gender', gender);
+    if (category) params.set('category', category);
     if (minPrice) params.set('minPrice', minPrice);
     if (maxPrice) params.set('maxPrice', maxPrice);
     if (tri) params.set('tri', tri);
@@ -83,6 +83,9 @@ function ProduitsContent() {
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
+    if (key === 'category') {
+      params.delete('gender');
+    }
     if (value) {
       params.set(key, value);
     } else {
@@ -115,17 +118,17 @@ function ProduitsContent() {
         {/* Controls bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Gender filter pills */}
+            {/* Category filter pills */}
             <div className="flex gap-2">
-              {GENDER_OPTIONS.map((opt) => (
+              {CATEGORY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => updateFilter('gender', opt.value)}
+                  onClick={() => updateFilter('category', opt.value)}
                   className="px-4 py-2 rounded text-xs font-medium border transition-all"
                   style={{
                     letterSpacing: '0.06em',
                     textTransform: 'uppercase',
-                    ...(currentFilters.gender || '') === opt.value
+                    ...(currentFilters.category || '') === opt.value
                       ? { background: 'var(--noir)', color: '#fff', borderColor: 'var(--noir)' }
                       : { background: '#fff', color: 'var(--text-secondary)', borderColor: 'var(--line-light)' }
                   }}
@@ -252,7 +255,7 @@ function ProduitsContent() {
                   price={product.price}
                   originalPrice={product.originalPrice ?? undefined}
                   image={product.images[0] || '/images/products/product-placeholder.svg'}
-                  category={product.gender || 'mixte'}
+                  category={product.category || 'mixte'}
                   inStock={product.stockQuantity > 0}
                 />
               ))}

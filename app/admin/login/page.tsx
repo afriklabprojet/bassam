@@ -1,22 +1,61 @@
 'use client';
 
 import { Suspense, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import {
+  createClient,
+  hasBrowserSupabaseConfig,
+  MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE,
+} from '@/lib/supabase/client';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function LoginForm() {
   const searchParams = useSearchParams();
+  const isSupabaseConfigured = hasBrowserSupabaseConfig();
+  const configErrorMessage = MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  let submitContent: React.ReactNode = (
+    <>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0110 0v4" />
+      </svg>
+      Se connecter
+    </>
+  );
+
+  if (loading) {
+    submitContent = (
+      <div
+        style={{
+          width: '18px',
+          height: '18px',
+          border: '2px solid rgba(8,8,8,0.3)',
+          borderTopColor: '#080808',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }}
+      />
+    );
+  } else if (!isSupabaseConfigured) {
+    submitContent = 'Configuration Supabase manquante';
+  }
+
   const handleLogin = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
+
+    if (!isSupabaseConfigured) {
+      setError(MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const supabase = createClient();
@@ -36,7 +75,7 @@ function LoginForm() {
 
       const next = searchParams.get('next');
       const destination = next?.startsWith('/') ? next : '/admin';
-      window.location.href = destination;
+      globalThis.location.href = destination;
     } catch {
       setError('Erreur de connexion. Veuillez réessayer.');
     } finally {
@@ -156,7 +195,7 @@ function LoginForm() {
       </div>
 
       {/* Error */}
-      {error && (
+      {(error || !isSupabaseConfigured) && (
         <div
           style={{
             background: 'rgba(239,68,68,0.1)',
@@ -169,14 +208,14 @@ function LoginForm() {
             textAlign: 'center',
           }}
         >
-          {error}
+          {error ?? configErrorMessage}
         </div>
       )}
 
       {/* Submit */}
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !isSupabaseConfigured}
         style={{
           width: '100%',
           padding: '13px',
@@ -189,7 +228,7 @@ function LoginForm() {
           fontSize: '0.875rem',
           fontWeight: 600,
           letterSpacing: '0.04em',
-          cursor: loading ? 'not-allowed' : 'pointer',
+          cursor: loading || !isSupabaseConfigured ? 'not-allowed' : 'pointer',
           transition: 'all 0.3s ease',
           display: 'flex',
           alignItems: 'center',
@@ -197,26 +236,7 @@ function LoginForm() {
           gap: '8px',
         }}
       >
-        {loading ? (
-          <div
-            style={{
-              width: '18px',
-              height: '18px',
-              border: '2px solid rgba(8,8,8,0.3)',
-              borderTopColor: '#080808',
-              borderRadius: '50%',
-              animation: 'spin 0.8s linear infinite',
-            }}
-          />
-        ) : (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0110 0v4" />
-            </svg>
-            Se connecter
-          </>
-        )}
+        {submitContent}
       </button>
     </form>
   );

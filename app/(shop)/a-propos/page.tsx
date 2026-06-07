@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getAboutStats, getAboutValeurs, getAboutEngagements } from '@/lib/supabase/about-content';
+import {
+  getAboutStats, getAboutValeurs, getAboutEngagements,
+  getAboutHero, getAboutStory,
+} from '@/lib/supabase/about-content';
 
 // ISR — revalide toutes les 5 minutes
 export const revalidate = 300;
@@ -43,10 +46,12 @@ function SectionEyebrow({ label }: Readonly<{ label: string }>) {
 /* ─── Page ───────────────────────────────────────────────── */
 
 export default async function AProposPage() {
-  const [stats, valeurs, engagements] = await Promise.all([
+  const [stats, valeurs, engagements, heroData, storyData] = await Promise.all([
     getAboutStats(),
     getAboutValeurs(),
     getAboutEngagements(),
+    getAboutHero(),
+    getAboutStory(),
   ]);
 
   return (
@@ -73,7 +78,7 @@ export default async function AProposPage() {
 
         <div className="container" style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ maxWidth: 780 }}>
-            <SectionEyebrow label="Notre histoire" />
+            <SectionEyebrow label={heroData.eyebrow} />
 
             <h1 style={{
               fontFamily: 'var(--font-serif)',
@@ -84,8 +89,8 @@ export default async function AProposPage() {
               letterSpacing: '-0.01em',
               margin: '0 0 28px',
             }}>
-              L&apos;excellence olfactive,{' '}
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>au cœur de l&apos;Afrique.</em>
+              {heroData.title_line1}{' '}
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{heroData.title_em}</em>
             </h1>
 
             <p style={{
@@ -95,9 +100,7 @@ export default async function AProposPage() {
               maxWidth: 580,
               margin: '0 0 44px',
             }}>
-              VIP Parfumerie Bar est né d&apos;une conviction simple : chaque personne mérite d&apos;accéder
-              aux plus beaux parfums du monde, ici, en Afrique de l&apos;Ouest, sans compromis sur
-              l&apos;authenticité ni sur l&apos;expérience.
+              {heroData.subtitle}
             </p>
 
             <GoldRule />
@@ -142,7 +145,7 @@ export default async function AProposPage() {
 
             {/* Texte */}
             <div>
-              <SectionEyebrow label="Fondation" />
+              <SectionEyebrow label={storyData.section_eyebrow} />
               <h2 style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: 'clamp(1.75rem, 3vw, 2.75rem)',
@@ -152,24 +155,19 @@ export default async function AProposPage() {
                 margin: '0 0 28px',
                 letterSpacing: '0.01em',
               }}>
-                Une maison née de la<br />passion du <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>parfum rare.</em>
+                {storyData.title_line1}<br />
+                <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{storyData.title_em}</em>
               </h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0 }}>
-                  Fondée à Abidjan en 2022, VIP Parfumerie Bar est née de la frustration de ne pas trouver, en Afrique,
-                  des parfums de luxe authentiques à des prix honnêtes. Trop souvent, les Africains se voyaient proposer
-                  des contrefaçons, ou devaient faire confiance à des revendeurs opaques.
+                  {storyData.paragraph1}
                 </p>
                 <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0 }}>
-                  Notre fondatrice a décidé de changer cela. Forte de ses connexions avec les distributeurs officiels
-                  en Europe, elle a construit une chaîne d&apos;approvisionnement rigoureuse, transparente et traçable —
-                  directement depuis les maisons de parfumerie jusqu&apos;à votre porte.
+                  {storyData.paragraph2}
                 </p>
                 <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', lineHeight: 1.8, margin: 0 }}>
-                  Aujourd&apos;hui, VIP Parfumerie Bar est la référence des amateurs de beaux parfums en Côte d&apos;Ivoire
-                  et au-delà. Plus de 5 000 clients font confiance à notre sélection, notre service et notre engagement
-                  pour l&apos;authenticité.
+                  {storyData.paragraph3}
                 </p>
               </div>
             </div>
@@ -199,13 +197,12 @@ export default async function AProposPage() {
                     margin: 0,
                     fontStyle: 'italic',
                   }}>
-                    « Le luxe ne devrait pas avoir de frontières. Notre mission est de vous apporter
-                    le monde des parfums, ici, chez vous. »
+                    {storyData.quote_text}
                   </p>
                 </blockquote>
                 <GoldRule />
                 <p style={{ margin: '20px 0 0', fontSize: '0.6875rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-                  La Fondatrice — VIP Parfumerie Bar
+                  {storyData.quote_author}
                 </p>
               </div>
 

@@ -17,6 +17,19 @@ CREATE TABLE categories (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Collections table
+CREATE TABLE collections (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  parent_id UUID REFERENCES collections(id),
+  display_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Products table
 CREATE TABLE products (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -26,8 +39,8 @@ CREATE TABLE products (
   description TEXT,
   price DECIMAL(10, 2) NOT NULL,
   original_price DECIMAL(10, 2),
-  category_id UUID REFERENCES categories(id),
-  gender TEXT CHECK (gender IN ('homme', 'femme', 'mixte')),
+  collection_id UUID REFERENCES collections(id),
+  category TEXT,
   stock_quantity INT DEFAULT 0,
   is_featured BOOLEAN DEFAULT FALSE,
   images TEXT[] DEFAULT '{}',
@@ -94,9 +107,9 @@ CREATE TABLE profiles (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_products_category ON products(category_id);
+CREATE INDEX idx_products_collection ON products(collection_id);
 CREATE INDEX idx_products_brand ON products(brand);
-CREATE INDEX idx_products_gender ON products(gender);
+CREATE INDEX idx_products_category ON products(category);
 CREATE INDEX idx_products_featured ON products(is_featured) WHERE is_featured = TRUE;
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
@@ -107,6 +120,7 @@ CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);
 
 -- Row Level Security (RLS)
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE newsletter_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
@@ -119,6 +133,11 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 -- Categories: Public read
 CREATE POLICY "Categories are viewable by everyone"
   ON categories FOR SELECT
+  USING (TRUE);
+
+-- Collections: Public read
+CREATE POLICY "Collections are viewable by everyone"
+  ON collections FOR SELECT
   USING (TRUE);
 
 -- Products: Public read
@@ -178,6 +197,10 @@ CREATE TRIGGER update_categories_updated_at
   BEFORE UPDATE ON categories
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_collections_updated_at
+  BEFORE UPDATE ON collections
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_products_updated_at
   BEFORE UPDATE ON products
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -211,6 +234,13 @@ CREATE TRIGGER on_auth_user_created
 
 -- Seed data for categories
 INSERT INTO categories (name, slug, description, display_order) VALUES
-  ('Parfums Homme', 'homme', 'Des fragrances masculines puissantes et raffinées', 1),
-  ('Parfums Femme', 'femme', 'Des senteurs féminines élégantes et envoûtantes', 2),
-  ('Parfums Mixtes', 'mixte', 'Des fragrances unisexes modernes', 3);
+  ('Homme', 'homme', 'Des fragrances masculines puissantes et raffinées', 1),
+  ('Femme', 'femme', 'Des senteurs féminines élégantes et envoûtantes', 2),
+  ('Mixte', 'mixte', 'Des fragrances unisexes modernes', 3);
+
+-- Seed data for collections
+INSERT INTO collections (name, slug, description, display_order) VALUES
+  ('Extrait Concentré', 'extrait-concentre', 'Sélection concentrée des signatures les plus iconiques', 1),
+  ('Collection Privée Gazelle', 'collection-privee-gazelle', 'Fragrances racées au sillage vif et sophistiqué', 2),
+  ('Collection Privée Convivium', 'collection-privee-convivium', 'Compositions intenses pensées pour les amateurs de signatures profondes', 3),
+  ('Collection Manel', 'collection-manel', 'Sélection élégante et lumineuse pour les créations florales et tendres', 4);

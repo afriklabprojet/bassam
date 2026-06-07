@@ -1,6 +1,6 @@
 import { createClient } from './server';
 
-type CategoryJoin = { id: string; name: string } | null;
+type CollectionJoin = { id: string; name: string } | null;
 
 /** Get all products (admin — with full details) */
 export async function getAdminProducts(page = 1, limit = 20, search?: string) {
@@ -10,7 +10,7 @@ export async function getAdminProducts(page = 1, limit = 20, search?: string) {
 
   let query = supabase
     .from('products')
-    .select('*, categories(id, name)', { count: 'exact' })
+    .select('*, collections(id, name)', { count: 'exact' })
     .order('created_at', { ascending: false });
 
   if (search) {
@@ -26,7 +26,7 @@ export async function getAdminProducts(page = 1, limit = 20, search?: string) {
 
   return {
     products: data.map((row) => {
-      const category = row.categories as CategoryJoin;
+      const collection = row.collections as CollectionJoin;
       return {
         id: row.id,
         name: row.name,
@@ -35,12 +35,12 @@ export async function getAdminProducts(page = 1, limit = 20, search?: string) {
         description: row.description,
         price: Number(row.price),
         originalPrice: row.original_price ? Number(row.original_price) : null,
-        gender: row.gender,
+        category: row.category,
         stockQuantity: row.stock_quantity,
         isFeatured: row.is_featured,
         images: row.images ?? [],
-        categoryId: category?.id ?? null,
-        categoryName: category?.name ?? null,
+        collectionId: collection?.id ?? null,
+        collectionName: collection?.name ?? null,
         notes: row.notes,
         concentration: row.concentration,
         volume: row.volume,
@@ -56,8 +56,8 @@ export async function getAdminProducts(page = 1, limit = 20, search?: string) {
 /** Create a product */
 export async function createProduct(input: {
   name: string; slug: string; brand: string; description?: string;
-  price: number; originalPrice?: number; categoryId?: string;
-  gender?: string; stockQuantity?: number; isFeatured?: boolean;
+  price: number; originalPrice?: number; collectionId?: string;
+  category?: string; stockQuantity?: number; isFeatured?: boolean;
   images?: string[]; notes?: Record<string, unknown>;
   concentration?: string; volume?: string;
 }) {
@@ -73,8 +73,8 @@ export async function createProduct(input: {
       description: input.description || null,
       price: input.price,
       original_price: input.originalPrice || null,
-      category_id: input.categoryId || null,
-      gender: input.gender || null,
+      collection_id: input.collectionId || null,
+      category: input.category || null,
       stock_quantity: input.stockQuantity ?? 0,
       is_featured: input.isFeatured ?? false,
       images: input.images ?? [],
@@ -90,8 +90,8 @@ export async function createProduct(input: {
 
 const PRODUCT_KEY_MAP: Record<string, string> = {
   name: 'name', slug: 'slug', brand: 'brand', description: 'description',
-  price: 'price', originalPrice: 'original_price', categoryId: 'category_id',
-  gender: 'gender', stockQuantity: 'stock_quantity', isFeatured: 'is_featured',
+  price: 'price', originalPrice: 'original_price', collectionId: 'collection_id',
+  category: 'category', stockQuantity: 'stock_quantity', isFeatured: 'is_featured',
   images: 'images', notes: 'notes', concentration: 'concentration', volume: 'volume',
 };
 

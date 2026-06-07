@@ -11,32 +11,29 @@ import { useSiteSettings } from '@/lib/site-settings-context';
 // ─── Navigation data ────────────────────────────────────────────────────────
 type NavChild = { label: string; href: string; description?: string };
 type NavLink = { label: string; href: string; children?: NavChild[] };
+export type NavCategory = { id: string; name: string; slug: string; description: string | null; display_order?: number };
 
-const navLinks: NavLink[] = [
-  { label: 'Accueil', href: '/' },
-  {
-    label: 'Services',
-    href: '/services',
-    children: [
-      { label: 'Quiz olfactif IA', href: '/services/quiz-olfactif', description: 'Trouvez votre signature' },
-      { label: 'Consultation privée', href: '/services/consultation', description: 'Sur rendez-vous' },
-      { label: 'Parfum personnalisé', href: '/services/creation-personnalisee', description: 'Création sur-mesure' },
-    ],
-  },
-  { label: 'Boutique', href: '/produits' },
-  {
-    label: 'Collections',
-    href: '/collections',
-    children: [
-      { label: 'Nouveautés', href: '/collections/nouveautes', description: 'Dernières arrivées' },
-      { label: 'Femme', href: '/collections/femme', description: 'Parfums & soins' },
-      { label: 'Homme', href: '/collections/homme', description: 'Signatures masculines' },
-      { label: 'Mixte', href: '/collections/mixte', description: 'Pour tous' },
-    ],
-  },
-  { label: 'À propos', href: '/a-propos' },
-  { label: 'Contact', href: '/contact' },
+const SERVICES_CHILDREN: NavChild[] = [
+  { label: 'Quiz olfactif IA', href: '/services/quiz-olfactif', description: 'Trouvez votre signature' },
+  { label: 'Consultation privée', href: '/services/consultation', description: 'Sur rendez-vous' },
+  { label: 'Parfum personnalisé', href: '/services/creation-personnalisee', description: 'Création sur-mesure' },
 ];
+
+function buildNavLinks(navCategories?: NavCategory[]): NavLink[] {
+  const collectionChildren: NavChild[] = (navCategories ?? []).map((c) => ({
+    label: c.name,
+    href: `/collections/${c.slug}`,
+  }));
+
+  return [
+    { label: 'Accueil', href: '/' },
+    { label: 'Boutique', href: '/produits' },
+    { label: 'Services', href: '/services', children: SERVICES_CHILDREN },
+    { label: 'Nos collections', href: '/collections', children: collectionChildren },
+    { label: 'À propos', href: '/a-propos' },
+    { label: 'Contact', href: '/contact' },
+  ];
+}
 
 // ─── Inline SVG icons ────────────────────────────────────────────────────────
 const IconSearch = ({ size = 20 }: { size?: number }) => (
@@ -125,10 +122,11 @@ function getCartAriaLabel(totalItems: number): string {
   return `Panier — ${totalItems} article${totalItems > 1 ? 's' : ''}`;
 }
 
-export default function Header() {
+export default function Header({ navCategories }: Readonly<{ navCategories?: NavCategory[] }>) {
   const { totalItems, toggleCart } = useCart();
   const settings = useSiteSettings();
   const pathname = usePathname();
+  const navLinks = React.useMemo(() => buildNavLinks(navCategories), [navCategories]);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -392,6 +390,7 @@ export default function Header() {
         mobileExpanded={mobileExpanded}
         setMobileExpanded={setMobileExpanded}
         pathname={pathname}
+        navLinks={navLinks}
       />
     </>
   );
@@ -400,7 +399,7 @@ export default function Header() {
 // ─── Mobile Drawer ────────────────────────────────────────────────────────────
 function MobileDrawer({
   menuOpen, setMenuOpen, handleSearch, searchQuery, setSearchQuery,
-  mobileExpanded, setMobileExpanded, pathname,
+  mobileExpanded, setMobileExpanded, pathname, navLinks,
 }: Readonly<{
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
@@ -410,6 +409,7 @@ function MobileDrawer({
   mobileExpanded: string | null;
   setMobileExpanded: (v: string | null) => void;
   pathname: string;
+  navLinks: NavLink[];
 }>) {
   const settings = useSiteSettings();
   const closeMobileMenu = () => {

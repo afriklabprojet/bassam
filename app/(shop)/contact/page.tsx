@@ -4,7 +4,7 @@ import { getSiteSettings, hasWhatsApp, buildWhatsAppHref, getPhoneHref, type Sit
 import ContactForm from '@/components/ContactForm';
 import { getContactFaq } from '@/lib/supabase/contact-content';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Contact \u2014 VIP Parfumerie Bar Abidjan',

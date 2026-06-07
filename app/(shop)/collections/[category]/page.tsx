@@ -11,7 +11,7 @@ interface PageProps {
   params: Promise<{ category: string }>;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 // ISR: revalidate every 5 minutes
 export const revalidate = 300;

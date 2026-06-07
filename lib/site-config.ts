@@ -4,7 +4,7 @@ const whatsappNumber = sanitizePhoneNumber(process.env.NEXT_PUBLIC_WHATSAPP_NUMB
 const supportPhone = sanitizePhoneNumber(process.env.NEXT_PUBLIC_SUPPORT_PHONE);
 
 export const supportConfig = {
-  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'contact@vip-parfumerie-bar.com',
+  email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'contact@vipparfumeriebar.com',
   whatsappNumber,
   supportPhone,
   phoneDisplay: process.env.NEXT_PUBLIC_SUPPORT_PHONE_DISPLAY || '',

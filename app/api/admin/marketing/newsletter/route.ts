@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       // Send via Resend REST API (no package needed)
       try {
         const fromEmail = process.env.RESEND_FROM_EMAIL
-          ?? 'VIP Parfumerie Bar <newsletter@vip-parfumerie-bar.com>';
+          ?? 'VIP Parfumerie Bar <newsletter@vipparfumeriebar.com>';
         const htmlContent = `${preview_text?.trim() ? `<p style="color:#999;font-size:14px;margin-bottom:16px">${preview_text.trim()}</p>` : ''}${body_html.trim()}`;
 
         // Resend supports batch up to 100 emails per call

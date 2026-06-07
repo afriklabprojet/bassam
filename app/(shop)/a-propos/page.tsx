@@ -8,7 +8,7 @@ import {
 // ISR — revalide toutes les 5 minutes
 export const revalidate = 300;
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'À propos — VIP Parfumerie Bar Abidjan',

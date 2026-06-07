@@ -1,9 +1,9 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
 export const dynamic = 'force-dynamic';
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 export const metadata: Metadata = {
 title: 'Parfums Homme à Abidjan -- Sauvage, Bleu de Chanel, Tom Ford | VIP Parfumerie Bar',
 description: "Collection parfums homme à Abidjan -- Boisés élégants, orientaux intenses, signatures fraîches. Sauvage Dior, Bleu de Chanel, Tom Ford. Livraison Côte d'Ivoire.",
@@ -20,8 +20,7 @@ locale: 'fr_CI',
 // ─── Fragrance guides ─────────────────────────────────────────────────────────
 async function getHommeProducts(): Promise<Product[]> {
 try {
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
-const res = await fetch(`${baseUrl}/api/products?category=homme`, { next: { revalidate: 60 } });
+const res = await fetch(`${BASE_URL}/api/products?category=homme`, { next: { revalidate: 60 } });
 if (!res.ok) return [];
 const data = await res.json();
 return data.products || [];

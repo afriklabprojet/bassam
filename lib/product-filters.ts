@@ -11,9 +11,9 @@ export const MOCK_PRODUCTS: Product[] = [
       "Un parfum masculin emblématique. Frais et minéral avec des notes de bergamote de Calabre, de poivre de Sichuan et d'ambroxan.",
     price: 85000,
     originalPrice: 95000,
-    categoryId: 'cat-homme',
-    categoryName: 'Parfums Homme',
-    gender: 'homme',
+    collectionId: null,
+    collectionName: null,
+    category: 'homme',
     stockQuantity: 15,
     isFeatured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -28,9 +28,9 @@ export const MOCK_PRODUCTS: Product[] = [
       'Un parfum féminin audacieux en flacon chaussure iconique. Alliance de jasmin sambac et de cacao torréfié.',
     price: 92000,
     originalPrice: null,
-    categoryId: 'cat-femme',
-    categoryName: 'Parfums Femme',
-    gender: 'femme',
+    collectionId: null,
+    collectionName: null,
+    category: 'femme',
     stockQuantity: 8,
     isFeatured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -45,9 +45,9 @@ export const MOCK_PRODUCTS: Product[] = [
       'Une addiction gourmande et chic. Les notes de café noir, de vanille blanche et de jasmin créent un sillage envoûtant.',
     price: 88000,
     originalPrice: 98000,
-    categoryId: 'cat-femme',
-    categoryName: 'Parfums Femme',
-    gender: 'femme',
+    collectionId: null,
+    collectionName: null,
+    category: 'femme',
     stockQuantity: 12,
     isFeatured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -62,9 +62,9 @@ export const MOCK_PRODUCTS: Product[] = [
       'Un bois oud rare adouci de bois de rose, cardamome épicée, santal, vétiver et notes ambrées.',
     price: 185000,
     originalPrice: null,
-    categoryId: 'cat-mixte',
-    categoryName: 'Parfums Mixtes',
-    gender: 'mixte',
+    collectionId: null,
+    collectionName: null,
+    category: 'mixte',
     stockQuantity: 5,
     isFeatured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -79,9 +79,9 @@ export const MOCK_PRODUCTS: Product[] = [
       "La féminité libre et heureuse. Un bouquet de fleurs blanches sur un fond gourmand d'iris, de praline et de vanille.",
     price: 79000,
     originalPrice: 89000,
-    categoryId: 'cat-femme',
-    categoryName: 'Parfums Femme',
-    gender: 'femme',
+    collectionId: null,
+    collectionName: null,
+    category: 'femme',
     stockQuantity: 20,
     isFeatured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -96,9 +96,9 @@ export const MOCK_PRODUCTS: Product[] = [
       "La liberté faite fragrance. Frais et boisé, un parfum de caractère pour l'homme qui fait ses propres choix.",
     price: 110000,
     originalPrice: null,
-    categoryId: 'cat-homme',
-    categoryName: 'Parfums Homme',
-    gender: 'homme',
+    collectionId: null,
+    collectionName: null,
+    category: 'homme',
     stockQuantity: 10,
     isFeatured: true,
     images: ['/images/products/product-placeholder.svg'],
@@ -112,9 +112,9 @@ export const MOCK_PRODUCTS: Product[] = [
     description: 'Pivoine fraîche et suède doux. Un parfum féminin et délicat aux notes florales.',
     price: 125000,
     originalPrice: null,
-    categoryId: 'cat-femme',
-    categoryName: 'Parfums Femme',
-    gender: 'femme',
+    collectionId: null,
+    collectionName: null,
+    category: 'femme',
     stockQuantity: 7,
     isFeatured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -129,9 +129,9 @@ export const MOCK_PRODUCTS: Product[] = [
       "Le raffinement masculin absolu. Iris, bois d'ébène et cuir s'entrelacent dans une fragrance inoubliable.",
     price: 75000,
     originalPrice: 82000,
-    categoryId: 'cat-homme',
-    categoryName: 'Parfums Homme',
-    gender: 'homme',
+    collectionId: null,
+    collectionName: null,
+    category: 'homme',
     stockQuantity: 18,
     isFeatured: false,
     images: ['/images/products/product-placeholder.svg'],
@@ -158,20 +158,15 @@ export function filterProducts(
     );
   }
 
-  // 2. Filtre par genre
-  if (filters.gender) {
-    products = products.filter((p) => p.gender === filters.gender);
-  }
-
-  // 3. Filtre par slug de catégorie
+  // 2. Filtre par catégorie Homme/Femme/Mixte
   if (filters.category) {
-    const slug = filters.category;
-    if (['homme', 'femme', 'mixte'].includes(slug)) {
-      products = products.filter((p) => p.gender === slug);
+    const category = filters.category;
+    if (['homme', 'femme', 'mixte'].includes(category)) {
+      products = products.filter((p) => p.category === category);
     }
   }
 
-  // 4. Plage de prix
+  // 3. Plage de prix
   if (filters.minPrice !== undefined) {
     products = products.filter((p) => p.price >= filters.minPrice!);
   }
@@ -179,17 +174,17 @@ export function filterProducts(
     products = products.filter((p) => p.price <= filters.maxPrice!);
   }
 
-  // 5. Promotions
+  // 4. Promotions
   if (filters.promo) {
     products = products.filter((p) => p.originalPrice !== null);
   }
 
-  // 6. Produits mis en avant
+  // 5. Produits mis en avant
   if (filters.featured) {
     products = products.filter((p) => p.isFeatured);
   }
 
-  // 7. Tri
+  // 6. Tri
   switch (filters.tri) {
     case 'prix-asc':
       products.sort((a, b) => a.price - b.price);
@@ -210,7 +205,7 @@ export function filterProducts(
       products.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
   }
 
-  // 8. Pagination
+  // 7. Pagination
   const page = Math.max(1, filters.page || 1);
   const limit = Math.min(48, Math.max(1, filters.limit || 12));
   const total = products.length;

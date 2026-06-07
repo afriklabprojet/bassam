@@ -146,7 +146,7 @@ brand={p.brand}
 price={p.price}
 originalPrice={p.originalPrice ?? undefined}
 image={p.images[0] || '/images/products/product-placeholder.svg'}
-category={p.gender || 'mixte'}
+category={p.category || 'mixte'}
 inStock={p.stockQuantity > 0}
 />
 ))}

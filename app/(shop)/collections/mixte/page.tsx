@@ -20,7 +20,7 @@ locale: 'fr_CI',
 async function getMixteProducts(): Promise<Product[]> {
 try {
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
-const res = await fetch(`${baseUrl}/api/products?gender=mixte`, { next: { revalidate: 60 } });
+const res = await fetch(`${baseUrl}/api/products?category=mixte`, { next: { revalidate: 60 } });
 if (!res.ok) return [];
 const data = await res.json();
 return data.products || [];
@@ -117,7 +117,7 @@ Parfums Mixtes
 {productCountLabel}
 </p>
 </div>
-<Link href="/produits?gender=mixte" style={{
+<Link href="/produits?category=mixte" style={{
 fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
 color: 'var(--text-secondary)', textDecoration: 'none',
 }}>
@@ -129,7 +129,7 @@ Filtres avancés →
 <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--text-pale)', marginBottom: '2rem' }}>
 Chargement de la collection mixte…
 </p>
-<Link href="/produits?gender=mixte" style={{
+<Link href="/produits?category=mixte" style={{
 display: 'inline-flex', alignItems: 'center', gap: 8,
 background: 'transparent', border: '1px solid rgba(197,165,90,0.5)',
 color: 'var(--gold-dark)', padding: '0.75rem 1.5rem',
@@ -151,13 +151,13 @@ brand={p.brand}
 price={p.price}
 originalPrice={p.originalPrice ?? undefined}
 image={p.images[0] || '/images/products/product-placeholder.svg'}
-category={p.gender || 'mixte'}
+category={p.category || 'mixte'}
 inStock={p.stockQuantity > 0}
 />
 ))}
 </div>
 <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-<Link href="/produits?gender=mixte" style={{
+<Link href="/produits?category=mixte" style={{
 display: 'inline-flex', alignItems: 'center', gap: 8,
 border: '1px solid rgba(197,165,90,0.5)', color: 'var(--gold-dark)',
 padding: '0.8rem 2rem',

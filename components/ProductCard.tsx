@@ -15,7 +15,7 @@ interface ProductCardProps {
   price: number;
   originalPrice?: number;
   image: string;
-  category: 'homme' | 'femme' | 'mixte';
+  category: string;
   inStock: boolean;
 }
 
@@ -37,12 +37,12 @@ export default function ProductCard({
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
 
-  const categoryLabels = {
+  const categoryLabels: Record<string, string> = {
     homme: 'Homme',
     femme: 'Femme',
     mixte: 'Mixte',
-  } as const;
-  const catLabel = categoryLabels[category];
+  };
+  const catLabel = categoryLabels[category] ?? category.replace(/[-_]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
   const productImage = normalizeProductImage(image);
 
   const handleAddToCart = useCallback((e: React.MouseEvent) => {

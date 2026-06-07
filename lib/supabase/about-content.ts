@@ -125,3 +125,96 @@ export async function getAboutEngagements(): Promise<AboutEngagement[]> {
     return DEFAULT_ENGAGEMENTS;
   }
 }
+
+/* ── AboutHero ──────────────────────────────────────────────────────────────── */
+
+export interface AboutHero {
+  eyebrow: string;
+  title_line1: string;
+  title_em: string;
+  subtitle: string;
+}
+
+const DEFAULT_HERO: AboutHero = {
+  eyebrow: 'Notre histoire',
+  title_line1: "L'excellence olfactive,",
+  title_em: "au cœur de l'Afrique.",
+  subtitle:
+    "VIP Parfumerie Bar est né d'une conviction simple : chaque personne mérite d'accéder aux plus beaux parfums du monde, ici, en Afrique de l'Ouest, sans compromis sur l'authenticité ni sur l'expérience.",
+};
+
+export async function getAboutHero(): Promise<AboutHero> {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('about_hero')
+      .select('eyebrow, title_line1, title_em, subtitle')
+      .eq('id', 1)
+      .single();
+
+    if (error || !data) return DEFAULT_HERO;
+    return {
+      eyebrow: data.eyebrow || DEFAULT_HERO.eyebrow,
+      title_line1: data.title_line1 || DEFAULT_HERO.title_line1,
+      title_em: data.title_em || DEFAULT_HERO.title_em,
+      subtitle: data.subtitle || DEFAULT_HERO.subtitle,
+    };
+  } catch {
+    return DEFAULT_HERO;
+  }
+}
+
+/* ── AboutStory ─────────────────────────────────────────────────────────────── */
+
+export interface AboutStory {
+  section_eyebrow: string;
+  title_line1: string;
+  title_em: string;
+  paragraph1: string;
+  paragraph2: string;
+  paragraph3: string;
+  quote_text: string;
+  quote_author: string;
+}
+
+const DEFAULT_STORY: AboutStory = {
+  section_eyebrow: 'Fondation',
+  title_line1: 'Une maison née de la',
+  title_em: 'passion du parfum rare.',
+  paragraph1:
+    "Fondée à Abidjan en 2022, VIP Parfumerie Bar est née de la frustration de ne pas trouver, en Afrique, des parfums de luxe authentiques à des prix honnêtes. Trop souvent, les Africains se voyaient proposer des contrefaçons, ou devaient faire confiance à des revendeurs opaques.",
+  paragraph2:
+    "Notre fondatrice a décidé de changer cela. Forte de ses connexions avec les distributeurs officiels en Europe, elle a construit une chaîne d'approvisionnement rigoureuse, transparente et traçable — directement depuis les maisons de parfumerie jusqu'à votre porte.",
+  paragraph3:
+    "Aujourd'hui, VIP Parfumerie Bar est la référence des amateurs de beaux parfums en Côte d'Ivoire et au-delà. Plus de 5\u202F000 clients font confiance à notre sélection, notre service et notre engagement pour l'authenticité.",
+  quote_text:
+    '\u201CChaque parfum que nous vendons a une histoire. Notre r\u00f4le est de vous aider \u00e0 trouver celle qui vous appartient.\u201D',
+  quote_author: 'La fondatrice, VIP Parfumerie Bar',
+};
+
+export async function getAboutStory(): Promise<AboutStory> {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('about_story')
+      .select(
+        'section_eyebrow, title_line1, title_em, paragraph1, paragraph2, paragraph3, quote_text, quote_author',
+      )
+      .eq('id', 1)
+      .single();
+
+    if (error || !data) return DEFAULT_STORY;
+    return {
+      section_eyebrow: data.section_eyebrow || DEFAULT_STORY.section_eyebrow,
+      title_line1: data.title_line1 || DEFAULT_STORY.title_line1,
+      title_em: data.title_em || DEFAULT_STORY.title_em,
+      paragraph1: data.paragraph1 || DEFAULT_STORY.paragraph1,
+      paragraph2: data.paragraph2 || DEFAULT_STORY.paragraph2,
+      paragraph3: data.paragraph3 || DEFAULT_STORY.paragraph3,
+      quote_text: data.quote_text || DEFAULT_STORY.quote_text,
+      quote_author: data.quote_author || DEFAULT_STORY.quote_author,
+    };
+  } catch {
+    return DEFAULT_STORY;
+  }
+}

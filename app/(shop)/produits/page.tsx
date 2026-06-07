@@ -1,7 +1,7 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import ProduitsClient from './ProduitsClient';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Boutique Parfums de Luxe — Tous nos Parfums | VIP Parfumerie Bar Abidjan',

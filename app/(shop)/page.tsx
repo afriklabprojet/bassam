@@ -5,7 +5,7 @@ import Newsletter from '@/components/Newsletter';
 import ScrollAnimations from '@/components/ScrollAnimations';
 import Link from 'next/link';
 
-import { getProducts, getProductCountsByGender } from '@/lib/supabase/products';
+import { getProducts, getProductCountsByCategory } from '@/lib/supabase/products';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getHomeUnivers } from '@/lib/supabase/home-content';
 import { getHomeHero } from '@/lib/supabase/home-hero';
@@ -62,27 +62,6 @@ const UNIVERS_META = [
 ];
 
 
-
-// ─── Produits démo (dev uniquement — remplacés dès que la BDD est connectée) ──
-const DEV_MOCK_PRODUCTS = process.env.NODE_ENV === 'development' ? [
-  { id: 'mock-1', name: 'Sauvage Eau de Parfum', slug: 'sauvage-edp', brand: 'Dior', description: null, price: 85000, originalPrice: 95000, categoryId: null, categoryName: 'Homme', gender: 'homme' as const, stockQuantity: 25, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-2', name: "J'adore Infinissime", slug: 'jadore-infinissime', brand: 'Dior', description: null, price: 92000, originalPrice: null, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 18, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-3', name: 'Bleu de Chanel', slug: 'bleu-de-chanel', brand: 'Chanel', description: null, price: 78000, originalPrice: null, categoryId: null, categoryName: 'Homme', gender: 'homme' as const, stockQuantity: 30, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-4', name: 'La Vie est Belle', slug: 'la-vie-est-belle', brand: 'Lancôme', description: null, price: 65000, originalPrice: 72000, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 22, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-5', name: 'Aventus', slug: 'aventus', brand: 'Creed', description: null, price: 195000, originalPrice: null, categoryId: null, categoryName: 'Homme', gender: 'homme' as const, stockQuantity: 8, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-6', name: 'Oud Wood', slug: 'oud-wood', brand: 'Tom Ford', description: null, price: 145000, originalPrice: null, categoryId: null, categoryName: 'Mixte', gender: 'mixte' as const, stockQuantity: 12, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-7', name: 'Baccarat Rouge 540', slug: 'baccarat-rouge-540', brand: 'Maison Francis Kurkdjian', description: null, price: 220000, originalPrice: null, categoryId: null, categoryName: 'Mixte', gender: 'mixte' as const, stockQuantity: 5, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-8', name: 'Coco Mademoiselle', slug: 'coco-mademoiselle', brand: 'Chanel', description: null, price: 82000, originalPrice: null, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 20, isFeatured: false, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-9', name: 'Black Opium', slug: 'black-opium', brand: 'Yves Saint Laurent', description: null, price: 76000, originalPrice: 88000, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 15, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-10', name: 'Acqua di Giò Profondo', slug: 'acqua-di-gio-profondo', brand: 'Giorgio Armani', description: null, price: 71000, originalPrice: null, categoryId: null, categoryName: 'Homme', gender: 'homme' as const, stockQuantity: 28, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-11', name: 'Santal 33', slug: 'santal-33', brand: 'Le Labo', description: null, price: 185000, originalPrice: null, categoryId: null, categoryName: 'Mixte', gender: 'mixte' as const, stockQuantity: 6, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-12', name: 'Flower Bomb', slug: 'flower-bomb', brand: 'Viktor & Rolf', description: null, price: 68000, originalPrice: 75000, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 14, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-13', name: '1 Million', slug: '1-million', brand: 'Paco Rabanne', description: null, price: 62000, originalPrice: null, categoryId: null, categoryName: 'Homme', gender: 'homme' as const, stockQuantity: 22, isFeatured: false, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-14', name: "La Nuit de L'Homme", slug: 'la-nuit-de-l-homme', brand: 'Yves Saint Laurent', description: null, price: 59000, originalPrice: 68000, categoryId: null, categoryName: 'Homme', gender: 'homme' as const, stockQuantity: 19, isFeatured: false, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-15', name: 'Rose Oud', slug: 'rose-oud', brand: 'Montale', description: null, price: 112000, originalPrice: null, categoryId: null, categoryName: 'Mixte', gender: 'mixte' as const, stockQuantity: 10, isFeatured: true, images: [], createdAt: new Date().toISOString() },
-  { id: 'mock-16', name: 'Miss Dior Chérie', slug: 'miss-dior-cherie', brand: 'Dior', description: null, price: 79000, originalPrice: null, categoryId: null, categoryName: 'Femme', gender: 'femme' as const, stockQuantity: 17, isFeatured: false, images: [], createdAt: new Date().toISOString() },
-] : [];
-
 function ProductSectionEmptyState() {
   return (
     <div style={{ gridColumn: '1/-1', textAlign: 'center', color: 'var(--text-secondary)', padding: '4rem 1rem' }}>
@@ -101,29 +80,18 @@ function ProductSectionEmptyState() {
 
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
-  const [{ products: rawNewArrivals }, { products: rawFeatured }, genderCounts, reviews, universDB, homeHero] = await Promise.all([
+  const [{ products: rawNewArrivals }, { products: rawFeatured }, categoryCounts, reviews, universDB, homeHero] = await Promise.all([
     getProducts({ tri: 'nouveautes', limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
     getProducts({ featured: true, limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
-    getProductCountsByGender().catch(() => ({} as Record<string, number>)),
+    getProductCountsByCategory().catch(() => ({} as Record<string, number>)),
     getApprovedReviews(6).catch(() => []),
     getHomeUnivers().catch(() => []),
     getHomeHero(),
   ]);
 
-  // Si BDD vide ou indisponible → produits démo (dev uniquement)
-  const mockNewArrivals = DEV_MOCK_PRODUCTS.slice(0, 8);
-  const newArrivals = rawNewArrivals.length > 0 ? rawNewArrivals : mockNewArrivals;
-
-  const mockFeatured = DEV_MOCK_PRODUCTS.filter((p) => p.isFeatured).slice(0, 8);
-  const featuredProducts = rawFeatured.length > 0 ? rawFeatured : mockFeatured;
-
-  // Fusionner les compteurs réels avec le contenu éditorial
-  // En dev sans BDD : compter depuis les mocks pour affichage cohérent
-  const mockCountsByGender = DEV_MOCK_PRODUCTS.reduce((acc, p) => {
-    if (p.gender) acc[p.gender] = (acc[p.gender] ?? 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  const effectiveCounts = Object.keys(genderCounts).length > 0 ? genderCounts : mockCountsByGender;
+  const newArrivals = rawNewArrivals;
+  const featuredProducts = rawFeatured;
+  const effectiveCounts = categoryCounts;
   // Fusionner textes DB sur les métadonnées statiques (gradient, dot, name restent fixes)
   const UNIVERS = UNIVERS_META.map((u) => {
     const db = universDB.find((d) => d.slug === u.slug);
@@ -273,7 +241,7 @@ export default async function HomePage() {
                   price={p.price}
                   originalPrice={p.originalPrice ?? undefined}
                   image={p.images[0] ?? '/images/products/product-placeholder.svg'}
-                  category={p.gender ?? 'mixte'}
+                  category={p.category ?? 'mixte'}
                   inStock={p.stockQuantity > 0}
                 />
               ))
@@ -313,7 +281,7 @@ export default async function HomePage() {
                   price={p.price}
                   originalPrice={p.originalPrice ?? undefined}
                   image={p.images[0] ?? '/images/products/product-placeholder.svg'}
-                  category={p.gender ?? 'mixte'}
+                  category={p.category ?? 'mixte'}
                   inStock={p.stockQuantity > 0}
                 />
               ))

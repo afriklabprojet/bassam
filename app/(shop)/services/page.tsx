@@ -1,3 +1,4 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
@@ -5,7 +6,6 @@ import { getServicesContent } from '@/lib/supabase/services-content';
 
 export const dynamic = 'force-dynamic';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Services — VIP Parfumerie Bar Abidjan',

@@ -9,6 +9,6 @@ export async function isCurrentUserAdmin(): Promise<boolean> {
 }
 
 export { getDashboardStats, getTopProducts, getLowStockProducts, getPaymentMethodStats, getTopCustomers, getRecentOrders } from './admin-stats';
-export { getAdminOrders, updateOrderStatus } from './admin-orders';
+export { getAdminOrders, getOrderCountByPhone, updateOrderStatus } from './admin-orders';
 export { getAdminProducts, createProduct, updateProduct, deleteProduct } from './admin-products';
 export { getAdminCustomers } from './admin-customers';

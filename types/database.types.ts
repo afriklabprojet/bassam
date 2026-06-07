@@ -1,7 +1,6 @@
 // Type definitions for VIP Parfumerie Bar database
 // Generated from Supabase schema
 
-export type ProductGender = 'homme' | 'femme' | 'mixte'
 export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
 export type PaymentMethod = 'mobile_money' | 'card' | 'cash_on_delivery'
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
@@ -52,6 +51,41 @@ export interface Database {
           updated_at?: string
         }
       }
+      collections: {
+        Row: {
+          id: string
+          name: string
+          slug: string
+          description: string | null
+          image_url: string | null
+          parent_id: string | null
+          display_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          description?: string | null
+          image_url?: string | null
+          parent_id?: string | null
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          slug?: string
+          description?: string | null
+          image_url?: string | null
+          parent_id?: string | null
+          display_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
       products: {
         Row: {
           id: string
@@ -61,8 +95,8 @@ export interface Database {
           description: string | null
           price: number
           original_price: number | null
-          category_id: string | null
-          gender: ProductGender | null
+          collection_id: string | null
+          category: string | null
           stock_quantity: number
           is_featured: boolean
           images: string[]
@@ -80,8 +114,8 @@ export interface Database {
           description?: string | null
           price: number
           original_price?: number | null
-          category_id?: string | null
-          gender?: ProductGender | null
+          collection_id?: string | null
+          category?: string | null
           stock_quantity?: number
           is_featured?: boolean
           images?: string[]
@@ -99,8 +133,8 @@ export interface Database {
           description?: string | null
           price?: number
           original_price?: number | null
-          category_id?: string | null
-          gender?: ProductGender | null
+          collection_id?: string | null
+          category?: string | null
           stock_quantity?: number
           is_featured?: boolean
           images?: string[]

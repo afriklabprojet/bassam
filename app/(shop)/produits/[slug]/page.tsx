@@ -1,3 +1,4 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getProductBySlug, getProducts } from '@/lib/supabase/products';
@@ -8,7 +9,6 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const dynamic = 'force-dynamic';
 

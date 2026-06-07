@@ -1,7 +1,7 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { MetadataRoute } from 'next';
 import { createServiceClient } from '@/lib/supabase/service';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: `${BASE_URL}/`,                               lastModified: new Date(), changeFrequency: 'daily',   priority: 1 },

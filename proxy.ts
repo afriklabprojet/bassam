@@ -1,5 +1,27 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+
+// ─── CSP (nonce-based, set per request) ──────────────────────────────────────
+
+function buildCsp(nonce: string): string {
+  const isDev = process.env.NODE_ENV === 'development'
+  const scriptSrc = isDev
+    ? `'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
+    : `'nonce-${nonce}' 'strict-dynamic'`
+
+  return [
+    "default-src 'self'",
+    `script-src ${scriptSrc}`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
+    "media-src 'self' blob: https://videos.pexels.com https://*.supabase.co https://*.supabase.in",
+    "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.jeko.africa",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://formsubmit.co",
+  ].join('; ')
+}
 
 type AuthUser = {
   app_metadata?: {
@@ -151,20 +173,35 @@ function shouldResolveUser(pathname: string, isPublicRoute: boolean) {
   return !isPublicRoute
 }
 
+function addCspToResponse(response: NextResponse, nonce: string): NextResponse {
+  response.headers.set('Content-Security-Policy', buildCsp(nonce))
+  return response
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const isPublicRoute = isPublicPath(pathname)
 
-  const response = createResponse(request)
+  // Generate a per-request nonce and forward it so app/layout.tsx can read it
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const requestWithNonce = new NextRequest(request, {
+    headers: new Headers(request.headers),
+  })
+  requestWithNonce.headers.set('x-nonce', nonce)
+
+  const response = createResponse(requestWithNonce)
+  addCspToResponse(response, nonce)
 
   // Allow the storefront to run even before Supabase env vars are configured.
   if (!supabaseUrl || !supabaseAnonKey) {
-    return handleMissingSupabaseConfig(isPublicRoute, request, response)
+    const fallback = handleMissingSupabaseConfig(isPublicRoute, requestWithNonce, response)
+    addCspToResponse(fallback, nonce)
+    return fallback
   }
 
-  const supabase = createSupabaseClient(request, response, supabaseUrl, supabaseAnonKey)
+  const supabase = createSupabaseClient(requestWithNonce, response, supabaseUrl, supabaseAnonKey)
 
   if (!shouldResolveUser(pathname, isPublicRoute)) {
     return response
@@ -177,14 +214,23 @@ export async function proxy(request: NextRequest) {
   }
   // authError is expected when refresh token is expired/reused — treat as unauthenticated
 
-  const adminResponse = handleAdminRoute(pathname, user, request, response)
-  if (adminResponse) return adminResponse
+  const adminResponse = handleAdminRoute(pathname, user, requestWithNonce, response)
+  if (adminResponse) {
+    addCspToResponse(adminResponse as NextResponse, nonce)
+    return adminResponse
+  }
 
-  const protectedResponse = handleProtectedRoute(pathname, isPublicRoute, user, request)
-  if (protectedResponse) return protectedResponse
+  const protectedResponse = handleProtectedRoute(pathname, isPublicRoute, user, requestWithNonce)
+  if (protectedResponse) {
+    addCspToResponse(protectedResponse as NextResponse, nonce)
+    return protectedResponse
+  }
 
-  const authPageResponse = handleAuthPage(pathname, user, request)
-  if (authPageResponse) return authPageResponse
+  const authPageResponse = handleAuthPage(pathname, user, requestWithNonce)
+  if (authPageResponse) {
+    addCspToResponse(authPageResponse as NextResponse, nonce)
+    return authPageResponse
+  }
 
   return response
 }

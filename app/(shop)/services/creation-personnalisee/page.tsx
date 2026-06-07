@@ -1,3 +1,4 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CreationConfigurator from '@/components/CreationConfigurator';
@@ -5,7 +6,6 @@ import { fetchCreationConfig } from '@/lib/custom-creation';
 
 export const dynamic = 'force-dynamic';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Parfum Personnalisé sur Mesure à Abidjan | VIP Parfumerie Bar',

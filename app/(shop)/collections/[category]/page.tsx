@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
@@ -15,7 +16,15 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar
 // ISR: revalidate every 5 minutes
 export const revalidate = 300;
 
-const CATEGORY_META: Record<string, { title: string; description: string; category?: string; collectionId?: string }> = {
+type CategoryMeta = {
+  title: string;
+  description: string;
+  category?: string;
+  collectionId?: string;
+  imageUrl?: string | null;
+};
+
+const CATEGORY_META: Record<string, CategoryMeta> = {
   homme: {
     title: 'Parfums Homme',
     description: 'Découvrez notre sélection de parfums masculins de luxe — boisés, frais, orientaux. Livraison en Afrique.',
@@ -53,7 +62,7 @@ const CATEGORY_META: Record<string, { title: string; description: string; catego
 // Cela évite les timeouts Supabase au moment du build
 export const dynamicParams = true;
 
-async function resolveCategoryMeta(category: string) {
+async function resolveCategoryMeta(category: string): Promise<CategoryMeta | null> {
   const staticMeta = CATEGORY_META[category];
   if (staticMeta) {
     return staticMeta;
@@ -65,6 +74,7 @@ async function resolveCategoryMeta(category: string) {
       title: dbCategory.name,
       description: dbCategory.description ?? `Découvrez la catégorie ${dbCategory.name} chez VIP Parfumerie Bar.`,
       category: dbCategory.slug,
+      imageUrl: dbCategory.image_url,
     };
   }
 
@@ -78,6 +88,7 @@ async function resolveCategoryMeta(category: string) {
     title: dbCollection.name,
     description: dbCollection.description ?? `Découvrez la collection ${dbCollection.name} chez VIP Parfumerie Bar.`,
     collectionId: dbCollection.id,
+    imageUrl: dbCollection.image_url,
   };
 }
 
@@ -148,19 +159,56 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
     <div style={{ minHeight: '100vh', background: 'var(--offwhite)' }}>
-      {/* Compact category header */}
-      <div style={{ background: 'var(--noir)', padding: '1.25rem 0' }}>
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <nav className="flex items-center gap-2 text-xs text-white/50 mb-1">
-                <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
-                <span>/</span>
-                <span>{meta.title}</span>
-              </nav>
-              <h1 className="text-white font-light" style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', letterSpacing: '0.04em' }}>{meta.title}</h1>
+      {/* Banner hero */}
+      <div style={{ position: 'relative', background: 'var(--noir)', overflow: 'hidden', minHeight: meta.imageUrl ? '320px' : 'auto' }}>
+        {/* Image de fond */}
+        {meta.imageUrl && (
+          <>
+            <Image
+              src={meta.imageUrl}
+              alt={meta.title}
+              fill
+              priority
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
+              sizes="100vw"
+            />
+            {/* Overlay dégradé pour lisibilité */}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.7) 100%)' }} aria-hidden="true" />
+          </>
+        )}
+        {/* Contenu header */}
+        <div className="container mx-auto" style={{ position: 'relative', zIndex: 1, padding: meta.imageUrl ? '3.5rem 0 3rem' : '1.25rem 0' }}>
+          <nav className="flex items-center gap-2 text-xs text-white/50 mb-3">
+            <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
+            <span>/</span>
+            <Link href="/collections" className="hover:text-white transition-colors">Collections</Link>
+            <span>/</span>
+            <span style={{ color: 'rgba(255,255,255,0.7)' }}>{meta.title}</span>
+          </nav>
+          {meta.imageUrl && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+              <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
+                Collection
+              </span>
+              <span style={{ display: 'block', width: 20, height: '1px', background: 'var(--gold)' }} />
             </div>
-            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8125rem' }}>{products.length} produit{products.length > 1 ? 's' : ''}</span>
+          )}
+          <div className="flex items-end justify-between gap-4 flex-wrap">
+            <div>
+              <h1 className="text-white font-light" style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: meta.imageUrl ? 'clamp(2rem, 5vw, 3.5rem)' : 'clamp(1.5rem, 4vw, 2.25rem)',
+                letterSpacing: '0.04em',
+                lineHeight: 1.1,
+              }}>{meta.title}</h1>
+              {meta.imageUrl && meta.description && (
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem', marginTop: '0.75rem', maxWidth: '480px', lineHeight: 1.6, fontFamily: 'var(--font-sans)' }}>
+                  {meta.description}
+                </p>
+              )}
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.8125rem', flexShrink: 0 }}>{products.length} produit{products.length > 1 ? 's' : ''}</span>
           </div>
         </div>
       </div>

@@ -7,13 +7,17 @@ import PWAInstaller from '@/components/PWAInstaller';
 import { CartProvider } from '@/lib/cart-context';
 import { getSiteSettings } from '@/lib/site-settings';
 import { SiteSettingsProvider } from '@/lib/site-settings-context';
+import { getPublicCollections } from '@/lib/supabase/taxonomies';
 
 export default async function ShopLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const siteSettings = await getSiteSettings();
+  const [siteSettings, navCategories] = await Promise.all([
+    getSiteSettings(),
+    getPublicCollections(),
+  ]);
   return (
     <SiteSettingsProvider value={siteSettings}>
       <CartProvider>
-        <Header />
+        <Header navCategories={navCategories} />
         <main className="flex-1 pb-16 lg:pb-0">
           {children}
         </main>

@@ -25,10 +25,11 @@ export default function ScrollAnimations() {
 
     const sections = document.querySelectorAll('section');
     sections.forEach((section, index) => {
-      if (index > 0 && index <= 3) {
+      // Skip index 0 (hero) — it manages its own reveal animation
+      if (index === 0) return;
+      if (index <= 3) {
         section.classList.add(`scroll-reveal-delay-${Math.min(index, 3)}`);
       }
-      // Mark as pending ONLY after observer is ready — prevents invisible sections on slow JS
       section.classList.add('scroll-reveal-pending');
       observer.observe(section);
     });
@@ -44,7 +45,10 @@ export default function ScrollAnimations() {
     });
 
     return () => {
-      sections.forEach((section) => observer.unobserve(section));
+      sections.forEach((section, index) => {
+        if (index === 0) return;
+        observer.unobserve(section);
+      });
       cards.forEach((card) => observer.unobserve(card));
     };
   }, []);

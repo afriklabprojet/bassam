@@ -1,10 +1,10 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteSettings, hasWhatsApp, buildWhatsAppHref, getPhoneHref, type SiteSettings } from '@/lib/site-settings';
 import ContactForm from '@/components/ContactForm';
 import { getContactFaq } from '@/lib/supabase/contact-content';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Contact \u2014 VIP Parfumerie Bar Abidjan',

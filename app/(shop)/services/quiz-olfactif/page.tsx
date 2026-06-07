@@ -1,7 +1,7 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import QuizClient from './QuizClient';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Quiz Olfactif IA — Trouvez Votre Parfum Idéal | VIP Parfumerie Bar Abidjan',

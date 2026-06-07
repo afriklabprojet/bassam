@@ -2,9 +2,12 @@ import type { NextConfig } from 'next';
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// 'strict-dynamic' causes modern browsers to ignore 'unsafe-inline', providing
+// XSS protection while keeping backward compatibility with older browsers.
+// 'unsafe-eval' is only needed in dev for Next.js Fast Refresh.
 const cspScriptSrc = isDev
-  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self' 'unsafe-inline'";
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic'"
+  : "script-src 'self' 'unsafe-inline' 'strict-dynamic'";
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },

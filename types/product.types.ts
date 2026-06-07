@@ -1,3 +1,5 @@
+export type ProductCategory = string;
+
 // Shared product type used across the app
 export interface Product {
   id: string;
@@ -7,9 +9,9 @@ export interface Product {
   description: string | null;
   price: number;
   originalPrice: number | null;
-  categoryId: string | null;
-  categoryName: string | null;
-  gender: 'homme' | 'femme' | 'mixte' | null;
+  collectionId: string | null;
+  collectionName: string | null;
+  category: ProductCategory | null;
   stockQuantity: number;
   isFeatured: boolean;
   images: string[];
@@ -30,8 +32,8 @@ export interface Category {
 
 export interface ProductFilters {
   q?: string;
-  category?: string;
-  gender?: 'homme' | 'femme' | 'mixte';
+  category?: ProductCategory;
+  collectionId?: string;
   minPrice?: number;
   maxPrice?: number;
   brand?: string;

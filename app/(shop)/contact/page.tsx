@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteSettings, hasWhatsApp, buildWhatsAppHref, getPhoneHref, type SiteSettings } from '@/lib/site-settings';
 import ContactForm from '@/components/ContactForm';
+import { getContactFaq } from '@/lib/supabase/contact-content';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vip-parfumerie-bar.com';
 
@@ -119,7 +120,7 @@ function GoldRule() {
   );
 }
 
-function SectionEyebrow({ label }: { label: string }) {
+function SectionEyebrow({ label }: Readonly<{ label: string }>) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
       <div style={{ width: 24, height: '1px', background: 'var(--gold)' }} />
@@ -131,7 +132,10 @@ function SectionEyebrow({ label }: { label: string }) {
 /* ─── Page ───────────────────────────────────────────────── */
 
 export default async function ContactPage() {
-  const settings = await getSiteSettings();
+  const [settings, faq] = await Promise.all([
+    getSiteSettings(),
+    getContactFaq(),
+  ]);
   const canaux = buildCanaux(settings);
 
   return (
@@ -186,8 +190,8 @@ export default async function ContactPage() {
       <section style={{ background: 'var(--surface)', padding: '80px 0' }}>
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }} className="canaux-grid">
-            {canaux.map((c, i) => (
-              <div key={i} className="contact-channel" style={{
+            {canaux.map((c) => (
+              <div key={c.titre} className="contact-channel" style={{
                 background: '#fff',
                 padding: '40px 36px',
                 borderTop: '2px solid var(--line-light)',
@@ -334,7 +338,7 @@ export default async function ContactPage() {
 
           <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {faq.map((item, i) => (
-              <div key={i} className="contact-faq" style={{
+              <div key={item.ordre ?? i} className="contact-faq" style={{
                 background: 'rgba(255,255,255,0.03)',
                 border: '1px solid rgba(197,165,90,0.1)',
                 borderRadius: 3,
@@ -347,10 +351,10 @@ export default async function ContactPage() {
                   </span>
                   <div>
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9375rem', fontWeight: 600, color: '#fff', margin: '0 0 10px', lineHeight: 1.4 }}>
-                      {item.q}
+                      {item.question}
                     </p>
                     <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, margin: 0 }}>
-                      {item.r}
+                      {item.reponse}
                     </p>
                   </div>
                 </div>

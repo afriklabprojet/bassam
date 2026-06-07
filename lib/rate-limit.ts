@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// LIMITATION: This rate limiter uses an in-process Map (memory).
+// On Vercel (serverless), each function invocation may run in a separate
+// container — the store does NOT persist across cold starts or parallel
+// instances. This provides best-effort protection, not strict enforcement.
+//
+// For strict distributed rate limiting, replace this module with
+// Vercel KV (Upstash Redis): https://vercel.com/docs/storage/vercel-kv
+// Pattern: use kv.incr() + kv.expire() with a sliding window.
+
 interface Window {
   count: number;
   resetAt: number;

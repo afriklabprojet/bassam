@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function FemmePage() {
-  const { products } = await getProducts({ gender: 'femme', limit: 12 });
+  const { products } = await getProducts({ category: 'femme', limit: 12 });
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>
@@ -145,7 +145,7 @@ export default async function FemmePage() {
               {products.length > 0 ? `${products.length} référence${products.length > 1 ? 's' : ''}` : 'Sélection disponible en boutique'}
             </p>
           </div>
-          <Link href="/produits?gender=femme" style={{
+          <Link href="/produits?category=femme" style={{
             fontFamily: 'var(--font-sans)', fontSize: '0.65rem', letterSpacing: '0.16em', textTransform: 'uppercase',
             color: 'var(--text-secondary)', textDecoration: 'none',
           }}>
@@ -158,7 +158,7 @@ export default async function FemmePage() {
             <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: '1.1rem', color: 'var(--text-pale)', marginBottom: '2rem' }}>
               Chargement de la collection en cours…
             </p>
-            <Link href="/produits?gender=femme" style={{
+            <Link href="/produits?category=femme" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
               background: 'transparent', border: '1px solid rgba(197,165,90,0.5)',
               color: 'var(--gold-dark)', padding: '0.75rem 1.5rem',
@@ -180,13 +180,13 @@ export default async function FemmePage() {
                   price={p.price}
                   originalPrice={p.originalPrice ?? undefined}
                   image={p.images[0] || '/images/products/product-placeholder.svg'}
-                  category={p.gender || 'femme'}
+                  category={p.category || 'femme'}
                   inStock={p.stockQuantity > 0}
                 />
               ))}
             </div>
             <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-              <Link href="/produits?gender=femme" style={{
+              <Link href="/produits?category=femme" style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
                 border: '1px solid rgba(197,165,90,0.5)', color: 'var(--gold-dark)',
                 padding: '0.8rem 2rem',

@@ -1,3 +1,4 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getProductCountsByCategory } from '@/lib/supabase/products';
@@ -6,7 +7,6 @@ import { getPublicCategories } from '@/lib/supabase/taxonomies';
 
 export const revalidate = 300;
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   title: 'Collections de Parfums à Abidjan -- Femme, Homme, Mixte | VIP Parfumerie Bar',

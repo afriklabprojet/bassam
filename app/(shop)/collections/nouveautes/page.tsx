@@ -1,8 +1,8 @@
+import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 export const metadata: Metadata = {
 title: 'Nouveaux Parfums à Abidjan -- Dernières Arrivées | VIP Parfumerie Bar',
 description: "Découvrez les derniers parfums de luxe arrivés à Abidjan chez VIP Parfumerie Bar. Sauvage Elixir, Baccarat Rouge 540 et plus. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
@@ -19,8 +19,7 @@ locale: 'fr_CI',
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
 async function getNewArrivals(): Promise<Product[]> {
 try {
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
-const res = await fetch(`${baseUrl}/api/products?sort=newest&limit=8`, {
+const res = await fetch(`${BASE_URL}/api/products?sort=newest&limit=8`, {
 next: { revalidate: 60 },
 });
 if (!res.ok) return [];

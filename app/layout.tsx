@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
 import { BrandingInjector } from "@/components/BrandingInjector";
 
@@ -78,17 +77,14 @@ export const viewport: Viewport = {
   themeColor: "#C5A55A",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
-
   return (
     <html
       lang="fr"
-      nonce={nonce}
       className={`${cormorant.variable} ${inter.variable} h-full antialiased`}
     >
       <head>

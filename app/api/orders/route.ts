@@ -4,7 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { normalizeOrderItemsForPersistence } from '@/lib/supabase/custom-order-items';
 import { createOrder, getUserOrders } from '@/lib/supabase/orders';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
+
+const ORDER_RATE_LIMIT = { limit: 5, windowSec: 300 };
 
 const customCreationSchema = z.object({
   formulaId: z.enum(['essentiel', 'signature', 'prestige']),
@@ -50,6 +53,9 @@ function getGuestEmail(phone: string) {
 
 // POST /api/orders — create a new guest or authenticated order
 export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(request, 'orders:create', ORDER_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

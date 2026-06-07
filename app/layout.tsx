@@ -1,3 +1,4 @@
+import { SITE_URL, SITE_NAME } from '@/lib/site-config';
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
@@ -18,7 +19,6 @@ const inter = Inter({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://vipparfumeriebar.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

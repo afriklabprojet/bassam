@@ -1,14 +1,7 @@
 import type { NextConfig } from 'next';
 
-const isDev = process.env.NODE_ENV === 'development';
-
-// 'strict-dynamic' causes modern browsers to ignore 'unsafe-inline', providing
-// XSS protection while keeping backward compatibility with older browsers.
-// 'unsafe-eval' is only needed in dev for Next.js Fast Refresh.
-const cspScriptSrc = isDev
-  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic'"
-  : "script-src 'self' 'unsafe-inline' 'strict-dynamic'";
-
+// CSP is set dynamically per request in proxy.ts (nonce-based).
+// Only non-CSP security headers are set here statically.
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
   { key: 'X-Frame-Options', value: 'DENY' },
@@ -16,24 +9,6 @@ const securityHeaders = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      cspScriptSrc,
-      // Google Fonts stylesheets
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      // Google Fonts font files + Supabase Storage
-      "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
-      // Pexels fallback video + Supabase Storage videos
-      "media-src 'self' blob: https://videos.pexels.com https://*.supabase.co https://*.supabase.in",
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.jeko.africa",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self' https://formsubmit.co",
-    ].join('; '),
-  },
 ];
 
 const nextConfig: NextConfig = {

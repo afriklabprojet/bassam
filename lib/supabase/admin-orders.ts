@@ -60,6 +60,17 @@ export async function getAdminOrders(page = 1, limit = 20, status?: string) {
   };
 }
 
+/** Count previous orders for the same phone (excluding current order) */
+export async function getOrderCountByPhone(phone: string, excludeOrderId: string): Promise<number> {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('phone', phone)
+    .neq('id', excludeOrderId);
+  return count ?? 0;
+}
+
 /** Update order status */
 export async function updateOrderStatus(orderId: string, status: string) {
   const { createServiceClient } = await import('./service');

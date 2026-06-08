@@ -217,19 +217,19 @@ export async function proxy(request: NextRequest) {
 
   const adminResponse = handleAdminRoute(pathname, user, request, response)
   if (adminResponse) {
-    addCspToResponse(adminResponse as NextResponse, nonce)
+    addCspToResponse(adminResponse, nonce)
     return adminResponse
   }
 
   const protectedResponse = handleProtectedRoute(pathname, isPublicRoute, user, request)
   if (protectedResponse) {
-    addCspToResponse(protectedResponse as NextResponse, nonce)
+    addCspToResponse(protectedResponse, nonce)
     return protectedResponse
   }
 
   const authPageResponse = handleAuthPage(pathname, user, request)
   if (authPageResponse) {
-    addCspToResponse(authPageResponse as NextResponse, nonce)
+    addCspToResponse(authPageResponse, nonce)
     return authPageResponse
   }
 

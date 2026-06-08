@@ -182,11 +182,14 @@ export async function proxy(request: NextRequest) {
   const isPublicRoute = isPublicPath(pathname)
 
   // Build a mutable copy of the request headers that includes the nonce.
-  // NextResponse.next({ request: { headers } }) is the only supported way to
-  // forward custom headers to the Next.js runtime so it can stamp <script nonce>.
+  // Next.js 16 reads the nonce from the 'content-security-policy' request header
+  // (not 'x-nonce') via parseRequestHeaders → getScriptNonceFromHeader.
+  // We must forward the full CSP string in the request headers so the renderer
+  // can stamp every <script> tag with the matching nonce automatically.
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('content-security-policy', buildCsp(nonce))
 
   // response carries both the forwarded request headers AND the CSP response header
   const response = createResponse(requestHeaders)

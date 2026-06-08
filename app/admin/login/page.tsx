@@ -370,13 +370,9 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        input::placeholder {
-          color: #444;
-        }
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        input::placeholder { color: #444; }
       `}</style>
     </div>
   );

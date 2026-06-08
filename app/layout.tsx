@@ -1,5 +1,11 @@
 import { SITE_URL, SITE_NAME } from '@/lib/site-config';
 import type { Metadata, Viewport } from "next";
+
+// Nonce-based CSP requires per-request rendering so Next.js can stamp
+// every generated <script> tag with the nonce emitted by the proxy middleware.
+// Static (build-time) HTML has no nonce, causing all scripts to be blocked
+// by strict-dynamic in production.
+export const dynamic = 'force-dynamic';
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { BrandingInjector } from "@/components/BrandingInjector";

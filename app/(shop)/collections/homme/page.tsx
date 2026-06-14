@@ -184,6 +184,7 @@ Voir tous les parfums homme
 <ProductCard
 key={p.id}
 id={p.slug}
+productId={p.id}
 name={p.name}
 brand={p.brand}
 price={p.price}

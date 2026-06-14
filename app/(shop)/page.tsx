@@ -5,6 +5,7 @@ import ProductCard from '@/components/ProductCard';
 import Newsletter from '@/components/Newsletter';
 import ScrollAnimations from '@/components/ScrollAnimations';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { getProducts, getProductCountsByCategory } from '@/lib/supabase/products';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
@@ -40,6 +41,7 @@ const UNIVERS_META = [
     notes: ['Jasmin', 'Rose', 'Vanille', 'Oud'],
     gradient: 'linear-gradient(135deg,#F9EFE8 0%,#EDD9C8 100%)',
     dot: '#C5A55A',
+    image: '/images/collections/femme.jpg',
   },
   {
     slug: 'homme',
@@ -49,6 +51,7 @@ const UNIVERS_META = [
     notes: ['Cèdre', 'Vétiver', 'Bergamote', 'Ambre'],
     gradient: 'linear-gradient(135deg,#EEF1F5 0%,#D6DDE7 100%)',
     dot: '#7896B2',
+    image: '/images/collections/homme.jpg',
   },
   {
     slug: 'mixte',
@@ -58,6 +61,7 @@ const UNIVERS_META = [
     notes: ['Poivre', 'Santal', 'Iris', 'Patchouli'],
     gradient: 'linear-gradient(135deg,#F3EFE9 0%,#E2D9CB 100%)',
     dot: '#A89B7A',
+    image: '/images/collections/mixte.jpg',
   },
 ];
 
@@ -92,12 +96,13 @@ export default async function HomePage() {
   const newArrivals = rawNewArrivals;
   const featuredProducts = rawFeatured;
   const effectiveCounts = categoryCounts;
-  // Fusionner textes DB sur les métadonnées statiques (gradient, dot, name restent fixes)
+  // Fusionner textes + image DB sur les métadonnées statiques (gradient, dot, name restent fixes)
   const UNIVERS = UNIVERS_META.map((u) => {
     const db = universDB.find((d) => d.slug === u.slug);
     return {
       ...u,
       ...(db ? { tagline: db.tagline, description: db.description, notes: db.notes } : {}),
+      image: (db?.image_url) || u.image,
       productsCount: effectiveCounts[u.slug] ?? 0,
     };
   });
@@ -317,12 +322,20 @@ export default async function HomePage() {
                 className="group univers-card"
                 style={{ display: 'block', textDecoration: 'none', borderRadius: 'var(--r-lg)', border: '1px solid var(--line-light)', overflow: 'hidden', background: '#fff' }}
               >
-                {/* Visuel couleur */}
-                <div className="univers-card-visual" style={{ height: '10rem', background: u.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-                  <div aria-hidden style={{ position: 'absolute', bottom: '-3rem', right: '-3rem', width: '9rem', height: '9rem', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', transition: 'transform 0.6s ease' }} />
+                {/* Visuel */}
+                <div className="univers-card-visual" style={{ height: '10rem', background: u.gradient, position: 'relative', overflow: 'hidden' }}>
+                  <Image
+                    src={u.image}
+                    alt={u.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 33vw"
+                    className="object-cover"
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.18)' }} />
                   <span
                     className="heading-display"
-                    style={{ fontSize: 'clamp(3rem,5vw,4rem)', fontStyle: 'italic', color: 'rgba(0,0,0,0.1)', userSelect: 'none', position: 'relative' }}
+                    style={{ position: 'absolute', bottom: '0.75rem', left: '1rem', fontSize: 'clamp(1.5rem,3vw,2rem)', fontStyle: 'italic', color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
                   >
                     {u.name}
                   </span>

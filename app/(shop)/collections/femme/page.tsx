@@ -175,6 +175,7 @@ export default async function FemmePage() {
                 <ProductCard
                   key={p.id}
                   id={p.slug}
+                  productId={p.id}
                   name={p.name}
                   brand={p.brand}
                   price={p.price}

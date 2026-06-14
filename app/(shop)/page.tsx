@@ -238,6 +238,7 @@ export default async function HomePage() {
                 <ProductCard
                   key={p.slug}
                   id={p.slug}
+                  productId={p.id}
                   name={p.name}
                   brand={p.brand}
                   price={p.price}
@@ -278,6 +279,7 @@ export default async function HomePage() {
                 <ProductCard
                   key={p.slug}
                   id={p.slug}
+                  productId={p.id}
                   name={p.name}
                   brand={p.brand}
                   price={p.price}

@@ -16,7 +16,7 @@ export async function GET() {
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('home_univers')
-      .select('slug, tagline, description, notes, ordre')
+      .select('slug, tagline, description, notes, image_url, ordre')
       .order('ordre');
 
     if (error) throw error;
@@ -31,12 +31,13 @@ export async function GET() {
 }
 
 // ── PUT /api/admin/home ────────────────────────────────────────────────────────
-// Body: { rows: { slug, tagline, description, notes }[] }
+// Body: { rows: { slug, tagline, description, notes, image_url }[] }
 interface UniversRow {
   slug: string;
   tagline: string;
   description: string;
   notes: string[];
+  image_url?: string;
   ordre?: number;
 }
 

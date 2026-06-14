@@ -7,6 +7,7 @@ export interface UniversContent {
   tagline: string;
   description: string;
   notes: string[];
+  image_url?: string;
 }
 
 /* ── Defaults (miroir exact du UNIVERS_META de la homepage) ─────────────────── */
@@ -39,7 +40,7 @@ export async function getHomeUnivers(): Promise<UniversContent[]> {
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('home_univers')
-      .select('slug, tagline, description, notes')
+      .select('slug, tagline, description, notes, image_url')
       .in('slug', ['femme', 'homme', 'mixte']);
 
     if (error || !data || data.length === 0) return DEFAULT_UNIVERS;
@@ -53,6 +54,7 @@ export async function getHomeUnivers(): Promise<UniversContent[]> {
         tagline: db.tagline || def.tagline,
         description: db.description || def.description,
         notes: Array.isArray(db.notes) && db.notes.length > 0 ? db.notes : def.notes,
+        image_url: db.image_url || '',
       };
     });
   } catch {

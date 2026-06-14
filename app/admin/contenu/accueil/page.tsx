@@ -179,6 +179,10 @@ export default function AdminAccueilPage() {
     setUnivers((prev) => prev.map((u) => (u.slug === slug ? { ...u, [field]: value } : u)));
   }
 
+  function updateUniversImage(slug: string, imageUrl: string) {
+    setUnivers((prev) => prev.map((u) => (u.slug === slug ? { ...u, image_url: imageUrl } : u)));
+  }
+
   function updateNotes(slug: string, rawText: string) {
     const notes = linesToList(rawText);
     updateUnivers(slug, 'notes', notes);
@@ -459,7 +463,7 @@ export default function AdminAccueilPage() {
 
       {/* Info banner */}
       <div style={{ padding: '12px 16px', borderRadius: 8, marginBottom: 28, fontSize: 12, background: 'rgba(197,165,90,0.08)', border: '1px solid rgba(197,165,90,0.2)', color: 'rgba(197,165,90,0.8)' }}>
-        💡 Le hero principal est modifiable ci-dessus. Pour les univers, les couleurs de fond et les noms (Femme / Homme / Mixte) restent fixes ; seuls les taglines, descriptions et notes olfactives changent ici.
+        💡 Pour chaque univers, uploadez une photo de couverture et modifiez taglines, descriptions et notes olfactives.
       </div>
 
       {loading && (
@@ -476,6 +480,16 @@ export default function AdminAccueilPage() {
             {' '}
             {UNIVERS_LABELS[u.slug] ?? u.slug}
           </h2>
+
+          <div style={{ marginBottom: 20 }}>
+            <ImageUploadField
+              label="Photo de couverture"
+              value={u.image_url ?? ''}
+              onChange={(v) => updateUniversImage(u.slug, v.split('\n')[0] ?? '')}
+              maxImages={1}
+              disabled={loading || saving}
+            />
+          </div>
 
           <Field
             id={`univers-${u.slug}-tagline`}

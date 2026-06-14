@@ -717,6 +717,7 @@ export default function ProductDetailClient({
               <ProductCard
                 key={relatedProduct.id}
                 id={relatedProduct.slug}
+                productId={relatedProduct.id}
                 name={relatedProduct.name}
                 brand={relatedProduct.brand}
                 price={relatedProduct.price}

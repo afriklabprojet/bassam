@@ -41,7 +41,6 @@ const UNIVERS_META = [
     notes: ['Jasmin', 'Rose', 'Vanille', 'Oud'],
     gradient: 'linear-gradient(135deg,#F9EFE8 0%,#EDD9C8 100%)',
     dot: '#C5A55A',
-    image: '/images/collections/femme.jpg',
   },
   {
     slug: 'homme',
@@ -51,7 +50,6 @@ const UNIVERS_META = [
     notes: ['Cèdre', 'Vétiver', 'Bergamote', 'Ambre'],
     gradient: 'linear-gradient(135deg,#EEF1F5 0%,#D6DDE7 100%)',
     dot: '#7896B2',
-    image: '/images/collections/homme.jpg',
   },
   {
     slug: 'mixte',
@@ -61,7 +59,6 @@ const UNIVERS_META = [
     notes: ['Poivre', 'Santal', 'Iris', 'Patchouli'],
     gradient: 'linear-gradient(135deg,#F3EFE9 0%,#E2D9CB 100%)',
     dot: '#A89B7A',
-    image: '/images/collections/mixte.jpg',
   },
 ];
 
@@ -102,7 +99,7 @@ export default async function HomePage() {
     return {
       ...u,
       ...(db ? { tagline: db.tagline, description: db.description, notes: db.notes } : {}),
-      image: (db?.image_url) || u.image,
+      image: db?.image_url || '',
       productsCount: effectiveCounts[u.slug] ?? 0,
     };
   });
@@ -323,22 +320,35 @@ export default async function HomePage() {
                 style={{ display: 'block', textDecoration: 'none', borderRadius: 'var(--r-lg)', border: '1px solid var(--line-light)', overflow: 'hidden', background: '#fff' }}
               >
                 {/* Visuel */}
-                <div className="univers-card-visual" style={{ height: '10rem', background: u.gradient, position: 'relative', overflow: 'hidden' }}>
-                  <Image
-                    src={u.image}
-                    alt={u.name}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 33vw"
-                    className="object-cover"
-                    style={{ objectFit: 'cover' }}
-                  />
-                  <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.18)' }} />
-                  <span
-                    className="heading-display"
-                    style={{ position: 'absolute', bottom: '0.75rem', left: '1rem', fontSize: 'clamp(1.5rem,3vw,2rem)', fontStyle: 'italic', color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
-                  >
-                    {u.name}
-                  </span>
+                <div className="univers-card-visual" style={{ height: '10rem', background: u.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                  {u.image ? (
+                    <>
+                      <Image
+                        src={u.image}
+                        alt={u.name}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        style={{ objectFit: 'cover' }}
+                      />
+                      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.18)' }} />
+                      <span
+                        className="heading-display"
+                        style={{ position: 'absolute', bottom: '0.75rem', left: '1rem', fontSize: 'clamp(1.5rem,3vw,2rem)', fontStyle: 'italic', color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}
+                      >
+                        {u.name}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div aria-hidden style={{ position: 'absolute', bottom: '-3rem', right: '-3rem', width: '9rem', height: '9rem', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', transition: 'transform 0.6s ease' }} />
+                      <span
+                        className="heading-display"
+                        style={{ fontSize: 'clamp(3rem,5vw,4rem)', fontStyle: 'italic', color: 'rgba(0,0,0,0.1)', userSelect: 'none', position: 'relative' }}
+                      >
+                        {u.name}
+                      </span>
+                    </>
+                  )}
                 </div>
                 {/* Corps de la carte */}
                 <div style={{ padding: '1.5rem', background: '#fff' }}>

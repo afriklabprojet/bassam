@@ -108,6 +108,36 @@ export function getJekoConfigDiagnostics(): JekoConfigDiagnostics {
   };
 }
 
+/**
+ * Normalize a phone number to E.164 format for Jeko.
+ * Handles Ivorian local formats (07XXXXXXXX, 0107XXXXXXXX, +2250XXXXXXXX).
+ * Falls back to the original value if already in E.164 or unrecognized.
+ */
+export function normalizePhoneForJeko(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+
+  // Already full international: 2250XXXXXXXXX (13 digits) or 225XXXXXXXXXX (11 digits)
+  if (digits.startsWith('225')) {
+    const local = digits.slice(3); // strip country code
+    // Remove leading 0 if present (225 0 7...) → 225 7...
+    const normalized = local.startsWith('0') ? local.slice(1) : local;
+    return `+225${normalized}`;
+  }
+
+  // Local format with leading 0: 07XXXXXXXX (10 digits) or 0107XXXXXXXX
+  if (digits.startsWith('0') && digits.length >= 9) {
+    return `+225${digits.slice(1)}`;
+  }
+
+  // Local format without leading 0: 7XXXXXXXX (9 digits)
+  if (digits.length === 9) {
+    return `+225${digits}`;
+  }
+
+  // Unknown format — return as-is and let Jeko reject it with a clear error
+  return phone;
+}
+
 /** Initiate a mobile money collection via Jeko Africa API (redirect flow) */
 export async function initiatePayment(
   params: JekoInitiateParams
@@ -133,7 +163,7 @@ export async function initiatePayment(
   };
 
   if (params.payerPhone) {
-    paymentData.payerPhone = params.payerPhone;
+    paymentData.payerPhone = normalizePhoneForJeko(params.payerPhone);
   }
 
   const body = {

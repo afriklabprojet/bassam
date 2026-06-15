@@ -29,9 +29,6 @@ export default function CartSidebar() {
     if (isOpen) panelRef.current?.focus();
   }, [isOpen]);
 
-  const shipping = totalPrice >= 50_000 ? 0 : 2_500;
-  const freeShippingPct = Math.min((totalPrice / 50_000) * 100, 100);
-  const freeShippingLeft = 50_000 - totalPrice;
 
   return (
     <>
@@ -131,25 +128,6 @@ export default function CartSidebar() {
           </button>
         </div>
 
-        {/* ── Free shipping progress ─────────────── */}
-        {items.length > 0 && totalPrice < 50_000 && (
-          <div style={{ padding: '0.875rem 1.5rem', borderBottom: '1px solid var(--line-light)', background: 'var(--offwhite)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-              Plus que <strong style={{ color: 'var(--gold-dark)' }}>{fmt(freeShippingLeft)}</strong> pour la livraison offerte
-            </p>
-            <div style={{ height: '2px', background: 'var(--line-light)', borderRadius: '1px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', background: 'var(--gold)', borderRadius: '1px', width: `${freeShippingPct}%`, transition: 'width 0.5s cubic-bezier(0.4,0,0.2,1)' }} />
-            </div>
-          </div>
-        )}
-        {items.length > 0 && totalPrice >= 50_000 && (
-          <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid var(--line-light)', background: 'var(--offwhite)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <svg width="14" height="14" fill="none" stroke="var(--gold)" strokeWidth="1.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-            </svg>
-            <p style={{ fontSize: '0.75rem', color: 'var(--gold-dark)', fontWeight: 500 }}>Livraison offerte</p>
-          </div>
-        )}
 
         {/* ── Items ──────────────────────────────── */}
         <div style={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain' }}>
@@ -286,7 +264,7 @@ export default function CartSidebar() {
             </div>
 
             <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', fontWeight: 300, marginBottom: '1.25rem' }}>
-              {shipping === 0 ? 'Livraison offerte' : `Livraison : ${fmt(shipping)}`} · Taxes incluses
+              Frais de livraison calculés à la commande · Taxes incluses
             </p>
 
             {/* Gold CTA — goes to full cart page */}

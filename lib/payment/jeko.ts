@@ -109,42 +109,36 @@ export function getJekoConfigDiagnostics(): JekoConfigDiagnostics {
 }
 
 /**
- * Normalize a phone number to E.164 format for Jeko.
- * Côte d'Ivoire (country code 225) uses 10-digit local numbers since 2021.
- * E.164 = +225 followed by the full 10-digit local number (leading 0 preserved).
- *
- * Examples:
- *   0759119185        → +2250759119185
- *   +2250759119185    → +2250759119185 (already correct)
- *   2250759119185     → +2250759119185
- *   0759 11 91 85     → +2250759119185 (spaces stripped)
+ * Normalize a CI phone number to E.164 (+225XXXXXXXXXX, 13 digits total).
+ * CI uses 10-digit local numbers since 2021 (e.g. 0759119185).
+ * Returns null if the result cannot be made valid — caller should omit payerPhone.
  */
-export function normalizePhoneForJeko(phone: string): string {
+export function normalizePhoneForJeko(phone: string): string | null {
   const digits = phone.replace(/\D/g, '');
 
-  // Already prefixed with country code 225 (with or without +)
+  let local: string;
+
   if (digits.startsWith('225')) {
-    const local = digits.slice(3); // everything after 225
-    // local must be 10 digits (Ivorian standard since 2021)
-    if (local.length === 10) return `+225${local}`;
-    // If it's 9 digits without leading 0, add it back
-    if (local.length === 9) return `+2250${local}`;
-    // Already well-formed, just add +
-    return `+${digits}`;
+    local = digits.slice(3);
+  } else if (digits.startsWith('0')) {
+    // Local format 0XXXXXXXXX (10 digits)
+    local = digits;
+  } else if (digits.length === 9) {
+    // 9-digit local without leading 0 — prepend it
+    local = `0${digits}`;
+  } else {
+    return null;
   }
 
-  // Local 10-digit number (includes leading 0): 07XXXXXXXX, 01XXXXXXXX, etc.
-  if (digits.length === 10 && digits.startsWith('0')) {
-    return `+225${digits}`;
-  }
+  // Ivorian local numbers are exactly 10 digits
+  if (local.length !== 10) return null;
 
-  // Local 9-digit number (without leading 0): 7XXXXXXXX
-  if (digits.length === 9) {
-    return `+2250${digits}`;
-  }
+  const e164 = `+225${local}`;
 
-  // Unknown format — return as-is
-  return phone;
+  // Validate the result: +225 followed by exactly 10 digits
+  if (!/^\+225\d{10}$/.test(e164)) return null;
+
+  return e164;
 }
 
 /** Initiate a mobile money collection via Jeko Africa API (redirect flow) */
@@ -172,7 +166,11 @@ export async function initiatePayment(
   };
 
   if (params.payerPhone) {
-    paymentData.payerPhone = normalizePhoneForJeko(params.payerPhone);
+    const normalizedPhone = normalizePhoneForJeko(params.payerPhone);
+    if (normalizedPhone) {
+      paymentData.payerPhone = normalizedPhone;
+    }
+    // If normalization fails, omit payerPhone — Jeko will prompt the user on their page
   }
 
   const body = {

@@ -110,31 +110,40 @@ export function getJekoConfigDiagnostics(): JekoConfigDiagnostics {
 
 /**
  * Normalize a phone number to E.164 format for Jeko.
- * Handles Ivorian local formats (07XXXXXXXX, 0107XXXXXXXX, +2250XXXXXXXX).
- * Falls back to the original value if already in E.164 or unrecognized.
+ * Côte d'Ivoire (country code 225) uses 10-digit local numbers since 2021.
+ * E.164 = +225 followed by the full 10-digit local number (leading 0 preserved).
+ *
+ * Examples:
+ *   0759119185        → +2250759119185
+ *   +2250759119185    → +2250759119185 (already correct)
+ *   2250759119185     → +2250759119185
+ *   0759 11 91 85     → +2250759119185 (spaces stripped)
  */
 export function normalizePhoneForJeko(phone: string): string {
   const digits = phone.replace(/\D/g, '');
 
-  // Already full international: 2250XXXXXXXXX (13 digits) or 225XXXXXXXXXX (11 digits)
+  // Already prefixed with country code 225 (with or without +)
   if (digits.startsWith('225')) {
-    const local = digits.slice(3); // strip country code
-    // Remove leading 0 if present (225 0 7...) → 225 7...
-    const normalized = local.startsWith('0') ? local.slice(1) : local;
-    return `+225${normalized}`;
+    const local = digits.slice(3); // everything after 225
+    // local must be 10 digits (Ivorian standard since 2021)
+    if (local.length === 10) return `+225${local}`;
+    // If it's 9 digits without leading 0, add it back
+    if (local.length === 9) return `+2250${local}`;
+    // Already well-formed, just add +
+    return `+${digits}`;
   }
 
-  // Local format with leading 0: 07XXXXXXXX (10 digits) or 0107XXXXXXXX
-  if (digits.startsWith('0') && digits.length >= 9) {
-    return `+225${digits.slice(1)}`;
-  }
-
-  // Local format without leading 0: 7XXXXXXXX (9 digits)
-  if (digits.length === 9) {
+  // Local 10-digit number (includes leading 0): 07XXXXXXXX, 01XXXXXXXX, etc.
+  if (digits.length === 10 && digits.startsWith('0')) {
     return `+225${digits}`;
   }
 
-  // Unknown format — return as-is and let Jeko reject it with a clear error
+  // Local 9-digit number (without leading 0): 7XXXXXXXX
+  if (digits.length === 9) {
+    return `+2250${digits}`;
+  }
+
+  // Unknown format — return as-is
   return phone;
 }
 

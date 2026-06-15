@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib/supabase/custom-order-items';
 import { createOrder } from '@/lib/supabase/orders';
-import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY, getJekoConfigDiagnostics } from '@/lib/payment/jeko';
+import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY, getJekoConfigDiagnostics, normalizePhoneForJeko } from '@/lib/payment/jeko';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 
@@ -206,6 +206,7 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_APP_URL ?? request.nextUrl.origin;
     const mappedProvider = mapProvider(d.paymentMethod);
 
+    const normalizedPhone = normalizePhoneForJeko(d.phone);
     logger.info(PAYMENT_LOG_CONTEXT, 'Calling Jeko payment initiation', {
       correlationId: getPaymentCorrelationId(requestCorrelationId, orderId, transactionId),
       orderId,
@@ -215,6 +216,7 @@ export async function POST(request: NextRequest) {
       currency: JEKO_CURRENCY,
       appUrl,
       phone: maskedPhone,
+      phoneNormalized: normalizedPhone ? `***${normalizedPhone.slice(-4)}` : 'omitted',
       jekoBaseUrl: jekoConfig.baseUrl,
     });
 

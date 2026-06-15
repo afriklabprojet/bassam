@@ -2,11 +2,10 @@
 
 import { useCart } from '@/lib/cart-context';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
-import { DEFAULT_SHIPPING_CONFIG, getMinDeliveryFee, type ShippingConfig } from '@/lib/shipping';
 import { formatPrice } from '@/lib/format';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 function getDiscountAmount(totalPrice: number, promoData: { type: 'percentage' | 'fixed'; value: number } | null, promoApplied: boolean) {
   if (!promoApplied || !promoData) return 0;
@@ -39,21 +38,10 @@ export default function CartPage() {
   const [promoError, setPromoError] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoData, setPromoData] = useState<{ type: 'percentage' | 'fixed'; value: number } | null>(null);
-  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(DEFAULT_SHIPPING_CONFIG);
 
-  useEffect(() => {
-    fetch('/api/shipping-config')
-      .then(r => r.json())
-      .then((d: { config?: ShippingConfig }) => {
-        if (d.config) setShippingConfig(d.config);
-      })
-      .catch(() => {});
-  }, []);
-
-  const shipping = getMinDeliveryFee(shippingConfig);
   const discountAmount = getDiscountAmount(totalPrice, promoData, promoApplied);
   const discountDisplay = getDiscountDisplay(promoData, promoApplied);
-  const total = totalPrice - discountAmount + shipping;
+  const total = totalPrice - discountAmount;
 
   const sampleCount = getSampleCount(totalPrice);
 
@@ -288,13 +276,16 @@ export default function CartPage() {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Livraison</span>
-                    <span style={shipping === 0 ? { color: 'var(--gold-dark)', fontWeight: 500 } : { color: 'var(--text-primary)' }}>
-                      {shipping === 0 ? 'Offerte' : formatPrice(shipping)}
+                    <span style={{ color: 'var(--text-pale)', fontStyle: 'italic' }}>
+                      Calculée à la commande
                     </span>
                   </div>
 
                   <div style={{ borderTop: '1px solid var(--line-light)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '0.25rem' }}>
-                    <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Total</span>
+                    <div>
+                      <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Total</span>
+                      <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', fontWeight: 300, marginTop: '0.15rem' }}>Livraison non incluse</p>
+                    </div>
                     <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 500, color: 'var(--text-primary)' }}>{formatPrice(total)}</span>
                   </div>
                 </div>

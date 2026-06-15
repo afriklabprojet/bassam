@@ -104,7 +104,7 @@ function AnnouncementBar({ scrolled }: Readonly<{ scrolled: boolean }>) {
             margin: 0, display: 'flex', alignItems: 'center',
             gap: 32, flexShrink: 0,
           }}>
-            <span>Livraison offerte dès 50 000 XOF</span>
+            <span>Livraison disponible à Abidjan &amp; Côte d&apos;Ivoire</span>
             <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>
             <span>Abidjan &amp; International</span>
             <span style={{ color: 'rgba(197,165,90,0.35)' }}>✦</span>

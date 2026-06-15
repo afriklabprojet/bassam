@@ -17,8 +17,6 @@ export interface JekoInitiateParams {
   reference: string;
   successUrl: string;
   errorUrl: string;
-  /** Optional: pre-fills the payer phone on Jeko's hosted payment page */
-  payerPhone?: string;
 }
 
 export interface JekoInitiateResponse {
@@ -165,13 +163,8 @@ export async function initiatePayment(
     errorUrl: params.errorUrl,
   };
 
-  if (params.payerPhone) {
-    const normalizedPhone = normalizePhoneForJeko(params.payerPhone);
-    if (normalizedPhone) {
-      paymentData.payerPhone = normalizedPhone;
-    }
-    // If normalization fails, omit payerPhone — Jeko will prompt the user on their page
-  }
+  // payerPhone intentionally omitted — Jeko rejects non-matching regex formats
+  // and the field is optional (Jeko prompts the user on their hosted payment page)
 
   const body = {
     amountCents: Math.round(params.amountXof * 100),

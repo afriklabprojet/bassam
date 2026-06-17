@@ -252,10 +252,10 @@ export function ProductCard({ product, index }: Readonly<{ product: ProductResul
 
   return (
     <div style={{ background: '#fff', borderTop: '2px solid var(--line-light)', position: 'relative', display: 'flex', gap: 0 }}>
-      {product.image_url && (
+      {product.images?.[0] && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={product.image_url}
+          src={product.images[0]}
           alt={product.name}
           style={{ width: 120, minWidth: 120, objectFit: 'cover', display: 'block', flexShrink: 0 }}
         />

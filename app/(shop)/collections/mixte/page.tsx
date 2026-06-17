@@ -76,7 +76,7 @@ Mixte
 &ldquo;Un parfum n&rsquo;a pas de genre. Il a une âme.&rdquo;
 </p>
 <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, marginBottom: '2.5rem' }}>
-Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l'instinct, sans compromis, sans convention.
+Des compositions olfactives qui transcendent les catégories. Pour ceux qui choisissent leur parfum à l&rsquo;instinct, sans compromis, sans convention.
 </p>
 <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
 <Link href="#produits" style={{

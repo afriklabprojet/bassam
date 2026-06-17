@@ -24,7 +24,7 @@ export interface ProductResult {
   concentration?: string;
   description?: string;
   slug: string;
-  image_url?: string;
+  images?: string[];
   price: number;
   olfactive_family?: string;
 }

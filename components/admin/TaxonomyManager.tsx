@@ -276,6 +276,10 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
     try {
       const res = await fetch(config.apiPath);
       const payload = await res.json();
+      if (!res.ok) {
+        showToast(false, payload.error ?? `Erreur ${res.status} lors du chargement`);
+        return;
+      }
       setItems(payload.items ?? payload.categories ?? payload.collections ?? []);
     } catch {
       showToast(false, 'Erreur lors du chargement');

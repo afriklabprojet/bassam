@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import CreationConfigurator from '@/components/CreationConfigurator';
 import { fetchCreationConfig } from '@/lib/custom-creation';
+import { getServicesContent } from '@/lib/supabase/services-content';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,7 +67,13 @@ const familles = [
 /* ─── Page ───────────────────────────────────────────────── */
 
 export default async function CreationPersonnalisee() {
-  const creationConfig = await fetchCreationConfig();
+  const [creationConfig, servicesContent] = await Promise.all([
+    fetchCreationConfig(),
+    getServicesContent(),
+  ]);
+  const serviceData = servicesContent.find((s) => s.slug === 'creation-personnalisee');
+  const heroImageUrl = serviceData?.hero_image_url ?? '';
+
   return (
     <main>
 
@@ -80,6 +87,15 @@ export default async function CreationPersonnalisee() {
         position: 'relative',
         overflow: 'hidden',
       }}>
+        {heroImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={heroImageUrl}
+            alt=""
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.18 }}
+          />
+        )}
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse 80% 60% at 20% 80%, rgba(197,165,90,0.09) 0%, transparent 60%)', pointerEvents: 'none' }} aria-hidden="true" />
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.3 }} aria-hidden="true" />
 

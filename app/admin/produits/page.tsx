@@ -292,13 +292,23 @@ export default function AdminProducts() {
   async function handleDelete(id: string, name: string) {
     if (!confirm(`Supprimer « ${name} » ?`)) return;
     setActionLoading(id);
-    await fetch('/api/admin/products', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    });
-    setActionLoading(null);
-    load();
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        alert(`Impossible de supprimer ce produit : ${data.error ?? res.statusText}`);
+        return;
+      }
+      load();
+    } catch {
+      alert('Erreur de connexion lors de la suppression');
+    } finally {
+      setActionLoading(null);
+    }
   }
 
   function renderTableContent() {

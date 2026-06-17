@@ -238,6 +238,7 @@ export default function AdminOrders() {
     }
   }, [page, statusFilter]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, [load]);
 
   async function updateStatus(id: string, status: string) {

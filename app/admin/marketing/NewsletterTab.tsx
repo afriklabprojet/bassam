@@ -30,6 +30,7 @@ export function NewsletterTab() {
     setLoading(false);
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(page); }, [load, page]);
 
   function exportCSV() {

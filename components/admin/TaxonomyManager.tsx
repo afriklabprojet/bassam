@@ -149,6 +149,7 @@ function TaxonomyImageUpload({
 
       {value ? (
         <div style={{ ...zoneBase, aspectRatio: '16/7', cursor: 'default' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={value}
             alt=""
@@ -289,7 +290,9 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.apiPath]);
 
   function showToast(ok: boolean, msg: string) {
@@ -453,6 +456,7 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {item.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={item.image_url}
                         alt=""

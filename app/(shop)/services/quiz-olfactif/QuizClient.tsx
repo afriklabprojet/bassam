@@ -5,7 +5,7 @@ import { QUIZ_STEPS, TOTAL_STEPS, buildApiParams } from '@/lib/quiz-data';
 import type { StepNumber, ProductResult } from '@/lib/quiz-data';
 import { ProgressDots, ChoiceCard, OlfactiveCard, ResultsScreen } from './quiz-ui';
 
-export default function QuizClient() {
+export default function QuizClient({ heroImageUrl = '' }: Readonly<{ heroImageUrl?: string }>) {
   const [step, setStep] = useState<StepNumber>(1);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [done, setDone] = useState(false);
@@ -87,6 +87,15 @@ export default function QuizClient() {
   return (
     <main>
       <section style={{ background: 'var(--noir)', padding: '80px 0 0', position: 'relative', overflow: 'hidden' }}>
+        {heroImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={heroImageUrl}
+            alt=""
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.18 }}
+          />
+        )}
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 70% 30%, rgba(197,165,90,0.06) 0%, transparent 55%)' }} aria-hidden="true" />
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.3 }} aria-hidden="true" />
         <div className="container" style={{ position: 'relative', zIndex: 1, paddingBottom: 40 }}>

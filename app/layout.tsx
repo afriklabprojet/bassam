@@ -1,4 +1,4 @@
-import { SITE_URL, SITE_NAME } from '@/lib/site-config';
+import { SITE_URL } from '@/lib/site-config';
 import type { Metadata, Viewport } from "next";
 
 // Nonce-based CSP requires per-request rendering so Next.js can stamp

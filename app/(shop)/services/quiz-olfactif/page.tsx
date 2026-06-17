@@ -1,5 +1,6 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import type { Metadata } from 'next';
+import { getServicesContent } from '@/lib/supabase/services-content';
 import QuizClient from './QuizClient';
 
 
@@ -38,12 +39,15 @@ const serviceLd = {
   serviceType: 'Conseil en parfumerie',
 };
 
-export default function QuizOlfactifPage() {
+export default async function QuizOlfactifPage() {
+  const servicesContent = await getServicesContent();
+  const heroImageUrl = servicesContent.find((s) => s.slug === 'quiz-olfactif')?.hero_image_url ?? '';
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceLd) }} />
-      <QuizClient />
+      <QuizClient heroImageUrl={heroImageUrl} />
     </>
   );
 }

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getSiteSettings } from '@/lib/site-settings';
+import { getServicesContent } from '@/lib/supabase/services-content';
 import ConsultationForm from '@/components/ConsultationForm';
 
 
@@ -64,10 +65,12 @@ const faq = [
 /* ─── Page ─────────────────────────────────────────────────────────────────── */
 
 export default async function ConsultationPage() {
-  const [reviews, settings] = await Promise.all([
+  const [reviews, settings, servicesContent] = await Promise.all([
     getApprovedReviews(2).catch(() => []),
     getSiteSettings(),
+    getServicesContent(),
   ]);
+  const heroImageUrl = servicesContent.find((s) => s.slug === 'consultation')?.hero_image_url ?? '';
 
   const sharedContact = {
     whatsappNumber: settings.whatsapp_number || '',
@@ -105,6 +108,15 @@ export default async function ConsultationPage() {
         position: 'relative',
         overflow: 'hidden',
       }}>
+        {heroImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={heroImageUrl}
+            alt=""
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.18 }}
+          />
+        )}
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle at 20% 80%, rgba(197,165,90,0.06) 0%, transparent 50%)', pointerEvents: 'none' }} aria-hidden="true" />
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, var(--gold), transparent)', opacity: 0.25 }} aria-hidden="true" />
 

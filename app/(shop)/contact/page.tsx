@@ -85,28 +85,6 @@ function buildCanaux(s: SiteSettings) {
   return canaux;
 }
 
-const faq = [
-  {
-    q: 'Vos parfums sont-ils 100\u00A0% authentiques\u00A0?',
-    r: 'Oui, absolument. Chaque produit est sourcé directement auprès des distributeurs officiels en Europe. Nous fournissons un certificat d\u2019authenticité avec chaque commande.',
-  },
-  {
-    q: 'Quels sont les délais de livraison\u00A0?',
-    r: '24 à 72h pour Abidjan. 3 à 5 jours ouvrés pour le reste de l\u2019Afrique de l\u2019Ouest. La livraison est offerte à partir de 50\u00A0000 FCFA d\u2019achat.',
-  },
-  {
-    q: 'Quels modes de paiement acceptez-vous\u00A0?',
-    r: 'Orange Money, MTN Money, Wave, Moov Money, Djamo. Toutes les transactions sont sécurisées.',
-  },
-  {
-    q: 'Puis-je retourner un parfum\u00A0?',
-    r: 'Oui, dans les 7 jours suivant la réception, si le flacon est non ouvert et dans son emballage d\u2019origine. Contactez-nous par WhatsApp pour initier le retour.',
-  },
-  {
-    q: 'Proposez-vous des consultations olfactives\u00A0?',
-    r: 'Oui ! Vous pouvez prendre rendez-vous pour une consultation privée avec notre experte, ou utiliser notre quiz olfactif IA disponible en ligne.',
-  },
-];
 
 /* ─── Sous-composants ────────────────────────────────────── */
 

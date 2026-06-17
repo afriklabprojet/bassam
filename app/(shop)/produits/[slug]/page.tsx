@@ -83,6 +83,9 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
 
   const relatedProducts = await getRelatedProducts(product);
 
+  // eslint-disable-next-line react-hooks/purity
+  const priceValidUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
   // Schema.org JSON-LD — Product
   const productLd = {
     '@context': 'https://schema.org',
@@ -99,7 +102,7 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
       '@id': `${BASE_URL}/produits/${product.slug}#offer`,
       priceCurrency: 'XOF',
       price: product.price,
-      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      priceValidUntil,
       availability: product.stockQuantity > 0
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',

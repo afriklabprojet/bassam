@@ -67,7 +67,7 @@ function createFallbackContext(
   };
 }
 
-function logProductsFallback(context: ProductsFallbackContext) {
+function logProductsFallback(_context: ProductsFallbackContext) {
   // Production observability by default; enable locally with DEBUG_PRODUCTS_FALLBACK=true.
   if (process.env.NODE_ENV !== 'production' && process.env.DEBUG_PRODUCTS_FALLBACK !== 'true') {
     return;

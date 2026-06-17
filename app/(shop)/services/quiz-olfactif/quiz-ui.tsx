@@ -251,36 +251,46 @@ export function ProductCard({ product, index }: Readonly<{ product: ProductResul
     : product.brand ?? product.concentration ?? '';
 
   return (
-    <div style={{ background: '#fff', padding: '32px 28px', borderTop: '2px solid var(--line-light)', position: 'relative' }}>
-      <span style={{ fontSize: '0.625rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
-        Recommandation {String(index + 1).padStart(2, '0')}
-      </span>
-      {product.olfactive_family && (
-        <span style={{ display: 'inline-block', fontSize: '0.5625rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', background: 'var(--gold)', borderRadius: 2, padding: '2px 8px', marginLeft: 10, verticalAlign: 'middle' }}>
-          {product.olfactive_family}
+    <div style={{ background: '#fff', borderTop: '2px solid var(--line-light)', position: 'relative', display: 'flex', gap: 0 }}>
+      {product.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={product.image_url}
+          alt={product.name}
+          style={{ width: 120, minWidth: 120, objectFit: 'cover', display: 'block', flexShrink: 0 }}
+        />
+      )}
+      <div style={{ padding: '32px 28px', flex: 1 }}>
+        <span style={{ fontSize: '0.625rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
+          Recommandation {String(index + 1).padStart(2, '0')}
         </span>
-      )}
-      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, color: 'var(--text-primary)', margin: '8px 0 2px', lineHeight: 1.2 }}>
-        {product.name}
-      </h3>
-      <p style={{ fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', margin: '0 0 6px' }}>
-        {brandLine}
-      </p>
-      <div style={{ width: 24, height: '1px', background: 'var(--gold)', margin: '12px 0', opacity: 0.5 }} aria-hidden="true" />
-      {product.description && (
-        <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 16px' }}>
-          {truncateDescription(product.description, 120)}
-        </p>
-      )}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
-        {product.price > 0 && (
-          <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            {formatPrice(product.price)}
+        {product.olfactive_family && (
+          <span style={{ display: 'inline-block', fontSize: '0.5625rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', background: 'var(--gold)', borderRadius: 2, padding: '2px 8px', marginLeft: 10, verticalAlign: 'middle' }}>
+            {product.olfactive_family}
           </span>
         )}
-        <Link href={`/produits/${product.slug}`} style={{ fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600, borderBottom: '1px solid rgba(197,165,90,0.35)', paddingBottom: 3 }}>
-          Voir le produit →
-        </Link>
+        <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.375rem', fontWeight: 400, color: 'var(--text-primary)', margin: '8px 0 2px', lineHeight: 1.2 }}>
+          {product.name}
+        </h3>
+        <p style={{ fontSize: '0.75rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-pale)', margin: '0 0 6px' }}>
+          {brandLine}
+        </p>
+        <div style={{ width: 24, height: '1px', background: 'var(--gold)', margin: '12px 0', opacity: 0.5 }} aria-hidden="true" />
+        {product.description && (
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', lineHeight: 1.7, margin: '0 0 16px' }}>
+            {truncateDescription(product.description, 120)}
+          </p>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+          {product.price > 0 && (
+            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              {formatPrice(product.price)}
+            </span>
+          )}
+          <Link href={`/produits/${product.slug}`} style={{ fontSize: '0.6875rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', fontWeight: 600, borderBottom: '1px solid rgba(197,165,90,0.35)', paddingBottom: 3 }}>
+            Voir le produit →
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ export async function GET() {
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('services_content')
-      .select('slug, ordre, titre, accroche, description, details, cta_label, tag, is_active')
+      .select('slug, ordre, titre, accroche, description, details, cta_label, tag, hero_image_url, is_active')
       .order('ordre');
 
     if (error) throw error;
@@ -39,6 +39,7 @@ interface ServiceRow {
   details?: string[];
   cta_label?: string;
   tag?: string;
+  hero_image_url?: string;
   is_active?: boolean;
 }
 
@@ -71,6 +72,7 @@ export async function PUT(req: NextRequest) {
           ...(r.details !== undefined && { details: r.details }),
           ...(r.cta_label !== undefined && { cta_label: r.cta_label }),
           ...(r.tag !== undefined && { tag: r.tag }),
+          ...(r.hero_image_url !== undefined && { hero_image_url: r.hero_image_url }),
           ...(r.is_active !== undefined && { is_active: r.is_active }),
           updated_at: new Date().toISOString(),
         })),

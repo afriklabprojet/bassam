@@ -9,6 +9,7 @@ export interface ServiceContent {
   details: string[];
   cta_label: string;
   tag: string;
+  hero_image_url: string;
   is_active: boolean;
 }
 
@@ -28,6 +29,7 @@ const DEFAULT_SERVICES: ServiceContent[] = [
     ],
     cta_label: 'Démarrer le quiz',
     tag: 'Gratuit',
+    hero_image_url: '',
     is_active: true,
   },
   {
@@ -45,6 +47,7 @@ const DEFAULT_SERVICES: ServiceContent[] = [
     ],
     cta_label: 'Prendre rendez-vous',
     tag: 'Sur rendez-vous',
+    hero_image_url: '',
     is_active: true,
   },
   {
@@ -62,6 +65,7 @@ const DEFAULT_SERVICES: ServiceContent[] = [
     ],
     cta_label: 'Créer mon parfum',
     tag: 'Sur-mesure',
+    hero_image_url: '',
     is_active: true,
   },
 ];
@@ -75,7 +79,7 @@ export async function getServicesContent(): Promise<ServiceContent[]> {
     const supabase = createServiceClient();
     const { data, error } = await supabase
       .from('services_content')
-      .select('slug, ordre, titre, accroche, description, details, cta_label, tag, is_active')
+      .select('slug, ordre, titre, accroche, description, details, cta_label, tag, hero_image_url, is_active')
       .eq('is_active', true)
       .order('ordre', { ascending: true });
 
@@ -97,6 +101,7 @@ export async function getServicesContent(): Promise<ServiceContent[]> {
         details,
         cta_label: row.cta_label ?? def?.cta_label ?? 'Découvrir',
         tag: row.tag ?? def?.tag ?? '',
+        hero_image_url: row.hero_image_url ?? '',
         is_active: row.is_active ?? true,
       };
     });

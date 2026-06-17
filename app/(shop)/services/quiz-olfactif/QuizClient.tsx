@@ -70,13 +70,8 @@ export default function QuizClient({ heroImageUrl = '' }: Readonly<{ heroImageUr
       const params = buildApiParams(answers);
       try {
         const r = await fetch(`/api/products?${params.toString()}`);
-        const d = await r.json() as { products?: (ProductResult & { images?: string[] })[] };
-        setProducts(
-          (d.products ?? []).map((p) => ({
-            ...p,
-            image_url: p.image_url ?? p.images?.[0] ?? undefined,
-          }))
-        );
+        const d = await r.json() as { products?: ProductResult[] };
+        setProducts(d.products ?? []);
       } catch {
         setProducts([]);
       } finally {

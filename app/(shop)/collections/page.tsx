@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getProductCountsByCategory } from '@/lib/supabase/products';
 import { getCollectionsContent } from '@/lib/supabase/collections-content';
-import { getPublicCategories } from '@/lib/supabase/taxonomies';
+import { getPublicCategories, getPublicCollections } from '@/lib/supabase/taxonomies';
 
 export const revalidate = 300;
 
@@ -101,11 +101,13 @@ export default async function CollectionsPage() {
   let counts: Record<string, number> = {};
   let content: Awaited<ReturnType<typeof getCollectionsContent>> = {};
   let categoryRows: Awaited<ReturnType<typeof getPublicCategories>> = [];
+  let dbCollectionRows: Awaited<ReturnType<typeof getPublicCollections>> = [];
   try {
-    [counts, content, categoryRows] = await Promise.all([
+    [counts, content, categoryRows, dbCollectionRows] = await Promise.all([
       getProductCountsByCategory(),
       getCollectionsContent(),
       getPublicCategories(),
+      getPublicCollections(),
     ]);
   } catch {
     // non-blocking
@@ -121,8 +123,31 @@ export default async function CollectionsPage() {
       : counts[col.slug] ?? null,
   }));
 
+  const existingSlugs = new Set(collectionsWithCounts.map((c) => c.slug));
+
+  const dynamicDbCollections = dbCollectionRows
+    .filter((col) => !existingSlugs.has(col.slug))
+    .map((col) => ({
+      slug: col.slug,
+      label: col.name,
+      eyebrow: 'Collection',
+      tagline: col.description ?? `Découvrez ${col.name}`,
+      description: col.description ?? `Explorez les produits de la collection ${col.name}.`,
+      accent: 'rgba(197,165,90,0.10)',
+      textLight: true,
+      icon: (
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="#C5A55A" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+        </svg>
+      ),
+      bg: '#0B0B0B',
+      count: null,
+    }));
+
+  dynamicDbCollections.forEach((c) => existingSlugs.add(c.slug));
+
   const dynamicCategories = categoryRows
-    .filter((category) => !collectionsWithCounts.some((existing) => existing.slug === category.slug))
+    .filter((category) => !existingSlugs.has(category.slug))
     .map((category) => ({
       slug: category.slug,
       label: category.name,
@@ -141,7 +166,7 @@ export default async function CollectionsPage() {
       count: counts[category.slug] ?? null,
     }));
 
-  const cards = [...collectionsWithCounts, ...dynamicCategories];
+  const cards = [...collectionsWithCounts, ...dynamicDbCollections, ...dynamicCategories];
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--noir)' }}>

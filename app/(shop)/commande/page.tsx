@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const [selectedModeId, setSelectedModeId] = useState<string>(
     () => DEFAULT_SHIPPING_CONFIG.modes.find((m) => m.enabled)?.id ?? '',
   );
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('livraison');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange');
   const [orderNumber, setOrderNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -86,38 +86,21 @@ export default function CheckoutPage() {
     };
 
     try {
-      if (paymentMethod === 'livraison') {
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            totalAmount: total, paymentMethod: 'cash_on_delivery',
-            shippingModeId: selectedModeId, shippingAddress,
-            phone: delivery.phone, email: guestEmail || undefined,
-            notes: fullNotes || undefined, items: orderItems,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? 'Erreur lors de la commande');
-        setOrderNumber(`VIP-${data.order.id.substring(0, 8).toUpperCase()}`);
-        setPaymentPending(false);
-      } else {
-        const res = await fetch('/api/payment/initiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            totalAmount: total, paymentMethod,
-            shippingModeId: selectedModeId, shippingAddress,
-            phone: delivery.phone, email: guestEmail || undefined,
-            notes: fullNotes || undefined, items: orderItems,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? 'Erreur lors du paiement');
-        setOrderNumber(`VIP-${data.orderId.substring(0, 8).toUpperCase()}`);
-        setPaymentPending(true);
-        if (data.redirectUrl) { globalThis.location.href = data.redirectUrl; return; }
-      }
+      const res = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          totalAmount: total, paymentMethod,
+          shippingModeId: selectedModeId, shippingAddress,
+          phone: delivery.phone, email: guestEmail || undefined,
+          notes: fullNotes || undefined, items: orderItems,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erreur lors du paiement');
+      setOrderNumber(`VIP-${data.orderId.substring(0, 8).toUpperCase()}`);
+      setPaymentPending(true);
+      if (data.redirectUrl) { globalThis.location.href = data.redirectUrl; return; }
       clearCart();
       setDirection('forward');
       setStep(4);

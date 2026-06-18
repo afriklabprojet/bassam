@@ -22,7 +22,7 @@ export type DeliveryInfo = {
   notes: string;
 };
 
-export type PaymentMethod = 'livraison' | 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
+export type PaymentMethod = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
 
 export const STEPS: { label: string }[] = [
   { label: 'Livraison' },
@@ -33,16 +33,6 @@ export const STEPS: { label: string }[] = [
 
 /* ── Payment brand icons ───────────────────────────────────────────────────── */
 
-function IconLivraison() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect width="32" height="32" rx="6" fill="#C5A55A"/>
-      <path d="M4 10h16v12H4V10zm16 2l5 3v7h-5V12z" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/>
-      <circle cx="9" cy="22" r="2" fill="#fff"/>
-      <circle cx="19" cy="22" r="2" fill="#fff"/>
-    </svg>
-  );
-}
 function IconOrange() {
   return <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#FF7900"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="700" fill="#fff" letterSpacing="-0.3">orange</text></svg>;
 }
@@ -60,8 +50,7 @@ function IconDjamo() {
 }
 
 export const PAYMENT_OPTIONS = [
-  { value: 'livraison' as const, label: 'Paiement à la livraison', desc: 'Espèces ou Mobile Money à la réception.', recommended: true, accent: '#C5A55A', Icon: IconLivraison },
-  { value: 'orange' as const, label: 'Orange Money', desc: 'Paiement mobile sécurisé', recommended: false, accent: '#FF7900', Icon: IconOrange },
+  { value: 'orange' as const, label: 'Orange Money', desc: 'Paiement mobile sécurisé', recommended: true, accent: '#FF7900', Icon: IconOrange },
   { value: 'mtn' as const, label: 'MTN Money', desc: 'Paiement mobile sécurisé', recommended: false, accent: '#FFC300', Icon: IconMTN },
   { value: 'wave' as const, label: 'Wave', desc: 'Paiement instant Wave', recommended: false, accent: '#1DC5E0', Icon: IconWave },
   { value: 'moov' as const, label: 'Moov Money', desc: 'Paiement mobile sécurisé', recommended: false, accent: '#0056A3', Icon: IconMoov },
@@ -81,9 +70,17 @@ export function ProgressBar({ step }: Readonly<{ step: Step }>) {
           const num = (i + 1) as Step;
           const isActive = step === num;
           const isDone = step > num;
-          const chipBg = isActive ? 'var(--gold)' : isDone ? 'var(--text-primary)' : 'var(--offwhite)';
-          const chipBorder = isActive ? 'var(--gold)' : isDone ? 'var(--text-primary)' : 'var(--line-light)';
-          const labelColor = isActive ? 'var(--text-primary)' : isDone ? 'var(--text-secondary)' : 'var(--text-pale)';
+          let chipBg = 'var(--offwhite)';
+          if (isActive) chipBg = 'var(--gold)';
+          else if (isDone) chipBg = 'var(--text-primary)';
+
+          let chipBorder = 'var(--line-light)';
+          if (isActive) chipBorder = 'var(--gold)';
+          else if (isDone) chipBorder = 'var(--text-primary)';
+
+          let labelColor = 'var(--text-pale)';
+          if (isActive) labelColor = 'var(--text-primary)';
+          else if (isDone) labelColor = 'var(--text-secondary)';
           return (
             <div key={s.label} style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.375rem' }}>
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6875rem', fontWeight: 600, transition: 'all 0.3s', background: chipBg, border: `2px solid ${chipBorder}`, color: isActive || isDone ? '#fff' : 'var(--text-pale)', boxShadow: isActive ? '0 0 0 4px rgba(197,165,90,0.18)' : 'none' }}>
@@ -173,7 +170,9 @@ export function StepCardHeader({ stepNum, title, subtitle }: Readonly<{ stepNum:
 /* ── DeliveryModeButton ────────────────────────────────────────────────────── */
 
 export function DeliveryModeButton({ mode, selected, onSelect }: Readonly<{ mode: DeliveryMode; selected: boolean; onSelect: () => void }>) {
-  const feeColor = mode.fee === 0 ? 'var(--gold-dark)' : selected ? 'var(--text-primary)' : 'var(--text-secondary)';
+  let feeColor = 'var(--text-secondary)';
+  if (mode.fee === 0) feeColor = 'var(--gold-dark)';
+  else if (selected) feeColor = 'var(--text-primary)';
   return (
     <button type="button" onClick={onSelect} style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', padding: '1rem 1.125rem', borderRadius: 'var(--r-md)', cursor: 'pointer', border: `1.5px solid ${selected ? 'var(--gold)' : 'var(--line-light)'}`, background: selected ? 'rgba(197,165,90,0.04)' : '#fff', transition: 'all 0.18s', textAlign: 'left', width: '100%' }}>
       <div style={{ width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, border: `2px solid ${selected ? 'var(--gold)' : 'var(--line-light)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.18s' }}>
@@ -474,12 +473,10 @@ export function Step3Payment({ paymentMethod, isSubmitting, submitError, onPayme
             </label>
           );
         })}
-        {paymentMethod !== 'livraison' && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', padding: '0.875rem 1rem', background: 'var(--offwhite)', borderRadius: 'var(--r-md)', border: '1px solid var(--line-light)' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', fontSize: '0.8125rem', color: 'var(--text-secondary)', padding: '0.875rem 1rem', background: 'var(--offwhite)', borderRadius: 'var(--r-md)', border: '1px solid var(--line-light)' }}>
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0, marginTop: '1px', color: 'var(--gold)' }}><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
             Votre numéro de téléphone vous sera demandé directement sur la page de paiement.
           </div>
-        )}
         {submitError && (
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', fontSize: '0.8125rem', color: '#c0392b', padding: '0.875rem 1rem', background: 'rgba(192,57,43,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(192,57,43,0.2)' }}>
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0, marginTop: '1px' }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>

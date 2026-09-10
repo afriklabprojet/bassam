@@ -85,8 +85,16 @@ export async function createOrder(userId: string, input: CreateOrderInput): Prom
 
   if (itemsError) {
     console.error('[createOrder items]', itemsError.message);
-    // Order was created but items failed — return partial
-    return { order: mapOrder(order), error: 'Commande créée mais erreur sur les articles' };
+    // The atomic stock-decrement trigger raises `insufficient_stock: …`
+    // when a product does not have enough units left. Surface a clean
+    // user-facing message so the checkout UI can react appropriately.
+    const isStockError = itemsError.message?.includes('insufficient_stock');
+    return {
+      order: mapOrder(order),
+      error: isStockError
+        ? 'Stock insuffisant pour un ou plusieurs articles'
+        : 'Commande créée mais erreur sur les articles',
+    };
   }
 
   return { order: mapOrder(order), error: null };

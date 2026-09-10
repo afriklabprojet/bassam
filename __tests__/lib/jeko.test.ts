@@ -74,4 +74,18 @@ describe('verifyWebhookSignature', () => {
   it('retourne false pour une signature vide avec secret configuré', () => {
     expect(verifyWebhookSignature(BODY, '')).toBe(false);
   });
+
+  it('rejette une signature avec des caractères non-hexadécimaux', () => {
+    // Buffer.from('zz…', 'hex') produit un buffer partiel/vide → length mismatch
+    expect(verifyWebhookSignature(BODY, 'zz'.repeat(32))).toBe(false);
+  });
+
+  it('rejette une signature de longueur hexadécimale impaire', () => {
+    const sig = makeSignature(BODY, TEST_SECRET).slice(0, -1);
+    expect(verifyWebhookSignature(BODY, sig)).toBe(false);
+  });
+
+  it('rejette une signature trop courte (mauvaise longueur)', () => {
+    expect(verifyWebhookSignature(BODY, 'ab12')).toBe(false);
+  });
 });

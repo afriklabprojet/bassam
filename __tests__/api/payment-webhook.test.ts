@@ -10,6 +10,9 @@ vi.stubEnv('JEKO_WEBHOOK_SECRET', WEBHOOK_SECRET);
 const mockOrderSingle = vi.fn();
 const mockOrderTxnSingle = vi.fn();
 const mockOrderUpdate = vi.fn();
+const mockPaymentMaybeSingle = vi.fn();
+const mockPaymentUpdate = vi.fn();
+const mockPaymentInsert = vi.fn();
 
 const mockFrom = vi.fn((table: string) => {
   if (table === 'orders') {
@@ -20,6 +23,19 @@ const mockFrom = vi.fn((table: string) => {
         }),
       }),
       update: mockOrderUpdate,
+    };
+  }
+  if (table === 'payments') {
+    return {
+      select: () => ({
+        eq: () => ({
+          limit: () => ({
+            maybeSingle: mockPaymentMaybeSingle,
+          }),
+        }),
+      }),
+      update: mockPaymentUpdate,
+      insert: mockPaymentInsert,
     };
   }
   return {};
@@ -71,6 +87,11 @@ beforeEach(() => {
   mockOrderUpdate.mockReturnValue({
     eq: vi.fn().mockResolvedValue({ error: null }),
   });
+  mockPaymentMaybeSingle.mockResolvedValue({ data: null, error: null });
+  mockPaymentUpdate.mockReturnValue({
+    eq: vi.fn().mockResolvedValue({ error: null }),
+  });
+  mockPaymentInsert.mockResolvedValue({ error: null });
 });
 
 /* ── Tests ───────────────────────────────────────────────────────────────── */
@@ -121,6 +142,18 @@ describe('POST /api/payment/webhook — payment.success', () => {
     const body = await res.json() as { ok: boolean };
     expect(body.ok).toBe(true);
   });
+
+  it('insère un paiement completed', async () => {
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+    expect(mockPaymentInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        order_id: ORDER_ID,
+        status: 'completed',
+        method: 'mobile_money',
+        transaction_id: 'txn-abc-123',
+      })
+    );
+  });
 });
 
 describe('POST /api/payment/webhook — payment.failed', () => {
@@ -128,6 +161,17 @@ describe('POST /api/payment/webhook — payment.failed', () => {
     await POST(makeRequest(FAILED_PAYLOAD));
     expect(mockOrderUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ payment_status: 'failed', status: 'cancelled' })
+    );
+  });
+
+  it('insère un paiement failed', async () => {
+    await POST(makeRequest(FAILED_PAYLOAD));
+    expect(mockPaymentInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        order_id: ORDER_ID,
+        status: 'failed',
+        transaction_id: 'txn-abc-123',
+      })
     );
   });
 });
@@ -141,6 +185,7 @@ describe('POST /api/payment/webhook — idempotence', () => {
     const res = await POST(makeRequest(SUCCESS_PAYLOAD));
     expect(res.status).toBe(200);
     expect(mockOrderUpdate).not.toHaveBeenCalled();
+    expect(mockPaymentInsert).toHaveBeenCalled();
   });
 
   it('ignore une commande déjà en état final "failed"', async () => {
@@ -182,6 +227,18 @@ describe('POST /api/payment/webhook — fallback par transactionId', () => {
     const res = await POST(makeRequest(SUCCESS_PAYLOAD));
     expect(res.status).toBe(200);
     expect(mockOrderUpdate).not.toHaveBeenCalled();
+  });
+
+  it('met à jour le paiement existant quand transaction_id existe déjà', async () => {
+    mockPaymentMaybeSingle.mockResolvedValue({ data: { id: 'payment-1' }, error: null });
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+    expect(mockPaymentUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'completed',
+        transaction_id: 'txn-abc-123',
+      })
+    );
+    expect(mockPaymentInsert).not.toHaveBeenCalled();
   });
 });
 

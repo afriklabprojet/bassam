@@ -24,6 +24,49 @@ function getWebhookCorrelationId(
   return resolvedOrderId ?? reference ?? transactionId ?? requestCorrelationId;
 }
 
+async function upsertPaymentFromWebhook(params: {
+  supabase: ReturnType<typeof createServiceClient>;
+  payload: JekoWebhookPayload;
+  resolvedOrderId: string;
+  isSuccess: boolean;
+}) {
+  const { supabase, payload, resolvedOrderId, isSuccess } = params;
+  const status = isSuccess ? 'completed' : 'failed';
+  const paidAt = isSuccess ? new Date().toISOString() : null;
+
+  const paymentRecord = {
+    order_id: resolvedOrderId,
+    amount: payload.amount,
+    currency: payload.currency || 'XOF',
+    method: 'mobile_money',
+    status,
+    transaction_id: payload.transactionId,
+    provider: payload.provider || null,
+    metadata: { event: payload.event, reference: payload.reference },
+    ...(paidAt ? { paid_at: paidAt } : {}),
+  };
+
+  const existingByTransaction = payload.transactionId
+    ? await supabase
+      .from('payments')
+      .select('id')
+      .eq('transaction_id', payload.transactionId)
+      .limit(1)
+      .maybeSingle()
+    : { data: null, error: null };
+
+  if (existingByTransaction.data?.id) {
+    return supabase
+      .from('payments')
+      .update({ ...paymentRecord, updated_at: new Date().toISOString() })
+      .eq('id', existingByTransaction.data.id);
+  }
+
+  return supabase
+    .from('payments')
+    .insert(paymentRecord);
+}
+
 /**
  * POST /api/payment/webhook
  * Receives Jeko Africa payment events and updates the corresponding order.
@@ -133,9 +176,27 @@ export async function POST(request: NextRequest) {
       resolvedOrder = orderByTxn;
     }
 
-    // ── 5. Idempotency — skip if already in a final state ──────────────────
+    const isSuccess = payload.event === 'payment.success';
+
+    // ── 5. Idempotency — skip order updates if already final ───────────────
     const finalStates = ['paid', 'failed', 'refunded'];
     if (finalStates.includes(resolvedOrder.payment_status)) {
+      const paymentSync = await upsertPaymentFromWebhook({
+        supabase,
+        payload,
+        resolvedOrderId: resolvedOrder.id,
+        isSuccess,
+      });
+      if (paymentSync.error) {
+        logger.warn(WEBHOOK_LOG_CONTEXT, 'Failed to sync payment log for final-state order', {
+          correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+          orderId: resolvedOrder.id,
+          transactionId: payload.transactionId,
+          event: payload.event,
+          error: paymentSync.error,
+        });
+      }
+
       logger.info(WEBHOOK_LOG_CONTEXT, 'Skipping webhook for order already in final state', {
         correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
         orderId: resolvedOrder.id,
@@ -146,7 +207,6 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 6. Apply update based on event ─────────────────────────────────────
-    const isSuccess = payload.event === 'payment.success';
     const updates = isSuccess
       ? { payment_status: 'paid', status: 'confirmed', payment_reference: payload.transactionId }
       : { payment_status: 'failed', status: 'cancelled' };
@@ -167,6 +227,22 @@ export async function POST(request: NextRequest) {
         error: updateError,
       });
       return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+    }
+
+    const paymentSync = await upsertPaymentFromWebhook({
+      supabase,
+      payload,
+      resolvedOrderId: resolvedOrder.id,
+      isSuccess,
+    });
+    if (paymentSync.error) {
+      logger.warn(WEBHOOK_LOG_CONTEXT, 'Order updated but payment log sync failed', {
+        correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+        orderId: resolvedOrder.id,
+        transactionId: payload.transactionId,
+        event: payload.event,
+        error: paymentSync.error,
+      });
     }
 
     logger.info(WEBHOOK_LOG_CONTEXT, 'Order updated from Jeko webhook', {

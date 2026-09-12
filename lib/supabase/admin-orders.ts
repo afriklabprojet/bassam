@@ -15,6 +15,8 @@ export async function getAdminOrders(page = 1, limit = 20, status?: string) {
       shipping_address, phone, email, notes, created_at,
       order_items (id, product_id, quantity, unit_price, products (name, brand, slug))
     `, { count: 'exact' })
+    .eq('payment_status', 'paid')
+    .in('status', ['confirmed', 'shipped', 'delivered'])
     .order('created_at', { ascending: false });
 
   if (status && status !== 'all') {

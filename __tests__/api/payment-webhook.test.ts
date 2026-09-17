@@ -30,6 +30,7 @@ vi.mock('@/lib/supabase/service', () => ({
 }));
 
 const ORDER_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const PAYMENT_REQUEST_ID = 'payreq-xyz-789';
 
 function sign(body: string) {
   return crypto.createHmac('sha256', WEBHOOK_SECRET).update(body, 'utf8').digest('hex');
@@ -41,24 +42,30 @@ function makeRequest(payload: object, sig?: string) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-jeko-signature': sig ?? sign(body),
+      // Real header name per https://developer.jeko.africa/docs/webhooks/integration
+      'jeko-signature': sig ?? sign(body),
     },
     body,
   });
 }
 
+// Real Jeko webhook shape — a flat transaction object, no {event, ...}
+// envelope. Our order id is nested under transactionDetails.reference.
 const SUCCESS_PAYLOAD = {
-  event: 'payment.success',
-  transactionId: 'txn-abc-123',
-  reference: ORDER_ID,
-  amount: 37500,
-  currency: 'XOF',
+  id: 'txn-abc-123',
+  amount: { amount: 37500, currency: 'XOF' },
   status: 'success',
-  provider: 'orange_money',
-  phone: '0700000000',
+  paymentMethod: 'orange',
+  transactionType: 'PaymentRequest',
+  counterpartIdentifier: '0700000000',
+  transactionDetails: {
+    id: PAYMENT_REQUEST_ID,
+    reference: ORDER_ID,
+  },
 };
 
-const FAILED_PAYLOAD = { ...SUCCESS_PAYLOAD, event: 'payment.failed', status: 'failed' };
+const ERROR_PAYLOAD = { ...SUCCESS_PAYLOAD, status: 'error' };
+const PENDING_PAYLOAD = { ...SUCCESS_PAYLOAD, status: 'pending' };
 
 const { POST } = await import('@/app/api/payment/webhook/route');
 
@@ -88,7 +95,7 @@ describe('POST /api/payment/webhook — sécurité', () => {
     expect(res.status).toBe(401);
   });
 
-  it('accepte une signature correcte', async () => {
+  it('accepte une signature correcte sur le header Jeko-Signature', async () => {
     const res = await POST(makeRequest(SUCCESS_PAYLOAD));
     expect(res.status).toBe(200);
   });
@@ -101,7 +108,7 @@ describe('POST /api/payment/webhook — sécurité', () => {
   });
 });
 
-describe('POST /api/payment/webhook — payment.success', () => {
+describe('POST /api/payment/webhook — status success', () => {
   it('met à jour la commande en paid + confirmed', async () => {
     await POST(makeRequest(SUCCESS_PAYLOAD));
     expect(mockOrderUpdate).toHaveBeenCalledWith(
@@ -109,7 +116,7 @@ describe('POST /api/payment/webhook — payment.success', () => {
     );
   });
 
-  it('stocke le transactionId Jeko', async () => {
+  it('stocke l\'id de transaction Jeko', async () => {
     await POST(makeRequest(SUCCESS_PAYLOAD));
     expect(mockOrderUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ payment_reference: 'txn-abc-123' })
@@ -123,9 +130,9 @@ describe('POST /api/payment/webhook — payment.success', () => {
   });
 });
 
-describe('POST /api/payment/webhook — payment.failed', () => {
+describe('POST /api/payment/webhook — status error', () => {
   it('met à jour la commande en failed + cancelled', async () => {
-    await POST(makeRequest(FAILED_PAYLOAD));
+    await POST(makeRequest(ERROR_PAYLOAD));
     expect(mockOrderUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ payment_status: 'failed', status: 'cancelled' })
     );
@@ -148,7 +155,7 @@ describe('POST /api/payment/webhook — idempotence', () => {
       data: { id: ORDER_ID, status: 'cancelled', payment_status: 'failed' },
       error: null,
     });
-    await POST(makeRequest(FAILED_PAYLOAD));
+    await POST(makeRequest(ERROR_PAYLOAD));
     expect(mockOrderUpdate).not.toHaveBeenCalled();
   });
 
@@ -162,8 +169,8 @@ describe('POST /api/payment/webhook — idempotence', () => {
   });
 });
 
-describe('POST /api/payment/webhook — fallback par transactionId', () => {
-  it('trouve la commande par payment_reference si référence inconnue', async () => {
+describe('POST /api/payment/webhook — fallback par payment_reference', () => {
+  it('trouve la commande par payment_reference (transactionDetails.id) si référence inconnue', async () => {
     mockOrderSingle.mockResolvedValue({ data: null, error: { message: 'not found' } });
     mockOrderTxnSingle.mockResolvedValue({
       data: { id: ORDER_ID, status: 'pending', payment_status: 'pending' },
@@ -175,7 +182,7 @@ describe('POST /api/payment/webhook — fallback par transactionId', () => {
     expect(mockOrderUpdate).toHaveBeenCalled();
   });
 
-  it('retourne 200 (sans update) si commande introuvable même par transactionId', async () => {
+  it('retourne 200 (sans update) si commande introuvable même par payment_reference', async () => {
     mockOrderSingle.mockResolvedValue({ data: null, error: { message: 'not found' } });
     mockOrderTxnSingle.mockResolvedValue({ data: null, error: { message: 'not found' } });
 
@@ -185,10 +192,9 @@ describe('POST /api/payment/webhook — fallback par transactionId', () => {
   });
 });
 
-describe('POST /api/payment/webhook — événements inconnus', () => {
-  it('retourne 200 sans update pour un événement non géré', async () => {
-    const unknownPayload = { ...SUCCESS_PAYLOAD, event: 'payment.refunded' };
-    const res = await POST(makeRequest(unknownPayload));
+describe('POST /api/payment/webhook — status non terminal', () => {
+  it('retourne 200 sans update pour un status "pending"', async () => {
+    const res = await POST(makeRequest(PENDING_PAYLOAD));
     expect(res.status).toBe(200);
     expect(mockOrderUpdate).not.toHaveBeenCalled();
   });

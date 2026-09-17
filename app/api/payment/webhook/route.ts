@@ -30,7 +30,11 @@ function getWebhookCorrelationId(
  * Receives Jeko Africa payment events and updates the corresponding order.
  *
  * Security:
- *  - HMAC-SHA256 signature verified via X-Jeko-Signature header
+ *  - HMAC-SHA256 signature verified via the `Jeko-Signature` header (see
+ *    https://developer.jeko.africa/docs/webhooks/integration — NOT
+ *    `X-Jeko-Signature`; that mismatch used to make every real webhook call
+ *    fail signature verification and get rejected with 401, which is why
+ *    orders stayed stuck on "pending" even after a successful payment)
  *  - Idempotent: skips orders already in a final payment state
  *  - Uses service-role client to bypass RLS (no user session on webhook)
  */
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
   try {
     // ── 1. Read raw body (needed for HMAC verification) ────────────────────
     const rawBody = await request.text();
-    const signature = request.headers.get('x-jeko-signature') ?? '';
+    const signature = request.headers.get('jeko-signature') ?? '';
 
     logger.info(WEBHOOK_LOG_CONTEXT, 'Webhook received', {
       correlationId: getWebhookCorrelationId(requestCorrelationId),
@@ -81,13 +85,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
 
-    // Ignore unknown event types (forward-compat)
-    if (!['payment.success', 'payment.failed'].includes(payload.event)) {
-      logger.info(WEBHOOK_LOG_CONTEXT, 'Ignoring unsupported webhook event', {
-        correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId),
-        event: payload.event,
-        reference: payload.reference,
-        transactionId: payload.transactionId,
+    // Jeko sends a flat transaction object (no {event, ...} envelope). Our
+    // order id was submitted as `reference` when creating the payment
+    // request, and comes back nested under transactionDetails.reference.
+    // transactionDetails.id is the payment-request id, matching what we
+    // stored as orders.payment_reference right after initiation.
+    const reference = payload.transactionDetails?.reference;
+    const paymentRequestId = payload.transactionDetails?.id;
+    const transactionId = payload.id;
+
+    // Only "success" is ever sent for a completed payment (Jeko does not
+    // call the webhook for failed payments at all), but handle "error"
+    // defensively in case that ever changes; ignore anything else
+    // (e.g. "pending") without touching the order.
+    if (payload.status !== 'success' && payload.status !== 'error') {
+      logger.info(WEBHOOK_LOG_CONTEXT, 'Ignoring non-terminal webhook status', {
+        correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId),
+        status: payload.status,
+        reference,
+        transactionId,
       });
       return NextResponse.json({ ok: true });
     }
@@ -95,11 +111,9 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceClient();
 
     // ── 4. Find order by reference (our order UUID) ─────────────────────────
-    const { data: order, error: findError } = await supabase
-      .from('orders')
-      .select('id, status, payment_status')
-      .eq('id', payload.reference)
-      .single();
+    const { data: order, error: findError } = reference
+      ? await supabase.from('orders').select('id, status, payment_status').eq('id', reference).single()
+      : { data: null, error: null };
 
     type OrderRow = { id: string; status: string; payment_status: string };
 
@@ -107,25 +121,26 @@ export async function POST(request: NextRequest) {
 
     if (findError || !resolvedOrder) {
       logger.warn(WEBHOOK_LOG_CONTEXT, 'Order not found by reference, trying payment_reference fallback', {
-        correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId),
-        reference: payload.reference,
-        transactionId: payload.transactionId,
-        event: payload.event,
+        correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId),
+        reference,
+        transactionId,
+        paymentRequestId,
+        status: payload.status,
       });
 
-      // Fallback: try matching via payment_reference (Jeko transactionId)
-      const { data: orderByTxn } = await supabase
-        .from('orders')
-        .select('id, status, payment_status')
-        .eq('payment_reference', payload.transactionId)
-        .single();
+      // Fallback: match via payment_reference (the payment-request id we
+      // stored on the order right after calling Jeko's initiation API).
+      const { data: orderByTxn } = paymentRequestId
+        ? await supabase.from('orders').select('id, status, payment_status').eq('payment_reference', paymentRequestId).single()
+        : { data: null };
 
       if (!orderByTxn) {
         logger.warn(WEBHOOK_LOG_CONTEXT, 'Order not found for webhook payload', {
-          correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId),
-          reference: payload.reference,
-          transactionId: payload.transactionId,
-          event: payload.event,
+          correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId),
+          reference,
+          transactionId,
+          paymentRequestId,
+          status: payload.status,
         });
         // Return 200 to prevent Jeko from retrying indefinitely
         return NextResponse.json({ ok: true });
@@ -138,18 +153,18 @@ export async function POST(request: NextRequest) {
     const finalStates = ['paid', 'failed', 'refunded'];
     if (finalStates.includes(resolvedOrder.payment_status)) {
       logger.info(WEBHOOK_LOG_CONTEXT, 'Skipping webhook for order already in final state', {
-        correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+        correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
         orderId: resolvedOrder.id,
         paymentStatus: resolvedOrder.payment_status,
-        event: payload.event,
+        status: payload.status,
       });
       return NextResponse.json({ ok: true });
     }
 
-    // ── 6. Apply update based on event ─────────────────────────────────────
-    const isSuccess = payload.event === 'payment.success';
+    // ── 6. Apply update based on transaction status ─────────────────────────
+    const isSuccess = payload.status === 'success';
     const updates = isSuccess
-      ? { payment_status: 'paid', status: 'confirmed', payment_reference: payload.transactionId }
+      ? { payment_status: 'paid', status: 'confirmed', payment_reference: transactionId }
       : { payment_status: 'failed', status: 'cancelled' };
 
     const { error: updateError } = await supabase
@@ -159,10 +174,10 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       logger.error(WEBHOOK_LOG_CONTEXT, 'Failed to update order from webhook', {
-        correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+        correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
         orderId: resolvedOrder.id,
-        transactionId: payload.transactionId,
-        event: payload.event,
+        transactionId,
+        status: payload.status,
         targetStatus: updates.status,
         targetPaymentStatus: updates.payment_status,
         error: updateError,
@@ -171,12 +186,12 @@ export async function POST(request: NextRequest) {
     }
 
     logger.info(WEBHOOK_LOG_CONTEXT, 'Order updated from Jeko webhook', {
-      correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+      correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
       orderId: resolvedOrder.id,
-      transactionId: payload.transactionId,
-      event: payload.event,
-      status: updates.status,
-      paymentStatus: updates.payment_status,
+      transactionId,
+      status: payload.status,
+      newStatus: updates.status,
+      newPaymentStatus: updates.payment_status,
     });
 
     // ── 7. Deplete stock now that payment is actually confirmed ────────────
@@ -196,14 +211,14 @@ export async function POST(request: NextRequest) {
           const result = await decrementProductStock(supabase, item.product_id, item.quantity);
           if (!result.ok) {
             logger.error(WEBHOOK_LOG_CONTEXT, 'Failed to decrement stock after payment success', {
-              correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+              correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
               orderId: resolvedOrder.id,
               productId: item.product_id,
               quantity: item.quantity,
             });
           } else if (result.oversold) {
             logger.warn(WEBHOOK_LOG_CONTEXT, 'Product oversold — stock floored at 0', {
-              correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+              correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
               orderId: resolvedOrder.id,
               productId: item.product_id,
               quantity: item.quantity,
@@ -212,7 +227,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (stockError) {
         logger.error(WEBHOOK_LOG_CONTEXT, 'Unexpected error while decrementing stock', {
-          correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+          correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
           orderId: resolvedOrder.id,
           error: stockError,
         });

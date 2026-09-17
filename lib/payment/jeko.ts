@@ -32,16 +32,33 @@ export interface JekoInitiateResponse {
   redirectUrl: string;
 }
 
+/**
+ * Real shape of a Jeko webhook delivery (verified against
+ * https://developer.jeko.africa/docs/webhooks/integration — the payload is a
+ * flat transaction object, not an {event, ...} envelope, and our own order
+ * reference lives under transactionDetails.reference, not top-level
+ * `reference`).
+ */
 export interface JekoWebhookPayload {
-  event: 'payment.success' | 'payment.failed';
-  transactionId: string;
-  /** Our order ID passed as reference during initiation */
-  reference: string;
-  amount: number;
-  currency: string;
-  status: 'success' | 'failed';
-  provider: string;
-  phone: string;
+  /** Jeko transaction id (the actual money movement, not the payment request) */
+  id: string;
+  amount: { amount: number; currency: string };
+  fees?: { amount: number; currency: string };
+  /** Transaction state — only "success" is ever sent for a completed payment */
+  status: 'pending' | 'success' | 'error' | string;
+  counterpartLabel?: string;
+  counterpartIdentifier?: string;
+  paymentMethod?: string;
+  transactionType?: string;
+  description?: string;
+  executedAt?: string;
+  transactionDetails?: {
+    /** Payment request id — matches the `id` we stored as orders.payment_reference at initiation */
+    id?: string;
+    /** Our order UUID, as submitted as `reference` when creating the payment request */
+    reference?: string;
+    paymentLinkId?: string;
+  };
 }
 
 export class JekoApiError extends Error {

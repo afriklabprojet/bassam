@@ -249,9 +249,12 @@ type OrderRecapProps = Readonly<{
   shipping: number;
   total: number;
   selectedMode: DeliveryMode | null;
+  discount?: number;
+  promoCode?: string;
 }>;
 
-function OrderRecapBody({ items, shipping, total, selectedMode }: OrderRecapProps) {
+function OrderRecapBody({ items, shipping, total, selectedMode, discount = 0, promoCode }: OrderRecapProps) {
+  const subtotal = total - shipping + discount;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
@@ -270,8 +273,14 @@ function OrderRecapBody({ items, shipping, total, selectedMode }: OrderRecapProp
       </div>
       <div style={{ borderTop: '1px solid var(--line-light)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-          <span>Sous-total</span><span>{formatPrice(total - shipping)}</span>
+          <span>Sous-total</span><span>{formatPrice(subtotal)}</span>
         </div>
+        {discount > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--gold-dark)' }}>
+            <span>Réduction{promoCode ? ` (${promoCode.toUpperCase()})` : ''}</span>
+            <span>−{formatPrice(discount)}</span>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
           <span>{selectedMode ? selectedMode.label : 'Livraison'}</span>
           <span style={{ color: shipping === 0 ? 'var(--gold-dark)' : 'var(--text-secondary)' }}>{selectedMode ? formatPrice(shipping) : '—'}</span>
@@ -297,7 +306,7 @@ export function OrderRecap(props: OrderRecapProps) {
   return <OrderRecapBody {...props} />;
 }
 
-export function MobileRecap({ items, shipping, total, selectedMode }: OrderRecapProps) {
+export function MobileRecap({ items, shipping, total, selectedMode, discount, promoCode }: OrderRecapProps) {
   const [open, setOpen] = useState(false);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   return (
@@ -318,7 +327,7 @@ export function MobileRecap({ items, shipping, total, selectedMode }: OrderRecap
       </button>
       {open && (
         <div style={{ padding: '1.25rem 1rem', background: '#fff', borderTop: '1px solid var(--line-light)' }}>
-          <OrderRecapBody items={items} shipping={shipping} total={total} selectedMode={selectedMode} />
+          <OrderRecapBody items={items} shipping={shipping} total={total} selectedMode={selectedMode} discount={discount} promoCode={promoCode} />
         </div>
       )}
     </div>

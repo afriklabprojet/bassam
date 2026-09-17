@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { formatPrice } from '@/lib/format';
+import { validatePromoCode } from '@/lib/promo';
 
 // POST /api/promo-codes/validate
 // Body: { code: string, orderAmount: number }
@@ -13,40 +14,16 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('promo_codes')
-      .select('id, code, type, value, min_order_amount, max_uses, uses_count, expires_at, is_active')
-      .eq('code', code.trim().toUpperCase())
-      .single();
+    const result = await validatePromoCode(supabase, code, Number(orderAmount) || 0);
 
-    if (error || !data) {
-      return NextResponse.json({ valid: false, error: 'Code promo invalide' });
+    if (!result.ok) {
+      // Re-format the min-order-amount message with the app's currency formatter.
+      const match = /^Montant minimum requis : (\d+(\.\d+)?)$/.exec(result.error);
+      const error = match ? `Montant minimum requis : ${formatPrice(Number(match[1]))}` : result.error;
+      return NextResponse.json({ valid: false, error });
     }
 
-    if (!data.is_active) {
-      return NextResponse.json({ valid: false, error: 'Ce code promo est désactivé' });
-    }
-
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
-      return NextResponse.json({ valid: false, error: 'Ce code promo a expiré' });
-    }
-
-    if (data.max_uses !== null && data.uses_count >= data.max_uses) {
-      return NextResponse.json({ valid: false, error: 'Ce code promo a atteint son nombre maximum d\'utilisations' });
-    }
-
-    if (data.min_order_amount && orderAmount < data.min_order_amount) {
-      return NextResponse.json({
-        valid: false,
-        error: `Montant minimum requis : ${formatPrice(data.min_order_amount)}`,
-      });
-    }
-
-    return NextResponse.json({
-      valid: true,
-      type: data.type as 'percentage' | 'fixed',
-      value: data.value as number,
-    });
+    return NextResponse.json({ valid: true, type: result.type, value: result.value });
   } catch (err) {
     logger.error('[POST /api/promo-codes/validate]', 'Error', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });

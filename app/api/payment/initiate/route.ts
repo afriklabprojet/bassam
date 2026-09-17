@@ -28,6 +28,7 @@ interface InitiateBody {
   email?: string;
   notes?: string;
   items: IncomingOrderItem[];
+  promoCode?: string;
 }
 
 function getGuestEmail(phone: string) {
@@ -50,6 +51,9 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
   if (b.shippingModeId !== undefined && typeof b.shippingModeId !== 'string') {
     return { error: 'Mode de livraison invalide' };
   }
+  if (b.promoCode !== undefined && typeof b.promoCode !== 'string') {
+    return { error: 'Code promo invalide' };
+  }
 
   const addr = b.shippingAddress as Record<string, unknown>;
   if (!addr?.firstName || !addr?.lastName || !addr?.address || !addr?.city || !addr?.country)
@@ -60,7 +64,7 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
 
 function getOrderErrorStatus(message: string) {
   if (/stock insuffisant/i.test(message)) return 409;
-  if (/produit invalide|quantité invalide|article requis|introuvable|prix produit invalide/i.test(message)) {
+  if (/produit invalide|quantité invalide|article requis|introuvable|prix produit invalide|mode de livraison invalide|code promo|montant minimum requis/i.test(message)) {
     return 400;
   }
   return 500;
@@ -181,6 +185,7 @@ export async function POST(request: NextRequest) {
       email,
       notes: notes || undefined,
       items: normalized.items,
+      promoCode: d.promoCode,
     }, orderClient);
 
     if (orderError || !order) {

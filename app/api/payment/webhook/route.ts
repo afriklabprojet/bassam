@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
 import { createServiceClient } from '@/lib/supabase/service';
+import { decrementProductStock } from '@/lib/supabase/products';
 import { verifyWebhookSignature, type JekoWebhookPayload } from '@/lib/payment/jeko';
 import { logger } from '@/lib/logger';
 
@@ -177,6 +178,46 @@ export async function POST(request: NextRequest) {
       status: updates.status,
       paymentStatus: updates.payment_status,
     });
+
+    // ── 7. Deplete stock now that payment is actually confirmed ────────────
+    // (nothing decrements stock earlier in the flow — see createOrder, which
+    // only checks availability — so this is the one place it happens.)
+    // Isolated in its own try/catch: a stock-side failure must never turn
+    // into a non-200 response, or Jeko will keep retrying a webhook whose
+    // order update already succeeded.
+    if (isSuccess) {
+      try {
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('product_id, quantity')
+          .eq('order_id', resolvedOrder.id);
+
+        for (const item of (orderItems ?? []) as Array<{ product_id: string; quantity: number }>) {
+          const result = await decrementProductStock(supabase, item.product_id, item.quantity);
+          if (!result.ok) {
+            logger.error(WEBHOOK_LOG_CONTEXT, 'Failed to decrement stock after payment success', {
+              correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+              orderId: resolvedOrder.id,
+              productId: item.product_id,
+              quantity: item.quantity,
+            });
+          } else if (result.oversold) {
+            logger.warn(WEBHOOK_LOG_CONTEXT, 'Product oversold — stock floored at 0', {
+              correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+              orderId: resolvedOrder.id,
+              productId: item.product_id,
+              quantity: item.quantity,
+            });
+          }
+        }
+      } catch (stockError) {
+        logger.error(WEBHOOK_LOG_CONTEXT, 'Unexpected error while decrementing stock', {
+          correlationId: getWebhookCorrelationId(requestCorrelationId, payload.reference, payload.transactionId, resolvedOrder.id),
+          orderId: resolvedOrder.id,
+          error: stockError,
+        });
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

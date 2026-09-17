@@ -259,3 +259,44 @@ export async function getProductCountsByCategory(): Promise<Record<string, numbe
   }
   return counts;
 }
+
+/**
+ * Atomically decrement a product's stock after a confirmed sale.
+ * Uses compare-and-swap (re-read + conditional update on the exact previous
+ * value) instead of a blind `stock - qty` write, so a concurrent admin
+ * restock or another sale in flight can't be silently clobbered. Never lets
+ * stock go negative — clamps at 0 and reports the short-fall so it can be
+ * logged as an oversell instead of failing the already-paid order.
+ */
+export async function decrementProductStock(
+  supabase: SupabaseClient,
+  productId: string,
+  quantity: number,
+  maxAttempts = 3
+): Promise<{ ok: boolean; oversold: boolean }> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const { data: product, error } = await supabase
+      .from('products')
+      .select('stock_quantity')
+      .eq('id', productId)
+      .single();
+
+    if (error || !product) return { ok: false, oversold: false };
+
+    const current = Number(product.stock_quantity ?? 0);
+    const next = Math.max(current - quantity, 0);
+
+    const { data: updated, error: updateError } = await supabase
+      .from('products')
+      .update({ stock_quantity: next })
+      .eq('id', productId)
+      .eq('stock_quantity', current)
+      .select('id');
+
+    if (!updateError && updated && updated.length > 0) {
+      return { ok: true, oversold: current < quantity };
+    }
+    // Row changed concurrently between the read and the write — retry.
+  }
+  return { ok: false, oversold: false };
+}

@@ -32,13 +32,13 @@ const TRUST_STRIP = [
 ];
 
 export default function CartPage() {
-  const { items, totalItems, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
-  const [promoCode, setPromoCode] = useState('');
-  const [promoApplied, setPromoApplied] = useState(false);
+  const { items, totalItems, totalPrice, removeItem, updateQuantity, clearCart, promo, setPromo, clearPromo } = useCart();
+  const [promoCode, setPromoCode] = useState(promo?.code ?? '');
   const [promoError, setPromoError] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
-  const [promoData, setPromoData] = useState<{ type: 'percentage' | 'fixed'; value: number } | null>(null);
 
+  const promoApplied = !!promo;
+  const promoData = promo;
   const discountAmount = getDiscountAmount(totalPrice, promoData, promoApplied);
   const discountDisplay = getDiscountDisplay(promoData, promoApplied);
   const total = totalPrice - discountAmount;
@@ -57,8 +57,7 @@ export default function CartPage() {
       });
       const d = await res.json() as { valid?: boolean; error?: string; type?: 'percentage' | 'fixed'; value?: number };
       if (d.valid && d.type && d.value !== undefined) {
-        setPromoApplied(true);
-        setPromoData({ type: d.type, value: d.value });
+        setPromo({ code: promoCode.trim().toUpperCase(), type: d.type, value: d.value });
       } else {
         setPromoError(d.error ?? 'Code promo invalide.');
       }
@@ -67,6 +66,12 @@ export default function CartPage() {
     } finally {
       setPromoLoading(false);
     }
+  }
+
+  function removePromo() {
+    clearPromo();
+    setPromoCode('');
+    setPromoError('');
   }
 
   /* ── Empty State ────────────────────────────── */
@@ -231,12 +236,17 @@ export default function CartPage() {
               {/* Promo code */}
               <div className="card" style={{ padding: '1.5rem' }}>
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.125rem', fontWeight: 400, marginBottom: '1rem' }}>Code promotionnel</h2>
-                {promoApplied ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                    <svg width="16" height="16" fill="none" stroke="var(--gold)" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    <span>Code <strong style={{ fontFamily: 'var(--font-serif)' }}>{promoCode.toUpperCase()}</strong> — {discountDisplay}</span>
+                {promoApplied && promo ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <svg width="16" height="16" fill="none" stroke="var(--gold)" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      Code <strong style={{ fontFamily: 'var(--font-serif)' }}>{promo.code}</strong> — {discountDisplay}
+                    </span>
+                    <button onClick={removePromo} className="cart-remove-btn" style={{ fontSize: '0.6875rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-pale)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>
+                      Retirer
+                    </button>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>

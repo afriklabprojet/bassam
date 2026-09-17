@@ -68,7 +68,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json() as Record<string, unknown>;
   const { order_id, amount, currency, method, status, transaction_id, provider, metadata, paid_at } = body;
 
-  if (!amount || !method) {
+  if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+    return NextResponse.json({ error: 'Montant invalide' }, { status: 400 });
+  }
+  if (!method) {
     return NextResponse.json({ error: 'Champs obligatoires: amount, method' }, { status: 400 });
   }
 
@@ -92,6 +95,11 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json() as Record<string, unknown>;
   const { id, status, transaction_id, notes } = body;
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 });
+
+  const VALID_STATUSES = ['pending', 'completed', 'failed', 'cancelled', 'refunded'];
+  if (status !== undefined && !VALID_STATUSES.includes(status as string)) {
+    return NextResponse.json({ error: 'Statut invalide' }, { status: 400 });
+  }
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (status) updates.status = status;

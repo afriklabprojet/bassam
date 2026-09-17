@@ -5,7 +5,7 @@ import type { CartItem } from '@/lib/cart-context';
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
 
-const emptyState: CartState = { items: [], isOpen: false };
+const emptyState: CartState = { items: [], isOpen: false, promo: null };
 
 const itemA: Omit<CartItem, 'quantity'> = {
   id: 'prod-1',
@@ -151,9 +151,19 @@ describe('CLEAR_CART', () => {
   });
 
   it('ne modifie pas isOpen', () => {
-    const state = { items: [{ ...itemA, quantity: 1 }], isOpen: true };
+    const state = { items: [{ ...itemA, quantity: 1 }], isOpen: true, promo: null };
     const next = dispatch(state, { type: 'CLEAR_CART' });
     expect(next.isOpen).toBe(true);
+  });
+
+  it('réinitialise le code promo appliqué', () => {
+    const state: CartState = {
+      items: [{ ...itemA, quantity: 1 }],
+      isOpen: true,
+      promo: { code: 'VIP10', type: 'percentage', value: 10 },
+    };
+    const next = dispatch(state, { type: 'CLEAR_CART' });
+    expect(next.promo).toBeNull();
   });
 });
 
@@ -212,9 +222,39 @@ describe('HYDRATE', () => {
   });
 
   it('ne modifie pas isOpen', () => {
-    const state = { items: [], isOpen: true };
+    const state = { items: [], isOpen: true, promo: null };
     const next = dispatch(state, { type: 'HYDRATE', payload: [{ ...itemA, quantity: 1 }] });
     expect(next.isOpen).toBe(true);
+  });
+});
+
+// ─── SET_PROMO / CLEAR_PROMO / HYDRATE_PROMO ───────────────────────────────────
+
+describe('SET_PROMO / CLEAR_PROMO / HYDRATE_PROMO', () => {
+  const promo = { code: 'VIP10', type: 'percentage' as const, value: 10 };
+
+  it('applique un code promo', () => {
+    const next = dispatch(emptyState, { type: 'SET_PROMO', payload: promo });
+    expect(next.promo).toEqual(promo);
+  });
+
+  it('ne touche pas aux articles', () => {
+    const state = { ...emptyState, items: [{ ...itemA, quantity: 1 }] };
+    const next = dispatch(state, { type: 'SET_PROMO', payload: promo });
+    expect(next.items).toHaveLength(1);
+  });
+
+  it('retire le code promo appliqué', () => {
+    const state = { ...emptyState, promo };
+    const next = dispatch(state, { type: 'CLEAR_PROMO' });
+    expect(next.promo).toBeNull();
+  });
+
+  it('hydrate le code promo depuis le stockage sans toucher aux articles', () => {
+    const state = { ...emptyState, items: [{ ...itemA, quantity: 2 }] };
+    const next = dispatch(state, { type: 'HYDRATE_PROMO', payload: promo });
+    expect(next.promo).toEqual(promo);
+    expect(next.items).toHaveLength(1);
   });
 });
 

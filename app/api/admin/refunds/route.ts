@@ -54,8 +54,38 @@ export async function POST(request: NextRequest) {
   const body = await request.json() as Record<string, unknown>;
   const { order_id, payment_id, amount, currency, reason, refund_method, notes } = body;
 
-  if (!amount || !reason) {
+  if (!amount || typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+    return NextResponse.json({ error: 'Montant de remboursement invalide' }, { status: 400 });
+  }
+  if (!reason) {
     return NextResponse.json({ error: 'Champs obligatoires: amount, reason' }, { status: 400 });
+  }
+  if (!order_id || typeof order_id !== 'string') {
+    return NextResponse.json({ error: 'order_id requis' }, { status: 400 });
+  }
+
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('total_amount')
+    .eq('id', order_id)
+    .single();
+
+  if (orderError || !order) {
+    return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 });
+  }
+
+  const { data: existingRefunds } = await supabase
+    .from('refunds')
+    .select('amount')
+    .eq('order_id', order_id)
+    .in('status', ['pending', 'approved', 'processed']);
+
+  const alreadyRefunded = (existingRefunds ?? []).reduce((sum, r) => sum + Number(r.amount), 0);
+  if (alreadyRefunded + amount > Number(order.total_amount)) {
+    return NextResponse.json(
+      { error: `Le montant dépasse le total remboursable (${Number(order.total_amount) - alreadyRefunded} restant)` },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await supabase
@@ -83,6 +113,11 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json() as Record<string, unknown>;
   const { id, status, notes, transaction_id, refund_method } = body;
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 });
+
+  const VALID_STATUSES = ['pending', 'approved', 'rejected', 'processed', 'cancelled'];
+  if (status !== undefined && !VALID_STATUSES.includes(status as string)) {
+    return NextResponse.json({ error: 'Statut invalide' }, { status: 400 });
+  }
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (status) updates.status = status;

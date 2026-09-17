@@ -2,8 +2,10 @@
 
 import { useCart } from '@/lib/cart-context';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { computePromoDiscount } from '@/lib/promo';
 import { DEFAULT_SHIPPING_CONFIG, getShippingFee, type ShippingConfig } from '@/lib/shipping';
 import type { Step, Direction, DeliveryInfo, PaymentMethod } from './checkout-ui';
 import {
@@ -12,12 +14,14 @@ import {
   Step1Delivery, Step2Contact, Step3Payment, ConfettiParticles,
 } from './checkout-ui';
 
-export default function CheckoutPage() {
-  const { items, totalPrice, clearCart } = useCart();
+function CheckoutPageInner() {
+  const { items, totalPrice, promo, clearCart } = useCart();
+  const searchParams = useSearchParams();
   const hasWhatsappSupport = hasWhatsAppSupport();
   const [step, setStep] = useState<Step>(1);
   const [direction, setDirection] = useState<Direction>('forward');
   const [attempted, setAttempted] = useState(false);
+  const [paymentFailedNotice, setPaymentFailedNotice] = useState(searchParams.get('error') === 'payment_failed');
 
   const [guestEmail, setGuestEmail] = useState('');
   const [delivery, setDelivery] = useState<DeliveryInfo>({
@@ -51,7 +55,8 @@ export default function CheckoutPage() {
   const selectedMode = enabledModes.find(m => m.id === selectedModeId) ?? null;
   const isPickup = selectedMode?.type === 'pickup';
   const shipping = getShippingFee(shippingConfig, selectedModeId);
-  const total = totalPrice + shipping;
+  const discount = promo ? computePromoDiscount(promo.type, promo.value, totalPrice) : 0;
+  const total = Math.max(totalPrice - discount, 0) + shipping;
 
   function handleDeliveryChange(field: keyof DeliveryInfo, value: string) {
     setDelivery((p) => ({ ...p, [field]: value }));
@@ -94,6 +99,7 @@ export default function CheckoutPage() {
           shippingModeId: selectedModeId, shippingAddress,
           phone: delivery.phone, email: guestEmail || undefined,
           notes: fullNotes || undefined, items: orderItems,
+          promoCode: promo?.code,
         }),
       });
       const data = await res.json();
@@ -141,6 +147,12 @@ export default function CheckoutPage() {
       </div>
 
       <div className="checkout-main container mx-auto py-10" style={{ maxWidth: '960px' }}>
+        {paymentFailedNotice && (
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.8125rem', color: '#c0392b', padding: '0.875rem 1rem', background: 'rgba(192,57,43,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(192,57,43,0.2)', marginBottom: '1.5rem' }}>
+            <span>Le paiement a échoué ou a été annulé. Vos articles sont toujours dans votre panier, vous pouvez réessayer.</span>
+            <button type="button" onClick={() => setPaymentFailedNotice(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}>×</button>
+          </div>
+        )}
         <ProgressBar step={step} />
 
         <div className="checkout-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.75rem', alignItems: 'start' }}>
@@ -252,7 +264,7 @@ export default function CheckoutPage() {
             <div className="desktop-recap" style={{ position: 'sticky', top: '100px' }}>
               <div className="card" style={{ padding: '1.5rem', transition: 'none' }}>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.125rem', fontWeight: 400, marginBottom: '1.25rem' }}>Récapitulatif</h3>
-                <OrderRecap items={items} shipping={shipping} total={total} selectedMode={selectedMode} />
+                <OrderRecap items={items} shipping={shipping} total={total} selectedMode={selectedMode} discount={discount} promoCode={promo?.code} />
               </div>
             </div>
           )}
@@ -287,9 +299,17 @@ export default function CheckoutPage() {
 
       {step !== 4 && (
         <div className="mobile-recap-wrapper">
-          <MobileRecap items={items} shipping={shipping} total={total} selectedMode={selectedMode} />
+          <MobileRecap items={items} shipping={shipping} total={total} selectedMode={selectedMode} discount={discount} promoCode={promo?.code} />
         </div>
       )}
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutPageInner />
+    </Suspense>
   );
 }

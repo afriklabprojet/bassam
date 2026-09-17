@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
-import { getShippingConfig, getShippingFee } from '@/lib/shipping';
+import { getShippingConfig } from '@/lib/shipping';
+import { validatePromoCode, computePromoDiscount, incrementPromoCodeUsage } from '@/lib/promo';
+import { formatPrice } from '@/lib/format';
 import { logger } from '@/lib/logger';
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -31,6 +33,8 @@ export interface CreateOrderInput {
   email: string;
   notes?: string;
   items: OrderItem[];
+  /** Promo code entered by the customer — re-validated and applied server-side. */
+  promoCode?: string;
 }
 
 export interface Order {
@@ -66,6 +70,7 @@ type AggregateQuantitiesResult =
 type VerifiedOrderData = {
   items: OrderItem[];
   totalAmount: number;
+  appliedPromo?: { id: string; code: string; discount: number; usesCount: number };
 };
 
 type BuildVerifiedOrderResult =
@@ -141,36 +146,80 @@ async function buildVerifiedOrder(
 
   const subtotal = verifiedItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const shippingCfg = await getShippingConfig();
-  const shippingFee = getShippingFee(shippingCfg, input.shippingModeId ?? '');
+
+  // A missing/unknown/disabled delivery mode must not silently fall back to
+  // free shipping — reject the order instead so the customer isn't
+  // undercharged (and legitimate pickup orders, which have no mode fee
+  // anyway, keep working since they always send a valid 'retrait' id).
+  let shippingFee = 0;
+  if (input.shippingModeId) {
+    const mode = shippingCfg.modes.find((m) => m.id === input.shippingModeId && m.enabled);
+    if (!mode) return { ok: false, error: 'Mode de livraison invalide' };
+    shippingFee = mode.fee;
+  }
+
+  let appliedPromo: VerifiedOrderData['appliedPromo'];
+  let discount = 0;
+  if (input.promoCode) {
+    const promoResult = await validatePromoCode(supabase, input.promoCode, subtotal);
+    if (!promoResult.ok) return { ok: false, error: promoResult.error };
+    discount = computePromoDiscount(promoResult.type, promoResult.value, subtotal);
+    appliedPromo = {
+      id: promoResult.id,
+      code: promoResult.code,
+      discount,
+      usesCount: promoResult.usesCount,
+    };
+  }
 
   return {
     ok: true,
     data: {
       items: verifiedItems,
-      totalAmount: subtotal + shippingFee,
+      totalAmount: Math.max(subtotal - discount, 0) + shippingFee,
+      appliedPromo,
     },
   };
 }
 
 const IDEMPOTENCY_WINDOW_MS = 30_000;
 
+function sameItemSets(
+  a: Array<{ product_id: string; quantity: number }>,
+  b: OrderItem[]
+): boolean {
+  if (a.length !== b.length) return false;
+  const expected = new Map(b.map((item) => [item.productId, item.quantity]));
+  return a.every((row) => expected.get(row.product_id) === row.quantity);
+}
+
 async function findDuplicateOrder(
   supabase: SupabaseClient,
   phone: string,
   email: string,
-  totalAmount: number
+  totalAmount: number,
+  items: OrderItem[]
 ): Promise<string | null> {
   const since = new Date(Date.now() - IDEMPOTENCY_WINDOW_MS).toISOString();
   const { data } = await supabase
     .from('orders')
-    .select('id')
+    .select('id, order_items (product_id, quantity)')
     .eq('phone', phone)
     .eq('email', email)
     .eq('total_amount', totalAmount)
     .gte('created_at', since)
     .limit(1)
     .single();
-  return data?.id ?? null;
+
+  if (!data) return null;
+
+  // Same contact + same total within the window can still be two distinct
+  // legitimate orders (e.g. guest email is derived from phone alone) — only
+  // treat it as a retry if the actual items match too.
+  const candidateItems = (data.order_items ?? []) as Array<{ product_id: string; quantity: number }>;
+  if (!sameItemSets(candidateItems, items)) return null;
+
+  return data.id ?? null;
 }
 
 /** Create a new order with items. */
@@ -191,7 +240,8 @@ export async function createOrder(
     supabase,
     input.phone,
     input.email,
-    verifiedOrder.data.totalAmount
+    verifiedOrder.data.totalAmount,
+    verifiedOrder.data.items
   );
   if (duplicateId) {
     const { data: existing } = await supabase
@@ -201,6 +251,11 @@ export async function createOrder(
       .single();
     if (existing) return { order: mapOrder(existing as OrderRow), error: null };
   }
+
+  const promoNote = verifiedOrder.data.appliedPromo
+    ? `Code promo appliqué : ${verifiedOrder.data.appliedPromo.code} (-${formatPrice(verifiedOrder.data.appliedPromo.discount)})`
+    : null;
+  const notes = [input.notes, promoNote].filter(Boolean).join('\n') || null;
 
   // Insert the order
   const { data: order, error: orderError } = await supabase
@@ -213,7 +268,7 @@ export async function createOrder(
       shipping_address: input.shippingAddress,
       phone: input.phone,
       email: input.email,
-      notes: input.notes || null,
+      notes,
     })
     .select()
     .single();
@@ -239,6 +294,11 @@ export async function createOrder(
     logger.error('createOrder', 'Failed to insert order items');
     // Order was created but items failed — return partial
     return { order: mapOrder(order), error: 'Commande créée mais erreur sur les articles' };
+  }
+
+  if (verifiedOrder.data.appliedPromo) {
+    const { id, usesCount } = verifiedOrder.data.appliedPromo;
+    await incrementPromoCodeUsage(supabase, id, usesCount);
   }
 
   return { order: mapOrder(order), error: null };

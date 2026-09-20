@@ -91,7 +91,7 @@ export default function Footer() {
 
         {/* ════ MAIN SECTION ════ */}
         <div
-          className="grid gap-y-12"
+          className="footer-grid grid gap-y-12"
           style={{
             gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
             paddingTop: '4.5rem',
@@ -99,7 +99,7 @@ export default function Footer() {
           }}
         >
           {/* ── Brand column ── */}
-          <div style={{ gridColumn: 'span 2', maxWidth: 300 }} className="max-w-xs">
+          <div style={{ gridColumn: 'span 2', maxWidth: 300 }} className="footer-brand max-w-xs">
             {/* Monogram + wordmark */}
             <Link
               href="/"

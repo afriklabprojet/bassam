@@ -117,9 +117,9 @@ function ProduitsContent() {
       <div className="container mx-auto py-10">
         {/* Controls bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="products-filter-groups flex items-center gap-3 flex-wrap">
             {/* Category filter pills */}
-            <div className="flex gap-2">
+            <div className="products-category-filters flex gap-2">
               {CATEGORY_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -151,7 +151,7 @@ function ProduitsContent() {
           </div>
 
           {/* Sort */}
-          <div className="flex items-center gap-3">
+          <div className="products-sort-control flex items-center gap-3">
             <label htmlFor="sort" className="text-sm text-txt2 whitespace-nowrap">Trier par :</label>
             <select
               id="sort"

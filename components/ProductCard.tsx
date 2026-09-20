@@ -271,7 +271,7 @@ export default function ProductCard({
         </h3>
 
         {/* Price row + mobile CTA */}
-        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div className="product-card-price-row" style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <div className="flex items-baseline gap-2" style={{ minWidth: 0 }}>
             <span style={{
               fontFamily: 'var(--font-serif)',

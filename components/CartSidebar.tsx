@@ -149,6 +149,7 @@ export default function CartSidebar() {
               {items.map((item, idx) => {
                 const thumbnail = (
                   <div
+                    className="cart-item-thumbnail"
                     style={{
                       position: 'relative',
                       width: '76px',
@@ -207,7 +208,7 @@ export default function CartSidebar() {
                       </p>
                     )}
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div className="cart-item-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       {/* Qty */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         <button
@@ -226,7 +227,7 @@ export default function CartSidebar() {
                       </div>
 
                       {/* Price + Remove */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div className="cart-item-price-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1rem', fontWeight: 500, color: 'var(--text-primary)' }}>{fmt(item.price * item.quantity)}</span>
                         <button
                           onClick={() => removeItem(item.id)}

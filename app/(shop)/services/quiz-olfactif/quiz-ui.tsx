@@ -255,8 +255,8 @@ export function ProductCard({ product, index }: Readonly<{ product: ProductResul
   const productImage = normalizeProductImage(product.images?.[0]);
 
   return (
-    <div style={{ background: '#fff', borderTop: '2px solid var(--line-light)', position: 'relative', display: 'flex', gap: 0 }}>
-      <div style={{ position: 'relative', width: 120, minWidth: 120, minHeight: 200, background: 'var(--offwhite)', overflow: 'hidden' }}>
+    <div className="quiz-product-card" style={{ background: '#fff', borderTop: '2px solid var(--line-light)', position: 'relative', display: 'flex', gap: 0 }}>
+      <div className="quiz-product-image" style={{ position: 'relative', width: 120, minWidth: 120, minHeight: 200, background: 'var(--offwhite)', overflow: 'hidden' }}>
         <Image
           src={productImage}
           alt={product.name}
@@ -266,7 +266,7 @@ export function ProductCard({ product, index }: Readonly<{ product: ProductResul
           unoptimized={shouldBypassNextImageOptimization(productImage)}
         />
       </div>
-      <div style={{ padding: '32px 28px', flex: 1 }}>
+      <div className="quiz-product-body" style={{ padding: '32px 28px', flex: 1 }}>
         <span style={{ fontSize: '0.625rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
           Recommandation {String(index + 1).padStart(2, '0')}
         </span>
@@ -287,7 +287,7 @@ export function ProductCard({ product, index }: Readonly<{ product: ProductResul
             {truncateDescription(product.description, 120)}
           </p>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+        <div className="quiz-product-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
           {product.price > 0 && (
             <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
               {formatPrice(product.price)}

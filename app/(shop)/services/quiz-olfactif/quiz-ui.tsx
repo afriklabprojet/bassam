@@ -1,7 +1,10 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/format';
+import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
+import { normalizeProductImage } from '@/lib/product-images';
 import type { Choice, ProductResult } from '@/lib/quiz-data';
 import { getProfileSummary, truncateDescription } from '@/lib/quiz-data';
 
@@ -249,17 +252,20 @@ export function ProductCard({ product, index }: Readonly<{ product: ProductResul
   const brandLine = product.brand && product.concentration
     ? `${product.brand} · ${product.concentration}`
     : product.brand ?? product.concentration ?? '';
+  const productImage = normalizeProductImage(product.images?.[0]);
 
   return (
     <div style={{ background: '#fff', borderTop: '2px solid var(--line-light)', position: 'relative', display: 'flex', gap: 0 }}>
-      {product.images?.[0] && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={product.images[0]}
+      <div style={{ position: 'relative', width: 120, minWidth: 120, minHeight: 200, background: 'var(--offwhite)', overflow: 'hidden' }}>
+        <Image
+          src={productImage}
           alt={product.name}
-          style={{ width: 120, minWidth: 120, objectFit: 'cover', display: 'block', flexShrink: 0 }}
+          fill
+          sizes="120px"
+          style={{ objectFit: 'contain', padding: 8 }}
+          unoptimized={shouldBypassNextImageOptimization(productImage)}
         />
-      )}
+      </div>
       <div style={{ padding: '32px 28px', flex: 1 }}>
         <span style={{ fontSize: '0.625rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)' }}>
           Recommandation {String(index + 1).padStart(2, '0')}

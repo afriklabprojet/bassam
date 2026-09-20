@@ -5,9 +5,15 @@ import {
   DEFAULT_STATS,
   DEFAULT_VALEURS,
   DEFAULT_ENGAGEMENTS,
+  DEFAULT_HERO,
+  DEFAULT_STORY,
+  DEFAULT_PAGE_CONTENT,
   type AboutStat,
   type AboutValeur,
   type AboutEngagement,
+  type AboutHero,
+  type AboutStory,
+  type AboutPageContent,
 } from '@/lib/supabase/about-content';
 import { logger } from '@/lib/logger';
 import { GOLD } from '@/lib/admin-theme';
@@ -87,6 +93,9 @@ function SectionTitle({ children }: { readonly children: React.ReactNode }) {
 /* ── Main page ───────────────────────────────────────────────────────────────── */
 
 export default function AdminAProposPage() {
+  const [hero, setHero] = useState<AboutHero>(DEFAULT_HERO);
+  const [story, setStory] = useState<AboutStory>(DEFAULT_STORY);
+  const [pageContent, setPageContent] = useState<AboutPageContent>(DEFAULT_PAGE_CONTENT);
   const [stats, setStats] = useState<AboutStat[]>(DEFAULT_STATS);
   const [valeurs, setValeurs] = useState<AboutValeur[]>(DEFAULT_VALEURS);
   const [engagements, setEngagements] = useState<AboutEngagement[]>(DEFAULT_ENGAGEMENTS);
@@ -98,6 +107,13 @@ export default function AdminAProposPage() {
     fetch('/api/admin/about')
       .then((r) => r.json())
       .then((d) => {
+        setHero({ ...DEFAULT_HERO, ...(d.hero ?? {}) });
+        setStory({ ...DEFAULT_STORY, ...(d.story ?? {}) });
+        setPageContent({
+          ...DEFAULT_PAGE_CONTENT,
+          ...(d.page ?? {}),
+          brands: Array.isArray(d.page?.brands) ? d.page.brands : DEFAULT_PAGE_CONTENT.brands,
+        });
         setStats(mergeBySlug(DEFAULT_STATS, d.stats ?? []));
         setValeurs(mergeBySlug(DEFAULT_VALEURS, d.valeurs ?? []));
         setEngagements(mergeBySlug(DEFAULT_ENGAGEMENTS, d.engagements ?? []));
@@ -118,15 +134,22 @@ export default function AdminAProposPage() {
     setEngagements((prev) => prev.map((r) => (r.slug === slug ? { ...r, [field]: value } : r)));
   }
 
+  function updatePageContent<K extends keyof AboutPageContent>(field: K, value: AboutPageContent[K]) {
+    setPageContent((prev) => ({ ...prev, [field]: value }));
+  }
+
   async function handleSave() {
     setSaving(true);
     try {
-      const [r1, r2, r3] = await Promise.all([
+      const responses = await Promise.all([
+        fetch('/api/admin/about', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'hero', data: hero }) }),
+        fetch('/api/admin/about', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'story', data: story }) }),
+        fetch('/api/admin/about', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'page', data: pageContent }) }),
         fetch('/api/admin/about', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'stats', rows: stats }) }),
         fetch('/api/admin/about', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'valeurs', rows: valeurs }) }),
         fetch('/api/admin/about', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'engagements', rows: engagements }) }),
       ]);
-      const ok = r1.ok && r2.ok && r3.ok;
+      const ok = responses.every((response) => response.ok);
       setToast({ ok, msg: ok ? 'Page À propos sauvegardée ✓' : 'Erreur lors de la sauvegarde' });
     } catch {
       setToast({ ok: false, msg: 'Erreur réseau' });
@@ -153,7 +176,7 @@ export default function AdminAProposPage() {
             Page À propos
           </h1>
           <p style={{ margin: '6px 0 0', fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
-            Gérez les stats, valeurs et engagements affichés sur la page À propos
+            Gérez tous les textes, liens, marques, statistiques, valeurs et engagements de la page.
           </p>
         </div>
         {(() => {
@@ -197,6 +220,70 @@ export default function AdminAProposPage() {
         </p>
       )}
 
+      <div style={card}>
+        <SectionTitle>Référencement</SectionTitle>
+        <Field label="Titre SEO" value={pageContent.meta_title} onChange={(value) => updatePageContent('meta_title', value)} />
+        <Field label="Description SEO" value={pageContent.meta_description} onChange={(value) => updatePageContent('meta_description', value)} multiline />
+        <Field label="Mots-clés SEO" value={pageContent.meta_keywords} onChange={(value) => updatePageContent('meta_keywords', value)} multiline />
+      </div>
+
+      <div style={card}>
+        <SectionTitle>Hero de la page</SectionTitle>
+        <Field label="Sur-titre" value={hero.eyebrow} onChange={(value) => setHero((prev) => ({ ...prev, eyebrow: value }))} />
+        <Field label="Titre principal" value={hero.title_line1} onChange={(value) => setHero((prev) => ({ ...prev, title_line1: value }))} />
+        <Field label="Titre accentué" value={hero.title_em} onChange={(value) => setHero((prev) => ({ ...prev, title_em: value }))} />
+        <Field label="Introduction" value={hero.subtitle} onChange={(value) => setHero((prev) => ({ ...prev, subtitle: value }))} multiline />
+      </div>
+
+      <div style={card}>
+        <SectionTitle>Histoire & fondateur</SectionTitle>
+        <Field label="Sur-titre" value={story.section_eyebrow} onChange={(value) => setStory((prev) => ({ ...prev, section_eyebrow: value }))} />
+        <Field label="Titre principal" value={story.title_line1} onChange={(value) => setStory((prev) => ({ ...prev, title_line1: value }))} />
+        <Field label="Titre accentué" value={story.title_em} onChange={(value) => setStory((prev) => ({ ...prev, title_em: value }))} />
+        <Field label="Premier paragraphe" value={story.paragraph1} onChange={(value) => setStory((prev) => ({ ...prev, paragraph1: value }))} multiline />
+        <Field label="Deuxième paragraphe" value={story.paragraph2} onChange={(value) => setStory((prev) => ({ ...prev, paragraph2: value }))} multiline />
+        <Field label="Troisième paragraphe" value={story.paragraph3} onChange={(value) => setStory((prev) => ({ ...prev, paragraph3: value }))} multiline />
+        <Field label="Citation" value={story.quote_text} onChange={(value) => setStory((prev) => ({ ...prev, quote_text: value }))} multiline />
+        <Field label="Auteur de la citation" value={story.quote_author} onChange={(value) => setStory((prev) => ({ ...prev, quote_author: value }))} />
+      </div>
+
+      <div style={card}>
+        <SectionTitle>Titres des valeurs & marques</SectionTitle>
+        <Field label="Sur-titre des valeurs" value={pageContent.values_eyebrow} onChange={(value) => updatePageContent('values_eyebrow', value)} />
+        <Field label="Titre des valeurs" value={pageContent.values_title} onChange={(value) => updatePageContent('values_title', value)} />
+        <Field label="Titre accentué des valeurs" value={pageContent.values_title_em} onChange={(value) => updatePageContent('values_title_em', value)} />
+        <Field label="Titre des marques" value={pageContent.brands_eyebrow} onChange={(value) => updatePageContent('brands_eyebrow', value)} />
+        <Field
+          label="Marques distribuées"
+          hint="Une marque par ligne."
+          value={pageContent.brands.join('\n')}
+          onChange={(value) => updatePageContent('brands', value.split('\n').map((brand) => brand.trim()).filter(Boolean))}
+          multiline
+        />
+      </div>
+
+      <div style={card}>
+        <SectionTitle>Introduction des engagements</SectionTitle>
+        <Field label="Sur-titre" value={pageContent.engagements_eyebrow} onChange={(value) => updatePageContent('engagements_eyebrow', value)} />
+        <Field label="Titre principal" value={pageContent.engagements_title} onChange={(value) => updatePageContent('engagements_title', value)} />
+        <Field label="Titre accentué" value={pageContent.engagements_title_em} onChange={(value) => updatePageContent('engagements_title_em', value)} />
+        <Field label="Description" value={pageContent.engagements_description} onChange={(value) => updatePageContent('engagements_description', value)} multiline />
+        <Field label="Libellé du lien" value={pageContent.engagements_cta_label} onChange={(value) => updatePageContent('engagements_cta_label', value)} />
+        <Field label="Destination du lien" value={pageContent.engagements_cta_href} onChange={(value) => updatePageContent('engagements_cta_href', value)} hint="Chemin interne commençant par / ou URL HTTPS." />
+      </div>
+
+      <div style={card}>
+        <SectionTitle>Appel à l’action final</SectionTitle>
+        <Field label="Sur-titre" value={pageContent.cta_eyebrow} onChange={(value) => updatePageContent('cta_eyebrow', value)} />
+        <Field label="Titre principal" value={pageContent.cta_title} onChange={(value) => updatePageContent('cta_title', value)} />
+        <Field label="Titre accentué" value={pageContent.cta_title_em} onChange={(value) => updatePageContent('cta_title_em', value)} />
+        <Field label="Description" value={pageContent.cta_description} onChange={(value) => updatePageContent('cta_description', value)} multiline />
+        <Field label="Bouton principal" value={pageContent.cta_primary_label} onChange={(value) => updatePageContent('cta_primary_label', value)} />
+        <Field label="Lien du bouton principal" value={pageContent.cta_primary_href} onChange={(value) => updatePageContent('cta_primary_href', value)} />
+        <Field label="Bouton secondaire" value={pageContent.cta_secondary_label} onChange={(value) => updatePageContent('cta_secondary_label', value)} />
+        <Field label="Lien du bouton secondaire" value={pageContent.cta_secondary_href} onChange={(value) => updatePageContent('cta_secondary_href', value)} />
+      </div>
+
       {/* ── Section 1 : Statistiques ── */}
       <div style={card}>
         <SectionTitle>Chiffres clés (bandeau stats)</SectionTitle>
@@ -223,8 +310,9 @@ export default function AdminAProposPage() {
         {valeurs.map((v) => (
           <div key={v.slug} style={{ marginBottom: 20, padding: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 8, border: '1px solid rgba(197,165,90,0.1)' }}>
             <p style={{ margin: '0 0 12px', fontSize: 11, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '.08em' }}>
-              {v.slug} — Numéro : {v.num}
+              {v.slug}
             </p>
+            <Field label="Numéro" value={v.num} onChange={(val) => updateValeur(v.slug, 'num', val)} />
             <Field label="Titre" value={v.titre} onChange={(val) => updateValeur(v.slug, 'titre', val)} />
             <Field label="Texte de description" value={v.texte} onChange={(val) => updateValeur(v.slug, 'texte', val)} multiline />
           </div>

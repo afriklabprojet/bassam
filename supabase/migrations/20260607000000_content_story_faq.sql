@@ -32,10 +32,10 @@ CREATE TABLE IF NOT EXISTS about_story (
   title_line1      text NOT NULL DEFAULT 'Une maison née de la',
   title_em         text NOT NULL DEFAULT 'passion du parfum rare.',
   paragraph1 text NOT NULL DEFAULT 'Fondée à Abidjan en 2022, VIP Parfumerie Bar est née de la frustration de ne pas trouver, en Afrique, des parfums de luxe authentiques à des prix honnêtes. Trop souvent, les Africains se voyaient proposer des contrefaçons, ou devaient faire confiance à des revendeurs opaques.',
-  paragraph2 text NOT NULL DEFAULT 'Notre fondatrice a décidé de changer cela. Forte de ses connexions avec les distributeurs officiels en Europe, elle a construit une chaîne d''approvisionnement rigoureuse, transparente et traçable — directement depuis les maisons de parfumerie jusqu''à votre porte.',
+  paragraph2 text NOT NULL DEFAULT 'Notre fondateur a décidé de changer cela. Fort de ses connexions avec les distributeurs officiels en Europe, il a construit une chaîne d''approvisionnement rigoureuse, transparente et traçable — directement depuis les maisons de parfumerie jusqu''à votre porte.',
   paragraph3 text NOT NULL DEFAULT 'Aujourd''hui, VIP Parfumerie Bar est la référence des amateurs de beaux parfums en Côte d''Ivoire et au-delà. Plus de 5 000 clients font confiance à notre sélection, notre service et notre engagement pour l''authenticité.',
   quote_text text NOT NULL DEFAULT '"Chaque parfum que nous vendons a une histoire. Notre rôle est de vous aider à trouver celle qui vous appartient."',
-  quote_author text NOT NULL DEFAULT 'La fondatrice, VIP Parfumerie Bar',
+  quote_author text NOT NULL DEFAULT 'Le fondateur, VIP Parfumerie Bar',
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
 

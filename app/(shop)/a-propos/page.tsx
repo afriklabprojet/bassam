@@ -3,19 +3,23 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   getAboutStats, getAboutValeurs, getAboutEngagements,
-  getAboutHero, getAboutStory,
+  getAboutHero, getAboutStory, getAboutPageContent,
 } from '@/lib/supabase/about-content';
 
 // ISR — revalide toutes les 5 minutes
 export const revalidate = 300;
 
 
-export const metadata: Metadata = {
-  title: 'À propos — VIP Parfumerie Bar Abidjan',
-  description: "Découvrez l'histoire de VIP Parfumerie Bar, votre maison de parfums de luxe authentiques au cœur d'Abidjan et de l'Afrique de l'Ouest.",
-  keywords: "parfumerie luxe Abidjan, histoire VIP Parfumerie Bar, parfums authentiques Côte d'Ivoire",
-  alternates: { canonical: `${BASE_URL}/a-propos` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const pageContent = await getAboutPageContent();
+
+  return {
+    title: pageContent.meta_title,
+    description: pageContent.meta_description,
+    keywords: pageContent.meta_keywords.split(',').map((keyword) => keyword.trim()).filter(Boolean),
+    alternates: { canonical: `${BASE_URL}/a-propos` },
+  };
+}
 
 /* ─── Données (DB avec fallback sur les défauts) ──────────── */
 
@@ -46,12 +50,13 @@ function SectionEyebrow({ label }: Readonly<{ label: string }>) {
 /* ─── Page ───────────────────────────────────────────────── */
 
 export default async function AProposPage() {
-  const [stats, valeurs, engagements, heroData, storyData] = await Promise.all([
+  const [stats, valeurs, engagements, heroData, storyData, pageContent] = await Promise.all([
     getAboutStats(),
     getAboutValeurs(),
     getAboutEngagements(),
     getAboutHero(),
     getAboutStory(),
+    getAboutPageContent(),
   ]);
 
   return (
@@ -229,7 +234,7 @@ export default async function AProposPage() {
       <section style={{ background: 'var(--offwhite)', padding: '96px 0' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: 560, margin: '0 auto 64px' }}>
-            <SectionEyebrow label="Ce qui nous guide" />
+            <SectionEyebrow label={pageContent.values_eyebrow} />
             <h2 style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
@@ -239,8 +244,8 @@ export default async function AProposPage() {
               margin: 0,
               letterSpacing: '0.01em',
             }}>
-              Trois piliers,{' '}
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>une promesse.</em>
+              {pageContent.values_title}{' '}
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{pageContent.values_title_em}</em>
             </h2>
           </div>
 
@@ -278,12 +283,12 @@ export default async function AProposPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          LES MARQUES — Bandeau défilant (statique)
+          LES MARQUES — Bandeau défilant
       ══════════════════════════════════════════════════════ */}
       <section style={{ background: 'var(--noir)', padding: '56px 0', borderTop: '1px solid rgba(197,165,90,0.15)', borderBottom: '1px solid rgba(197,165,90,0.15)' }}>
         <div className="container">
           <p style={{ textAlign: 'center', fontSize: '0.5625rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(197,165,90,0.55)', margin: '0 0 32px' }}>
-            Maisons que nous distribuons
+            {pageContent.brands_eyebrow}
           </p>
           <div style={{
             display: 'flex',
@@ -291,7 +296,7 @@ export default async function AProposPage() {
             justifyContent: 'center',
             gap: '10px 20px',
           }}>
-            {['Chanel', 'Dior', 'Yves Saint Laurent', 'Guerlain', 'Givenchy', 'Lancôme', 'Hermès', 'Tom Ford', 'Creed', 'Giorgio Armani', 'Versace', 'Paco Rabanne', 'Carolina Herrera', 'Jo Malone', 'Maison Margiela'].map((m) => (
+            {pageContent.brands.map((m) => (
               <span key={m} className="brand-tag" style={{
                 fontSize: '0.625rem',
                 letterSpacing: '0.2em',
@@ -318,7 +323,7 @@ export default async function AProposPage() {
 
             {/* Texte accroche tête de colonne */}
             <div style={{ position: 'sticky', top: 100 }}>
-              <SectionEyebrow label="Nos engagements" />
+              <SectionEyebrow label={pageContent.engagements_eyebrow} />
               <h2 style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: 'clamp(1.75rem, 3vw, 2.5rem)',
@@ -327,15 +332,14 @@ export default async function AProposPage() {
                 lineHeight: 1.2,
                 margin: '0 0 20px',
               }}>
-                Ce que nous vous<br />
-                <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>promettons.</em>
+                {pageContent.engagements_title}<br />
+                <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{pageContent.engagements_title_em}</em>
               </h2>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.75, margin: '0 0 32px' }}>
-                Chaque engagement ci-contre est une promesse tenue au quotidien. Notre réputation se construit
-                sur votre confiance.
+                {pageContent.engagements_description}
               </p>
               <Link
-                href="/contact"
+                href={pageContent.engagements_cta_href}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   fontSize: '0.6875rem', letterSpacing: '0.15em', textTransform: 'uppercase',
@@ -343,7 +347,7 @@ export default async function AProposPage() {
                   borderBottom: '1px solid rgba(197,165,90,0.35)', paddingBottom: 4,
                 }}
               >
-                Nous contacter
+                {pageContent.engagements_cta_label}
                 <svg width={12} height={12} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
                 </svg>
@@ -397,7 +401,7 @@ export default async function AProposPage() {
           <div style={{ maxWidth: 620, margin: '0 auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
               <div style={{ width: 32, height: '1px', background: 'rgba(197,165,90,0.4)' }} />
-              <span style={{ fontSize: '0.5625rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)' }}>Rejoignez-nous</span>
+              <span style={{ fontSize: '0.5625rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--gold)' }}>{pageContent.cta_eyebrow}</span>
               <div style={{ width: 32, height: '1px', background: 'rgba(197,165,90,0.4)' }} />
             </div>
 
@@ -410,18 +414,17 @@ export default async function AProposPage() {
               margin: '0 0 20px',
               letterSpacing: '-0.01em',
             }}>
-              Prêt(e) à découvrir votre<br />
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>signature olfactive ?</em>
+              {pageContent.cta_title}<br />
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{pageContent.cta_title_em}</em>
             </h2>
 
             <p style={{ fontSize: '0.9375rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, margin: '0 0 44px' }}>
-              Explorez nos collections, passez notre quiz olfactif IA ou prenez rendez-vous pour
-              une consultation privée. L&apos;expérience VIP commence ici.
+              {pageContent.cta_description}
             </p>
 
             <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link
-                href="/produits"
+                href={pageContent.cta_primary_href}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   height: 50, padding: '0 32px',
@@ -435,13 +438,13 @@ export default async function AProposPage() {
                   borderRadius: 3,
                 }}
               >
-                Voir les collections
+                {pageContent.cta_primary_label}
                 <svg width={13} height={13} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
                 </svg>
               </Link>
               <Link
-                href="/services/quiz-olfactif"
+                href={pageContent.cta_secondary_href}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   height: 50, padding: '0 32px',
@@ -456,7 +459,7 @@ export default async function AProposPage() {
                   border: '1px solid rgba(255,255,255,0.15)',
                 }}
               >
-                Quiz olfactif IA
+                {pageContent.cta_secondary_label}
               </Link>
             </div>
           </div>

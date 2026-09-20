@@ -74,7 +74,7 @@ export default function ProductGallery({ images, productName, brand, discount }:
             src={activeImage}
             alt={`${brand} ${productName}`}
             fill
-            className="object-cover transition-transform duration-700"
+            className="object-contain p-3 transition-transform duration-700"
             sizes="(max-width: 1024px) 100vw, 50vw"
             priority={activeIndex === 0}
             unoptimized={shouldBypassNextImageOptimization(activeImage)}
@@ -155,6 +155,7 @@ export default function ProductGallery({ images, productName, brand, discount }:
                     borderRadius: 'var(--r-sm)',
                     overflow: 'hidden',
                     border: `2px solid ${isActive ? 'var(--gold)' : 'var(--line-light)'}`,
+                    background: 'var(--offwhite)',
                     cursor: 'pointer',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     opacity: isActive || isHovered ? 1 : 0.6,
@@ -166,7 +167,7 @@ export default function ProductGallery({ images, productName, brand, discount }:
                     alt={`Vue ${index + 1}`}
                     width={80}
                     height={80}
-                    className="object-cover w-full h-full"
+                    className="object-contain w-full h-full p-1"
                     unoptimized={shouldBypassNextImageOptimization(image)}
                   />
                 </button>

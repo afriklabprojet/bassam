@@ -42,6 +42,7 @@ const PUBLIC_ROUTES = [
   '/auth/update-password',
   '/auth/callback',
   '/admin/login',
+  '/api/contact',
   '/api/health',
   '/api/newsletter',
   '/api/orders',

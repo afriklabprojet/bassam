@@ -57,6 +57,7 @@ function CheckoutPageInner() {
   const shipping = getShippingFee(shippingConfig, selectedModeId);
   const discount = promo ? computePromoDiscount(promo.type, promo.value, totalPrice) : 0;
   const total = Math.max(totalPrice - discount, 0) + shipping;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim());
 
   function handleDeliveryChange(field: keyof DeliveryInfo, value: string) {
     setDelivery((p) => ({ ...p, [field]: value }));
@@ -66,8 +67,8 @@ function CheckoutPageInner() {
   function goBack(target: Step) { setDirection('back'); setStep(target); }
 
   const step2Valid = isPickup
-    ? !!(delivery.firstName && delivery.lastName && delivery.phone)
-    : !!(delivery.firstName && delivery.lastName && delivery.phone && delivery.city && delivery.address);
+    ? !!(delivery.firstName && delivery.lastName && delivery.phone && emailValid)
+    : !!(delivery.firstName && delivery.lastName && delivery.phone && emailValid && delivery.city && delivery.address);
 
   async function handleSubmit() {
     setIsSubmitting(true);
@@ -97,7 +98,7 @@ function CheckoutPageInner() {
         body: JSON.stringify({
           totalAmount: total, paymentMethod,
           shippingModeId: selectedModeId, shippingAddress,
-          phone: delivery.phone, email: guestEmail || undefined,
+          phone: delivery.phone, email: guestEmail.trim(),
           notes: fullNotes || undefined, items: orderItems,
           promoCode: promo?.code,
         }),

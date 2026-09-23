@@ -10,6 +10,8 @@ Boutique e-commerce de parfums de luxe — Côte d'Ivoire.
 - **Jeko Africa** (paiement Mobile Money — Orange, MTN, Wave)
 - **Resend** (newsletter)
 
+Configuration des e-mails de production : [docs/production-mail.md](docs/production-mail.md)
+
 ## Démarrage rapide
 
 ```bash

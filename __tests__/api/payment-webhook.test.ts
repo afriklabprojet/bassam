@@ -4,12 +4,14 @@ import crypto from 'node:crypto';
 
 const WEBHOOK_SECRET = 'test_webhook_secret_xyz';
 vi.stubEnv('JEKO_WEBHOOK_SECRET', WEBHOOK_SECRET);
+vi.stubEnv('RESEND_API_KEY', 're_test_key');
 
 /* ── Supabase service mock ───────────────────────────────────────────────── */
 
 const mockOrderSingle = vi.fn();
 const mockOrderTxnSingle = vi.fn();
 const mockOrderUpdate = vi.fn();
+const mockOrderItems = vi.fn();
 
 const mockFrom = vi.fn((table: string) => {
   if (table === 'orders') {
@@ -20,6 +22,13 @@ const mockFrom = vi.fn((table: string) => {
         }),
       }),
       update: mockOrderUpdate,
+    };
+  }
+  if (table === 'order_items') {
+    return {
+      select: () => ({
+        eq: mockOrderItems,
+      }),
     };
   }
   return {};
@@ -71,8 +80,35 @@ const { POST } = await import('@/app/api/payment/webhook/route');
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
   mockOrderSingle.mockResolvedValue({
-    data: { id: ORDER_ID, status: 'pending', payment_status: 'pending' },
+    data: {
+      id: ORDER_ID,
+      status: 'pending',
+      payment_status: 'pending',
+      total_amount: 37500,
+      payment_method: 'mobile_money',
+      payment_reference: 'txn-abc-123',
+      shipping_address: {
+        firstName: 'Awa',
+        lastName: 'Kouassi',
+        address: 'Cocody',
+        city: 'Abidjan',
+        country: "Côte d'Ivoire",
+      },
+      phone: '0700000000',
+      email: 'client@example.com',
+      created_at: '2026-09-22T10:00:00.000Z',
+    },
+    error: null,
+  });
+  mockOrderItems.mockResolvedValue({
+    data: [{
+      product_id: 'product-1',
+      quantity: 1,
+      unit_price: 37500,
+      products: { name: 'Parfum Test', brand: 'Maison Test' },
+    }],
     error: null,
   });
   mockOrderUpdate.mockReturnValue({
@@ -127,6 +163,25 @@ describe('POST /api/payment/webhook — status success', () => {
     const res = await POST(makeRequest(SUCCESS_PAYLOAD));
     const body = await res.json() as { ok: boolean };
     expect(body.ok).toBe(true);
+  });
+
+  it('envoie la confirmation au client et une copie au vendeur', async () => {
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+
+    const messages = vi.mocked(fetch).mock.calls.map(([, init]) => {
+      return JSON.parse(String(init?.body)) as {
+        to: string;
+        attachments: Array<{ filename: string; content: string }>;
+      };
+    });
+
+    expect(messages.map((message) => message.to)).toEqual(
+      expect.arrayContaining(['client@example.com', 'commande@vipparfumeriebar.com'])
+    );
+    expect(messages).toHaveLength(2);
+    expect(messages.every((message) =>
+      message.attachments[0].filename.endsWith('.pdf') && message.attachments[0].content.length > 0
+    )).toBe(true);
   });
 });
 

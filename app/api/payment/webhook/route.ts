@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { createServiceClient } from '@/lib/supabase/service';
 import { decrementProductStock } from '@/lib/supabase/products';
 import { verifyWebhookSignature, type JekoWebhookPayload } from '@/lib/payment/jeko';
+import { sendOrderNotifications } from '@/lib/order-notifications';
 import { logger } from '@/lib/logger';
 
 const WEBHOOK_LOG_CONTEXT = 'API /payment/webhook';
@@ -230,6 +231,18 @@ export async function POST(request: NextRequest) {
           correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
           orderId: resolvedOrder.id,
           error: stockError,
+        });
+      }
+    }
+
+    if (isSuccess) {
+      try {
+        await sendOrderNotifications(supabase, resolvedOrder.id);
+      } catch (notificationError) {
+        logger.error(WEBHOOK_LOG_CONTEXT, 'Unable to send order notifications', {
+          correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
+          orderId: resolvedOrder.id,
+          error: notificationError,
         });
       }
     }

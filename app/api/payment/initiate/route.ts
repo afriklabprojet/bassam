@@ -31,11 +31,6 @@ interface InitiateBody {
   promoCode?: string;
 }
 
-function getGuestEmail(phone: string) {
-  const compactPhone = phone.replace(/\D/g, '').slice(-12) || `${Date.now()}`;
-  return `guest-${compactPhone}@vip-parfumerie.local`;
-}
-
 function validateBody(body: unknown): { data: InitiateBody } | { error: string } {
   const b = body as Record<string, unknown>;
 
@@ -46,6 +41,8 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
     return { error: 'Opérateur Mobile Money invalide' };
   if (!b.phone || typeof b.phone !== 'string') return { error: 'Numéro de téléphone requis' };
   if (b.phone.replace(/\D/g, '').length < 8) return { error: 'Numéro Mobile Money invalide' };
+  if (typeof b.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email.trim()))
+    return { error: 'Adresse email valide requise pour recevoir la facture' };
   if (!Array.isArray(b.items) || b.items.length === 0)
     return { error: 'Au moins un article requis' };
   if (b.shippingModeId !== undefined && typeof b.shippingModeId !== 'string') {
@@ -157,7 +154,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const email = d.email ?? user?.email ?? getGuestEmail(d.phone);
+    const email = d.email!.trim().toLowerCase();
     const orderClient = createServiceClient();
     const normalized = await normalizeOrderItemsForPersistence(orderClient, d.items);
 

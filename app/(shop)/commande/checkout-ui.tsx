@@ -389,9 +389,9 @@ export function Step2Contact({ delivery, guestEmail, isPickup, selectedMode, att
         <Field id="phone" label="Téléphone" required error={fieldError(!!delivery.phone)}>
           <input id="phone" type="tel" value={delivery.phone} onChange={(e) => onChange('phone', e.target.value)} placeholder="+225 XX XX XX XX" className="input" style={fieldError(!!delivery.phone) ? { borderColor: '#c0392b' } : {}} />
         </Field>
-        <Field id="guestEmail" label="Email de confirmation">
-          <input id="guestEmail" type="email" value={guestEmail} onChange={(e) => onGuestEmail(e.target.value)} placeholder="vous@email.com" className="input" />
-          <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', marginTop: '0.35rem' }}>Facultatif — nous confirmons aussi par téléphone.</p>
+        <Field id="guestEmail" label="Email de confirmation" required error={fieldError(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()))}>
+          <input id="guestEmail" type="email" required value={guestEmail} onChange={(e) => onGuestEmail(e.target.value)} placeholder="vous@email.com" className="input" style={fieldError(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) ? { borderColor: '#c0392b' } : {}} />
+          <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', marginTop: '0.35rem' }}>La confirmation et la facture seront envoyées à cette adresse.</p>
         </Field>
         {!isPickup && (
           <>

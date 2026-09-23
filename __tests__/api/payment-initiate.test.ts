@@ -86,6 +86,7 @@ const VALID_BODY = {
     country: "Côte d'Ivoire",
   },
   phone: '0700000000',
+  email: 'client@example.com',
   items: [{ productId: PRODUCT_ID, quantity: 1, unitPrice: 35000 }],
 };
 
@@ -116,7 +117,7 @@ beforeEach(() => {
       payment_status: 'pending',
       shipping_address: VALID_BODY.shippingAddress,
       phone: VALID_BODY.phone,
-      email: 'guest@vip-parfumerie.local',
+      email: VALID_BODY.email,
       notes: null,
       created_at: '2026-05-24T00:00:00.000Z',
     },
@@ -252,7 +253,6 @@ describe('POST /api/payment/initiate — flux nominal', () => {
         currency: 'XOF',
         successUrl: expect.stringContaining('/commande/confirmation'),
         errorUrl: expect.stringContaining('/commande'),
-        payerPhone: VALID_BODY.phone,
         reference: ORDER_ID,
       })
     );
@@ -270,11 +270,16 @@ describe('POST /api/payment/initiate — flux nominal', () => {
     expect(mockOrderUpdate).toHaveBeenCalledWith({ payment_reference: 'txn-abc-123' });
   });
 
-  it('génère un email guest si aucun utilisateur ni email fourni', async () => {
-    await POST(makeRequest({ ...VALID_BODY, email: undefined }));
-    expect(mockOrderInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ email: expect.stringContaining('@vip-parfumerie.local') })
-    );
+  it('refuse une commande sans email de facturation', async () => {
+    const res = await POST(makeRequest({ ...VALID_BODY, email: undefined }));
+    expect(res.status).toBe(400);
+    expect(mockOrderInsert).not.toHaveBeenCalled();
+  });
+
+  it('refuse une adresse email invalide', async () => {
+    const res = await POST(makeRequest({ ...VALID_BODY, email: 'adresse-invalide' }));
+    expect(res.status).toBe(400);
+    expect(mockOrderInsert).not.toHaveBeenCalled();
   });
 
   it("utilise l'email fourni si present", async () => {

@@ -148,6 +148,93 @@ function buildOrderHtml(data: OrderNotificationData, sellerCopy: boolean) {
   </div>`;
 }
 
+const WHATSAPP_API_VERSION = process.env.WHATSAPP_API_VERSION ?? 'v21.0';
+const WHATSAPP_TEMPLATE_NAME = process.env.WHATSAPP_TEMPLATE_NAME ?? 'nouvelle_commande_payee';
+const WHATSAPP_TEMPLATE_LANG = process.env.WHATSAPP_TEMPLATE_LANG ?? 'fr';
+
+/**
+ * Upload the invoice PDF to WhatsApp's media endpoint and send the shop's
+ * own number a copy via an approved template message (WhatsApp forbids
+ * freeform business-initiated messages — only pre-approved templates can be
+ * sent outside a live customer conversation window).
+ * Silently skipped when WhatsApp isn't configured, same as email.
+ */
+async function sendWhatsAppInvoiceCopy(data: OrderNotificationData, pdf: Uint8Array, id: string) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const shopNumber = process.env.WHATSAPP_SHOP_NOTIFICATION_NUMBER;
+
+  if (!token || !phoneNumberId || !shopNumber) {
+    logger.info('Order notification', 'WhatsApp not configured, shop copy skipped', { orderId: id });
+    return;
+  }
+
+  const number = orderNumber(id);
+  const filename = `facture-${number}.pdf`;
+
+  try {
+    const form = new FormData();
+    form.append('messaging_product', 'whatsapp');
+    form.append('type', 'application/pdf');
+    form.append('file', new Blob([Buffer.from(pdf)], { type: 'application/pdf' }), filename);
+
+    const uploadResponse = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${phoneNumberId}/media`,
+      { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form }
+    );
+
+    if (!uploadResponse.ok) {
+      logger.error('Order notification', 'WhatsApp media upload failed', {
+        orderId: id,
+        status: uploadResponse.status,
+        body: await uploadResponse.text(),
+      });
+      return;
+    }
+
+    const { id: mediaId } = await uploadResponse.json() as { id: string };
+
+    const messageResponse = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${phoneNumberId}/messages`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: shopNumber,
+          type: 'template',
+          template: {
+            name: WHATSAPP_TEMPLATE_NAME,
+            language: { code: WHATSAPP_TEMPLATE_LANG },
+            components: [
+              { type: 'header', parameters: [{ type: 'document', document: { id: mediaId, filename } }] },
+              {
+                type: 'body',
+                parameters: [
+                  { type: 'text', text: number },
+                  { type: 'text', text: customerName(data.order.shipping_address ?? {}) },
+                  { type: 'text', text: data.order.phone },
+                  { type: 'text', text: formatPdfPrice(Number(data.order.total_amount)) },
+                ],
+              },
+            ],
+          },
+        }),
+      }
+    );
+
+    if (!messageResponse.ok) {
+      logger.error('Order notification', 'WhatsApp template send failed', {
+        orderId: id,
+        status: messageResponse.status,
+        body: await messageResponse.text(),
+      });
+    }
+  } catch (error) {
+    logger.error('Order notification', 'WhatsApp request failed', { orderId: id, error });
+  }
+}
+
 async function loadOrderNotificationData(supabase: SupabaseClient, id: string): Promise<OrderNotificationData | null> {
   const [{ data: order, error: orderError }, { data: items, error: itemsError }] = await Promise.all([
     supabase.from('orders').select('id,total_amount,payment_method,payment_reference,shipping_address,phone,email,created_at').eq('id', id).single(),
@@ -164,38 +251,46 @@ async function loadOrderNotificationData(supabase: SupabaseClient, id: string): 
 
 export async function sendOrderNotifications(supabase: SupabaseClient, id: string) {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    logger.info('Order notification', 'No RESEND_API_KEY configured, emails skipped', { orderId: id });
+  const data = resendKey || (process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID)
+    ? await loadOrderNotificationData(supabase, id)
+    : null;
+
+  if (!data) {
+    if (!resendKey) logger.info('Order notification', 'No RESEND_API_KEY configured, emails skipped', { orderId: id });
     return;
   }
 
-  const data = await loadOrderNotificationData(supabase, id);
-  if (!data) return;
-
   const pdf = await buildInvoicePdf(data);
-  const invoice = {
-    filename: `facture-${orderNumber(id)}.pdf`,
-    content: Buffer.from(pdf).toString('base64'),
-  };
-  const from = process.env.RESEND_FROM_EMAIL ?? 'VIP Parfumerie Bar <contact@vipparfumeriebar.com>';
-  const number = orderNumber(id);
-  const messages = [
-    { to: data.order.email, subject: `Confirmation de votre commande ${number}`, html: buildOrderHtml(data, false) },
-    { to: ORDER_NOTIFICATION_EMAIL, subject: `Nouvelle commande payée ${number}`, html: buildOrderHtml(data, true) },
-  ];
 
-  await Promise.all(messages.map(async (message) => {
-    try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, ...message, attachments: [invoice] }),
-      });
-      if (!response.ok) {
-        logger.error('Order notification', 'Resend send failed', { orderId: id, recipient: message.to, status: response.status });
-      }
-    } catch (error) {
-      logger.error('Order notification', 'Resend request failed', { orderId: id, recipient: message.to, error });
-    }
-  }));
+  const emailSend = resendKey
+    ? (async () => {
+        const invoice = {
+          filename: `facture-${orderNumber(id)}.pdf`,
+          content: Buffer.from(pdf).toString('base64'),
+        };
+        const from = process.env.RESEND_FROM_EMAIL ?? 'VIP Parfumerie Bar <contact@vipparfumeriebar.com>';
+        const number = orderNumber(id);
+        const messages = [
+          { to: data.order.email, subject: `Confirmation de votre commande ${number}`, html: buildOrderHtml(data, false) },
+          { to: ORDER_NOTIFICATION_EMAIL, subject: `Nouvelle commande payée ${number}`, html: buildOrderHtml(data, true) },
+        ];
+
+        await Promise.all(messages.map(async (message) => {
+          try {
+            const response = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ from, ...message, attachments: [invoice] }),
+            });
+            if (!response.ok) {
+              logger.error('Order notification', 'Resend send failed', { orderId: id, recipient: message.to, status: response.status });
+            }
+          } catch (error) {
+            logger.error('Order notification', 'Resend request failed', { orderId: id, recipient: message.to, error });
+          }
+        }));
+      })()
+    : Promise.resolve();
+
+  await Promise.all([emailSend, sendWhatsAppInvoiceCopy(data, pdf, id)]);
 }

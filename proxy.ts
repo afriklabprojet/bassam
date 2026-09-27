@@ -48,6 +48,7 @@ const PUBLIC_ROUTES = [
   '/api/orders',
   '/api/payment/initiate',
   '/api/payment/webhook',
+  '/api/whatsapp/webhook',
   '/api/products',
   '/api/promo-codes',
   '/api/reviews',

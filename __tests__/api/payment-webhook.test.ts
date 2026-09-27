@@ -254,3 +254,51 @@ describe('POST /api/payment/webhook — status non terminal', () => {
     expect(mockOrderUpdate).not.toHaveBeenCalled();
   });
 });
+
+// Placed last: stubs WhatsApp env vars that must NOT leak into earlier tests
+// (vitest doesn't auto-restore vi.stubEnv between tests in this file).
+describe('POST /api/payment/webhook — copie WhatsApp à la boutique', () => {
+  it('n\'appelle pas l\'API WhatsApp quand elle n\'est pas configurée', async () => {
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+    const waCalls = vi.mocked(fetch).mock.calls.filter(([input]) => String(input).includes('graph.facebook.com'));
+    expect(waCalls).toHaveLength(0);
+  });
+
+  it('upload le PDF puis envoie le template WhatsApp quand configuré', async () => {
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', 'test_wa_token');
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', 'phone-id-123');
+    vi.stubEnv('WHATSAPP_SHOP_NOTIFICATION_NUMBER', '2250700000000');
+
+    vi.mocked(fetch).mockImplementation(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('/media')) {
+        return { ok: true, json: async () => ({ id: 'media-id-999' }), text: async () => '' } as Response;
+      }
+      return { ok: true, json: async () => ({}), text: async () => '' } as Response;
+    });
+
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+
+    const calls = vi.mocked(fetch).mock.calls;
+    const mediaCall = calls.find(([input]) => String(input).includes('/media'));
+    const messageCall = calls.find(([input]) => String(input).includes('/messages') && String(input).includes('graph.facebook.com'));
+
+    expect(mediaCall).toBeDefined();
+    expect(messageCall).toBeDefined();
+
+    const messageBody = JSON.parse(String(messageCall?.[1]?.body)) as {
+      to: string;
+      template: { name: string; components: Array<{ type: string; parameters: Array<Record<string, unknown>> }> };
+    };
+    expect(messageBody.to).toBe('2250700000000');
+    expect(messageBody.template.name).toBe('nouvelle_commande_payee');
+
+    const header = messageBody.template.components.find((c) => c.type === 'header');
+    expect(header?.parameters[0]).toEqual(
+      expect.objectContaining({ type: 'document', document: expect.objectContaining({ id: 'media-id-999' }) })
+    );
+
+    const body = messageBody.template.components.find((c) => c.type === 'body');
+    expect(body?.parameters).toHaveLength(4);
+  });
+});

@@ -13,7 +13,8 @@
     "test:coverage": "vitest run --coverage",
     "mail:check": "tsx scripts/check-mail-config.ts",
     "create-admin": "tsx scripts/create-admin-prod.ts",
-    "setup-db": "tsx scripts/setup-database.ts"
+    "setup-db": "tsx scripts/setup-database.ts",
+    "apply-migration": "tsx scripts/apply-migration.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

@@ -12,11 +12,10 @@
 
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve } from 'path';
 
 // Charge .env.local (ignoré par git) ; les variables déjà définies dans le shell restent prioritaires.
-dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '..', '.env.local') });
+dotenv.config({ path: resolve(process.cwd(), '.env.local') });
 
 // Vérifier les variables d'environnement
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

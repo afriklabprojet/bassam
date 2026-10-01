@@ -8,7 +8,7 @@ import { getAnthropicClient, getChatConfigDiagnostics, CHAT_MODEL } from '@/lib/
 import { CHAT_TOOLS, runChatTool } from '@/lib/ai/chat-tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 
-const MAX_TOOL_ITERATIONS = 4;
+const MAX_TOOL_ITERATIONS = 6;
 const MAX_HISTORY_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 2000;
 
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
           const msgStream = anthropic.messages.stream({
             model: CHAT_MODEL,
-            max_tokens: 1024,
+            max_tokens: 1536,
             system: systemPrompt,
             tools: CHAT_TOOLS,
             messages,

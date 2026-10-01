@@ -49,7 +49,7 @@ export async function runChatTool(name: string, rawInput: unknown): Promise<stri
       minPrice: input.minPrice,
       maxPrice: input.maxPrice,
       featured: input.featured,
-      limit: 5,
+      limit: 8,
     });
 
     if (products.length === 0) {

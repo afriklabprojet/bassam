@@ -8,9 +8,10 @@ import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY, getJekoConfi
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 import { PAYMENT_INITIATE_RATE_LIMIT as PAYMENT_RATE_LIMIT } from '@/lib/rate-limit-config';
 import { logger } from '@/lib/logger';
+import { isPaymentMethodId, type PaymentMethodId } from '@/lib/payment/methods';
 const PAYMENT_LOG_CONTEXT = 'API /payment/initiate';
 
-type MobileProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
+type MobileProvider = PaymentMethodId;
 
 interface InitiateBody {
   totalAmount: number;
@@ -36,7 +37,7 @@ function validateBody(body: unknown): { data: InitiateBody } | { error: string }
   if (!b || typeof b !== 'object') return { error: 'Corps de requête invalide' };
   if (typeof b.totalAmount !== 'number' || b.totalAmount <= 0)
     return { error: 'Montant invalide' };
-  if (!['orange', 'mtn', 'wave', 'moov', 'djamo'].includes(b.paymentMethod as string))
+  if (!isPaymentMethodId(b.paymentMethod))
     return { error: 'Opérateur Mobile Money invalide' };
   if (!b.phone || typeof b.phone !== 'string') return { error: 'Numéro de téléphone requis' };
   if (b.phone.replace(/\D/g, '').length < 8) return { error: 'Numéro Mobile Money invalide' };

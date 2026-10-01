@@ -2,6 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { getProducts } from '@/lib/supabase/products';
 import { formatPrice } from '@/lib/format';
 import { SITE_URL } from '@/lib/site-config';
+import { SHOP_INFO_TOPICS, getShopInfo, isShopInfoTopic } from '@/lib/ai/shop-knowledge';
 
 export const SEARCH_PRODUCTS_TOOL: Anthropic.Tool = {
   name: 'search_products',
@@ -28,7 +29,27 @@ export const SEARCH_PRODUCTS_TOOL: Anthropic.Tool = {
   },
 };
 
-export const CHAT_TOOLS: Anthropic.Tool[] = [SEARCH_PRODUCTS_TOOL];
+export const GET_SHOP_INFO_TOOL: Anthropic.Tool = {
+  name: 'get_shop_info',
+  description:
+    "Lit en direct les informations officielles publiées par la boutique (données du site, modifiables par l'équipe) : " +
+    "tarifs et modes de livraison, moyens de paiement, services, formules de création sur mesure (prix, volumes, délais, familles, flacons), " +
+    "collections et catégories, histoire et engagements, FAQ (retours, authenticité, seuil de livraison offerte…), coordonnées. " +
+    "À utiliser dès que la question porte sur une de ces informations — ne jamais répondre de mémoire.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      topic: {
+        type: 'string',
+        enum: [...SHOP_INFO_TOPICS],
+        description: 'Le sujet à consulter',
+      },
+    },
+    required: ['topic'],
+  },
+};
+
+export const CHAT_TOOLS: Anthropic.Tool[] = [SEARCH_PRODUCTS_TOOL, GET_SHOP_INFO_TOOL];
 
 type SearchProductsInput = {
   query?: string;
@@ -69,6 +90,14 @@ export async function runChatTool(name: string, rawInput: unknown): Promise<stri
     }));
 
     return JSON.stringify({ total, results });
+  }
+
+  if (name === 'get_shop_info') {
+    const topic = (rawInput as { topic?: unknown } | null)?.topic;
+    if (!isShopInfoTopic(topic)) {
+      return JSON.stringify({ error: 'Sujet inconnu', sujets_valides: SHOP_INFO_TOPICS });
+    }
+    return getShopInfo(topic);
   }
 
   return JSON.stringify({ error: `Outil inconnu: ${name}` });

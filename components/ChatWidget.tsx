@@ -8,6 +8,44 @@ type ChatMessage = {
   content: string;
 };
 
+const STORAGE_KEY = 'vip-chat-memory-v1';
+const MEMORY_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_STORED_MESSAGES = 40;
+const MAX_SENT_MESSAGES = 30;
+
+function loadMemory(): ChatMessage[] | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { savedAt?: number; messages?: ChatMessage[] };
+    if (!parsed.savedAt || Date.now() - parsed.savedAt > MEMORY_TTL_MS) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    const valid = (parsed.messages ?? []).filter(
+      (m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.length > 0,
+    );
+    return valid.length > 1 ? valid : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveMemory(messages: ChatMessage[]) {
+  try {
+    if (messages.length <= 1) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ savedAt: Date.now(), messages: messages.slice(-MAX_STORED_MESSAGES) }),
+    );
+  } catch {
+    // Storage unavailable (private mode, quota…) — the chat still works, just without memory.
+  }
+}
+
 const WELCOME_MESSAGE: ChatMessage = {
   role: 'assistant',
   content: "Bonjour, je suis votre conseillère olfactive. Dites-m'en un peu plus sur vos goûts, l'occasion, ou le budget — je suis là pour vous aider à trouver le parfum qui vous ressemble. 🌸",
@@ -16,10 +54,23 @@ const WELCOME_MESSAGE: ChatMessage = {
 export default function ChatWidget() {
   const settings = useSiteSettings();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  // Restored from the previous visit when available. Safe for hydration: messages are only
+  // rendered once the panel is open, never in the server-rendered markup.
+  const [messages, setMessages] = useState<ChatMessage[]>(() => loadMemory() ?? [WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Persist once a reply is complete, so a half-streamed answer is never stored.
+  useEffect(() => {
+    if (!isStreaming) saveMemory(messages);
+  }, [messages, isStreaming]);
+
+  function startNewConversation() {
+    if (isStreaming) return;
+    setMessages([WELCOME_MESSAGE]);
+    setInput('');
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -46,7 +97,7 @@ export default function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history.slice(-20) }),
+        body: JSON.stringify({ messages: history.slice(-MAX_SENT_MESSAGES).filter((m) => m.content.length > 0) }),
       });
 
       if (!res.ok || !res.body) {
@@ -96,6 +147,17 @@ export default function ChatWidget() {
               </p>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.6875rem' }}>{settings.site_name}</p>
             </div>
+            <div className="flex items-center gap-3">
+              {messages.length > 1 && (
+                <button
+                  type="button"
+                  onClick={startNewConversation}
+                  disabled={isStreaming}
+                  style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: isStreaming ? 'not-allowed' : 'pointer', fontSize: '0.6875rem', textDecoration: 'underline' }}
+                >
+                  Nouvelle conversation
+                </button>
+              )}
             <button
               type="button"
               onClick={() => setIsOpen(false)}
@@ -104,12 +166,12 @@ export default function ChatWidget() {
             >
               ×
             </button>
+            </div>
           </div>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {messages.map((m, i) => (
               <div
-                // eslint-disable-next-line react/no-array-index-key
                 key={i}
                 style={{
                   alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
@@ -142,6 +204,7 @@ export default function ChatWidget() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Posez votre question sur nos parfums…"
               disabled={isStreaming}
+              maxLength={2000}
               className="flex-1"
               style={{
                 background: 'rgba(255,255,255,0.05)',

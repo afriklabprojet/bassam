@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/format';
 import { buildWhatsAppHref } from '@/lib/site-settings';
 import { useSiteSettings } from '@/lib/site-settings-context';
 import type { DeliveryMode } from '@/lib/shipping';
+import { PAYMENT_METHODS, type PaymentMethodId } from '@/lib/payment/methods';
 import type { useCart } from '@/lib/cart-context';
 
 /* ── Types (re-exported for page.tsx to import from one place) ─────────────── */
@@ -23,7 +24,7 @@ export type DeliveryInfo = {
   notes: string;
 };
 
-export type PaymentMethod = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
+export type PaymentMethod = PaymentMethodId;
 
 export const STEPS: { label: string }[] = [
   { label: 'Livraison' },
@@ -50,13 +51,19 @@ function IconDjamo() {
   return <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#5B2FD4"/><text x="16" y="21" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="9.5" fontWeight="700" fill="#fff" letterSpacing="-0.2">djamo</text></svg>;
 }
 
-export const PAYMENT_OPTIONS = [
-  { value: 'orange' as const, label: 'Orange Money', desc: 'Paiement mobile sécurisé', recommended: true, accent: '#FF7900', Icon: IconOrange },
-  { value: 'mtn' as const, label: 'MTN Money', desc: 'Paiement mobile sécurisé', recommended: false, accent: '#FFC300', Icon: IconMTN },
-  { value: 'wave' as const, label: 'Wave', desc: 'Paiement instant Wave', recommended: false, accent: '#1DC5E0', Icon: IconWave },
-  { value: 'moov' as const, label: 'Moov Money', desc: 'Paiement mobile sécurisé', recommended: false, accent: '#0056A3', Icon: IconMoov },
-  { value: 'djamo' as const, label: 'Djamo', desc: 'Carte virtuelle Djamo', recommended: false, accent: '#5B2FD4', Icon: IconDjamo },
-];
+/** Third-party brand colours/logos per operator (labels come from lib/payment/methods). */
+const PAYMENT_VISUALS: Record<PaymentMethod, { accent: string; Icon: () => React.JSX.Element }> = {
+  orange: { accent: '#FF7900', Icon: IconOrange },
+  mtn: { accent: '#FFC300', Icon: IconMTN },
+  wave: { accent: '#1DC5E0', Icon: IconWave },
+  moov: { accent: '#0056A3', Icon: IconMoov },
+  djamo: { accent: '#5B2FD4', Icon: IconDjamo },
+};
+
+export const PAYMENT_OPTIONS = PAYMENT_METHODS.map((method) => ({
+  ...method,
+  ...PAYMENT_VISUALS[method.value],
+}));
 
 /* ── ProgressBar ───────────────────────────────────────────────────────────── */
 

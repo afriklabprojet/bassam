@@ -9,16 +9,22 @@ import { CHAT_TOOLS, runChatTool } from '@/lib/ai/chat-tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 
 const MAX_TOOL_ITERATIONS = 6;
-const MAX_HISTORY_MESSAGES = 20;
+const MAX_HISTORY_MESSAGES = 40;
 const MAX_MESSAGE_LENGTH = 2000;
+// Assistant turns replayed from the client's memory can be long (tables, lists).
+const MAX_ASSISTANT_MESSAGE_LENGTH = 8000;
 
 const chatSchema = z.object({
   messages: z
     .array(
-      z.object({
-        role: z.enum(['user', 'assistant']),
-        content: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
-      })
+      z
+        .object({
+          role: z.enum(['user', 'assistant']),
+          content: z.string().trim().min(1).max(MAX_ASSISTANT_MESSAGE_LENGTH),
+        })
+        .refine((m) => m.role !== 'user' || m.content.length <= MAX_MESSAGE_LENGTH, {
+          message: `Message trop long (max ${MAX_MESSAGE_LENGTH} caractères)`,
+        })
     )
     .min(1)
     .max(MAX_HISTORY_MESSAGES),
@@ -53,7 +59,9 @@ export async function POST(request: NextRequest) {
   }
 
   const anthropic = getAnthropicClient();
-  const messages: Anthropic.MessageParam[] = parsed.data.messages.map((m) => ({
+  // The conversation must open with a user turn (the widget's greeting is an assistant turn).
+  const firstUserIndex = parsed.data.messages.findIndex((m) => m.role === 'user');
+  const messages: Anthropic.MessageParam[] = parsed.data.messages.slice(Math.max(0, firstUserIndex)).map((m) => ({
     role: m.role,
     content: m.content,
   }));

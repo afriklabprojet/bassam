@@ -273,7 +273,7 @@ async function main() {
   console.log('   ⚠️  Le schéma DDL doit être appliqué via Supabase SQL Editor.');
   console.log('   📄 Fichiers à exécuter dans l\'ordre :');
   console.log('      1. supabase/schema.sql');
-  console.log('      2. supabase/migration-001-admin-extended.sql\n');
+  console.log('      2. supabase/migrations/20240102000000_admin_extended.sql\n');
 
   // ── 2. Vérifier si les tables existent ──
   console.log('📋 2/4 — Vérification des tables…');

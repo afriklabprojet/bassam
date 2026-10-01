@@ -1,11 +1,12 @@
 import crypto from 'node:crypto';
+import type { PaymentMethodId } from './methods';
 
 /* ══════════════════════════════════════════════════════════════════════════
    Jeko Africa — Mobile Money Payment Service
    Docs : https://developer.jeko.africa
    ══════════════════════════════════════════════════════════════════════════ */
 
-export type JekoProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';
+export type JekoProvider = PaymentMethodId;
 export type JekoCurrency = 'XOF' | 'XAF' | 'GNF';
 
 export interface JekoInitiateParams {

@@ -16,6 +16,7 @@
     "setup-db": "tsx scripts/setup-database.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.102.1",
     "lightningcss": "1.32.0",

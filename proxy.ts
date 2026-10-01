@@ -15,11 +15,11 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
-    "media-src 'self' blob: https://videos.pexels.com https://*.supabase.co https://*.supabase.in",
+    "media-src 'self' blob: https://*.supabase.co https://*.supabase.in",
     "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.jeko.africa",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self' https://formsubmit.co",
+    "form-action 'self'",
   ].join('; ')
 }
 
@@ -42,6 +42,7 @@ const PUBLIC_ROUTES = [
   '/auth/update-password',
   '/auth/callback',
   '/admin/login',
+  '/api/chat',
   '/api/contact',
   '/api/health',
   '/api/newsletter',

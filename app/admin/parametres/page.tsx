@@ -389,7 +389,7 @@ export default function ParametresPage() {
           value={form.support_email}
           onChange={handleChange}
           type="email"
-          placeholder="contact@vip-parfumerie.com"
+          placeholder="contact@votre-domaine.com"
           hint="Affiché sur la page Contact"
         />
         <Field
@@ -398,7 +398,7 @@ export default function ParametresPage() {
           value={form.order_notification_email}
           onChange={handleChange}
           type="email"
-          placeholder="commande@vip-parfumerie.com"
+          placeholder="commande@votre-domaine.com"
           hint="Reçoit la copie des notifications de commande payée. Vide = utilise l'email de contact"
         />
       </Section>

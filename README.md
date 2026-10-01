@@ -28,8 +28,9 @@ npm run dev
 # Créer les tables Supabase
 npx tsx scripts/setup-database.ts
 
-# Créer le compte admin
-npx tsx scripts/create-admin.ts
+# Créer un compte admin (aucun mot de passe n'est défini par le script :
+# la personne le choisit via « Mot de passe oublié » sur /admin/login)
+npm run create-admin -- email@exemple.com admin
 ```
 
 ## Tests

@@ -353,7 +353,7 @@ async function main() {
   console.log(`│  📦 Produits    : ${String(productCount).padEnd(22)}│`);
   console.log(`│  🏷️ Catégories  : ${String(catCount).padEnd(22)}│`);
   console.log(`│  📁 Collections : ${String(collectionCount).padEnd(22)}│`);
-  console.log('│  👤 Admin       : admin@vip-parfumerie.com │');
+  console.log('│  👤 Admin       : npm run create-admin     │');
   console.log('├──────────────────────────────────────────┤');
   console.log('│  → npm run dev   (lancer le site)        │');
   console.log('│  → /admin/login  (accès admin)           │');

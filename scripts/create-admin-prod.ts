@@ -3,14 +3,20 @@
  * Script pour créer des comptes admin en production
  *
  * Usage:
- *   pnpm tsx scripts/create-admin-prod.ts email@example.com [super_admin|admin]
+ *   npm run create-admin -- email@example.com [super_admin|admin]
  *
  * Exemple:
- *   pnpm tsx scripts/create-admin-prod.ts nouveau.admin@vip.com admin
- *   pnpm tsx scripts/create-admin-prod.ts boss@vip.com super_admin
+ *   npm run create-admin -- nouveau.admin@exemple.com admin
+ *   npm run create-admin -- boss@exemple.com super_admin
  */
 
 import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+// Charge .env.local (ignoré par git) ; les variables déjà définies dans le shell restent prioritaires.
+dotenv.config({ path: resolve(dirname(fileURLToPath(import.meta.url)), '..', '.env.local') });
 
 // Vérifier les variables d'environnement
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -28,7 +34,7 @@ const email = process.argv[2];
 const adminLevel = (process.argv[3] || 'admin') as 'admin' | 'super_admin';
 
 if (!email) {
-  console.error('❌ Usage: pnpm tsx scripts/create-admin-prod.ts <email> [admin|super_admin]');
+  console.error('❌ Usage: npm run create-admin -- <email> [admin|super_admin]');
   process.exit(1);
 }
 
@@ -127,19 +133,8 @@ async function createAdminUser() {
     if (profileError) throw profileError;
     console.log('✅ Profil configuré');
 
-    // 3. Envoyer un email de réinitialisation de mot de passe
-    console.log('📧 Envoi de l\'email de réinitialisation...');
-    const { error: resetError } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email
-    });
-
-    if (resetError) {
-      console.warn('⚠️  Erreur lors de l\'envoi de l\'email:', resetError.message);
-      console.log('   L\'utilisateur devra utiliser "Mot de passe oublié" pour se connecter');
-    } else {
-      console.log('✅ Email de réinitialisation envoyé à', email);
-    }
+    // 3. Aucun mot de passe n'est défini ici : la personne le choisit elle-même.
+    //    (Le lien de récupération n'est volontairement ni affiché ni envoyé par ce script.)
 
     // 4. Résumé
     console.log('');
@@ -153,9 +148,9 @@ async function createAdminUser() {
     console.log('   Email confirmé:', '✓');
     console.log('');
     console.log('🔐 L\'utilisateur doit:');
-    console.log('   1. Vérifier son email pour le lien de réinitialisation');
-    console.log('   2. Créer un mot de passe');
-    console.log('   3. Se connecter sur', supabaseUrl.replace('https://', 'https://app.'));
+    console.log('   1. Ouvrir /admin/login sur le site');
+    console.log('   2. Cliquer sur « Mot de passe oublié » et suivre l\'email reçu');
+    console.log('   3. Choisir son mot de passe puis se connecter');
     console.log('');
 
   } catch (error) {

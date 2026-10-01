@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from 'react';
 import type { DeliveryMode, ShippingConfig } from '@/lib/shipping';
+import { TOAST_DURATION_LONG_MS } from '@/lib/constants';
 import { DEFAULT_SHIPPING_CONFIG } from '@/lib/shipping';
 import { GOLD } from '@/lib/admin-theme';
 
@@ -32,7 +33,7 @@ function Toggle({ value, onChange }: Readonly<{ value: boolean; onChange: (v: bo
       <div style={{
         position: 'absolute', top: 3, left: value ? 23 : 3,
         width: 18, height: 18, borderRadius: '50%',
-        background: value ? '#0D0D0D' : '#666', transition: 'left 0.2s',
+        background: value ? 'var(--noir)' : '#666', transition: 'left 0.2s',
       }} />
     </div>
   );
@@ -92,7 +93,7 @@ function ModeRow({
           <span style={{
             fontSize: 10, letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 4,
             background: mode.type === 'pickup' ? 'rgba(197,165,90,0.15)' : 'rgba(99,179,237,0.15)',
-            color: mode.type === 'pickup' ? GOLD : '#90cdf4', textTransform: 'uppercase',
+            color: mode.type === 'pickup' ? GOLD : 'var(--info)', textTransform: 'uppercase',
           }}>
             {mode.type === 'pickup' ? 'retrait' : 'livraison'}
           </span>
@@ -100,7 +101,7 @@ function ModeRow({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Toggle value={mode.enabled} onChange={v => onChange({ ...mode, enabled: v })} />
           <button type="button" onClick={onDelete} title="Supprimer"
-            style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 30, height: 30, borderRadius: 6, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -226,7 +227,7 @@ export default function LivraisonPage() {
       setToast({ ok: false, msg: err instanceof Error ? err.message : 'Erreur inconnue' });
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 4000);
+      setTimeout(() => setToast(null), TOAST_DURATION_LONG_MS);
     }
   };
 
@@ -245,7 +246,7 @@ export default function LivraisonPage() {
         <div style={{
           background: toast.ok ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
           border: `1px solid ${toast.ok ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
-          color: toast.ok ? '#86efac' : '#fca5a5',
+          color: toast.ok ? 'var(--success)' : 'var(--danger)',
           borderRadius: 8, padding: '12px 16px', marginBottom: 20, fontSize: 14,
         }}>
           {toast.msg}
@@ -256,7 +257,7 @@ export default function LivraisonPage() {
       <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
         <button type="button" onClick={() => addMode('delivery')} style={{
           display: 'flex', alignItems: 'center', gap: 6,
-          background: GOLD, color: '#0D0D0D', border: 'none',
+          background: GOLD, color: 'var(--noir)', border: 'none',
           borderRadius: 7, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
         }}>
           <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -308,7 +309,7 @@ export default function LivraisonPage() {
           disabled={saving}
           style={{
             background: saving ? 'rgba(197,165,90,0.4)' : GOLD,
-            color: '#0D0D0D', border: 'none', borderRadius: 8,
+            color: 'var(--noir)', border: 'none', borderRadius: 8,
             padding: '12px 32px', fontSize: 14, fontWeight: 600,
             letterSpacing: '0.06em', cursor: saving ? 'not-allowed' : 'pointer',
           }}

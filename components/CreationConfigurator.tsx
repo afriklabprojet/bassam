@@ -12,6 +12,7 @@ import {
   type CustomCreationSnapshot,
 } from '@/lib/custom-creation';
 import { formatPrice } from '@/lib/format';
+import { useSiteSettings } from '@/lib/site-settings-context';
 
 const DRAFT_KEY = 'vip-parfumerie-custom-creation-draft';
 const PLACEHOLDER_IMAGE = '/images/products/product-placeholder.svg';
@@ -80,6 +81,7 @@ function cardStyle(active: boolean) {
 
 export default function CreationConfigurator({ config }: Readonly<{ config: CreationConfiguratorConfig }>) {
   const cfg = config;
+  const siteSettings = useSiteSettings();
   const router = useRouter();
   const { addItem } = useCart();
   const [draft, setDraft] = useState<Draft>(defaultDraft);
@@ -148,7 +150,7 @@ export default function CreationConfigurator({ config }: Readonly<{ config: Crea
       isCustom: true,
       customization: snapshot,
       name: `Creation personnalisée - ${snapshot.perfumeName}`,
-      brand: 'VIP Parfumerie Bar',
+      brand: siteSettings.site_name,
       price: formula.price,
       image: PLACEHOLDER_IMAGE,
       slug: 'services/creation-personnalisee',

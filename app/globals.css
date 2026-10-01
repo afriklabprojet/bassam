@@ -27,7 +27,27 @@
   --gold:         #C5A55A;
   --gold-light:   #D9BE80;
   --gold-dark:    #9B7B38;
+  --gold-deep:    #A68B3E;
+  --gold-pale:    #E8D9C0;
   --gold-muted:   rgba(197,165,90,0.15);
+
+  /* ── Order-status palette (muted, distinct from alert semantics) ── */
+  --order-success:            #7FA785;
+  --order-success-text-dark:  #A9D0AD;
+  --order-success-text-light: #5A7C5E;
+  --order-danger:              #D16A5F;
+  --order-danger-text-dark:    #F3A29A;
+  --order-danger-text-light:   #B34F45;
+
+  /* ── Semantic status (admin severity/status badges) ── */
+  --danger:       #EF4444;
+  --warning:      #F59E0B;
+  --success:      #10B981;
+  --info:         #3B82F6;
+  --neutral:      #6B7280;
+  --purple:       #8B5CF6;
+  /* ── Admin dark-mode text on near-black surfaces ── */
+  --cream:        #F0ECE4;
 
   /* ── Typography ── */
   --font-serif: var(--font-cormorant, Georgia, 'Times New Roman', serif);
@@ -44,13 +64,28 @@
   --color-noir:        #080808;
   --color-noir-soft:   #111111;
   --color-noir-card:   #191919;
+  --color-noir-raised: #222222;
   --color-surf:        #FAFAF8;
   --color-offwhite:    #F2F0EC;
   --color-line:        #E8E5DF;
   --color-txt:         #181818;
   --color-txt2:        #777777;
+  --color-txt-pale:    #AAAAAA;
   --color-gold:        #C5A55A;
   --color-gold-light:  #D9BE80;
+  --color-gold-dark:   #9B7B38;
+  --color-gold-deep:   #A68B3E;
+  --color-gold-pale:   #E8D9C0;
+  --color-gold-muted:  rgba(197,165,90,0.15);
+  --color-order-success: #7FA785;
+  --color-order-danger:  #D16A5F;
+  --color-danger:      #EF4444;
+  --color-warning:     #F59E0B;
+  --color-success:     #10B981;
+  --color-info:        #3B82F6;
+  --color-neutral:     #6B7280;
+  --color-purple:      #8B5CF6;
+  --color-cream:       #F0ECE4;
 }
 
 /* ─── Reset ───────────────────────────────────────────────── */
@@ -780,7 +815,7 @@ header a[aria-label]:hover {
 .hero-sound-toggle:active svg { transform: scale(0.92); }
 /* Video poster / fallback gradient when no video */
 section:has(.hero-video-bg) {
-  background: linear-gradient(135deg, #080808 0%, #0e0e0e 40%, #080808 100%);
+  background: linear-gradient(135deg, var(--noir) 0%, var(--noir-soft) 40%, var(--noir) 100%);
 }
 
 /* ─── Homepage hero — premium commerce composition ───────── */

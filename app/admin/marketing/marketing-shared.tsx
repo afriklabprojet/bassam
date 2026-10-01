@@ -87,15 +87,15 @@ export function getCampaignStatusLabel(status: string): string {
 }
 
 export function campaignStatusColor(status: string): string {
-  if (status === 'sent') return '#4ade80';
-  if (status === 'failed') return '#f87171';
-  return '#facc15';
+  if (status === 'sent') return 'var(--success)';
+  if (status === 'failed') return 'var(--danger)';
+  return 'var(--warning)';
 }
 
 export function campaignStatusBg(status: string): string {
-  if (status === 'sent') return 'rgba(34,197,94,0.15)';
+  if (status === 'sent') return 'rgba(16,185,129,0.15)';
   if (status === 'failed') return 'rgba(239,68,68,0.15)';
-  return 'rgba(250,204,21,0.15)';
+  return 'rgba(245,158,11,0.15)';
 }
 
 // ─── Modal wrapper ──────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ export function Modal({ onClose, title, children }: Readonly<{ onClose: () => vo
       onClick={(e) => e.target === e.currentTarget && onClose()}
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
-      <div style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ background: 'var(--noir-card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h2 style={{ color: '#fff', fontSize: '18px', fontWeight: 600, margin: 0 }}>{title}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>×</button>

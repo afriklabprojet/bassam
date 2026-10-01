@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata, Viewport } from "next";
 
 // Nonce-based CSP requires per-request rendering so Next.js can stamp
@@ -26,54 +27,58 @@ const inter = Inter({
 });
 
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan",
-    template: "%s | VIP Parfumerie Bar",
-  },
-  description: "Boutique de parfums de luxe authentiques à Abidjan, Côte d'Ivoire. Chanel, Dior, YSL, Tom Ford, Creed. Livraison en 24h à Abidjan et partout en Afrique de l'Ouest. Paiement Mobile Money.",
-  keywords: "parfum luxe Abidjan, parfumerie Côte d'Ivoire, boutique parfum authentique Abidjan, Chanel Abidjan, Dior Abidjan, YSL Abidjan, Tom Ford Abidjan, livraison parfum Afrique Ouest, Mobile Money parfum",
-  authors: [{ name: "VIP Parfumerie Bar" }],
-  creator: "VIP Parfumerie Bar",
-  publisher: "VIP Parfumerie Bar",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "VIP Parfumerie Bar",
-  },
-  icons: {
-    icon: [
-      { url: "/icons/favicon.ico", sizes: "any" },
-      { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-    ],
-    apple: [{ url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" }],
-  },
-  openGraph: {
-    type: "website",
-    locale: "fr_CI",
-    url: SITE_URL,
-    siteName: "VIP Parfumerie Bar",
-    title: "VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan",
-    description: "Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
-    images: [
-      {
-        url: "/og-image.svg",
-        width: 1200,
-        height: 630,
-        alt: "VIP Parfumerie Bar — Parfums de Luxe Abidjan",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "VIP Parfumerie Bar — Parfums de Luxe à Abidjan",
-    description: "Boutique de parfums de luxe authentiques à Abidjan. Livraison rapide en Côte d'Ivoire.",
-    images: ["/og-image.svg"],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: `${siteName} — Parfums de Luxe Authentiques à Abidjan`,
+      template: `%s | ${siteName}`,
+    },
+    description: "Boutique de parfums de luxe authentiques à Abidjan, Côte d'Ivoire. Chanel, Dior, YSL, Tom Ford, Creed. Livraison en 24h à Abidjan et partout en Afrique de l'Ouest. Paiement Mobile Money.",
+    keywords: "parfum luxe Abidjan, parfumerie Côte d'Ivoire, boutique parfum authentique Abidjan, Chanel Abidjan, Dior Abidjan, YSL Abidjan, Tom Ford Abidjan, livraison parfum Afrique Ouest, Mobile Money parfum",
+    authors: [{ name: siteName }],
+    creator: siteName,
+    publisher: siteName,
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: siteName,
+    },
+    icons: {
+      icon: [
+        { url: "/icons/favicon.ico", sizes: "any" },
+        { url: "/icons/icon-32x32.png", sizes: "32x32", type: "image/png" },
+        { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      ],
+      apple: [{ url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" }],
+    },
+    openGraph: {
+      type: "website",
+      locale: "fr_CI",
+      url: SITE_URL,
+      siteName,
+      title: `${siteName} — Parfums de Luxe Authentiques à Abidjan`,
+      description: "Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
+      images: [
+        {
+          url: "/og-image.svg",
+          width: 1200,
+          height: 630,
+          alt: `${siteName} — Parfums de Luxe Abidjan`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${siteName} — Parfums de Luxe à Abidjan`,
+      description: "Boutique de parfums de luxe authentiques à Abidjan. Livraison rapide en Côte d'Ivoire.",
+      images: ["/og-image.svg"],
+    },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

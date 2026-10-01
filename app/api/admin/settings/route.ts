@@ -5,9 +5,11 @@ import type { SiteSettings } from '@/lib/site-settings';
 import { logger } from '@/lib/logger';
 
 const ALLOWED_KEYS: Array<keyof SiteSettings> = [
+  'site_name',
   'support_phone',
   'support_phone_display',
   'support_email',
+  'order_notification_email',
   'whatsapp_number',
   'whatsapp_display',
   'instagram_url',

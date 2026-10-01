@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useSiteSettings } from '@/lib/site-settings-context';
 
 interface ReviewFormProps {
   readonly onSuccess?: () => void;
 }
 
 export default function ReviewForm({ onSuccess }: ReviewFormProps) {
+  const settings = useSiteSettings();
   const [form, setForm] = useState({ name: '', ville: '', texte: '', rating: 5 });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -125,7 +127,7 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
         <textarea
           id="review-texte"
           style={{ ...inputStyle, resize: 'vertical', minHeight: '6rem' }}
-          placeholder="Partagez votre expérience avec VIP Parfumerie Bar…"
+          placeholder={`Partagez votre expérience avec ${settings.site_name}…`}
           value={form.texte}
           onChange={e => setForm(f => ({ ...f, texte: e.target.value }))}
           required
@@ -138,7 +140,7 @@ export default function ReviewForm({ onSuccess }: ReviewFormProps) {
       </div>
 
       {errorMsg && (
-        <p style={{ fontSize: '0.875rem', color: '#c0392b', background: '#fdecea', padding: '0.625rem 0.875rem', borderRadius: 8 }}>
+        <p style={{ fontSize: '0.875rem', color: 'var(--danger)', background: 'rgba(239,68,68,0.08)', padding: '0.625rem 0.875rem', borderRadius: 8 }}>
           {errorMsg}
         </p>
       )}

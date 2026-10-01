@@ -71,7 +71,7 @@ function BannerImageUpload({ value, onChange }: Readonly<{ value: string; onChan
           </div>
         </div>
         <input id={inputId} ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden onChange={onFileChange} />
-        {uploadError && <p style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{uploadError}</p>}
+        {uploadError && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px' }}>{uploadError}</p>}
       </div>
     );
   }
@@ -109,7 +109,7 @@ function BannerImageUpload({ value, onChange }: Readonly<{ value: string; onChan
           </>
         )}
       </label>
-      {uploadError && <p style={{ color: '#f87171', fontSize: '12px', marginTop: '6px' }}>{uploadError}</p>}
+      {uploadError && <p style={{ color: 'var(--danger)', fontSize: '12px', marginTop: '6px' }}>{uploadError}</p>}
     </div>
   );
 }
@@ -212,7 +212,7 @@ export function BannersTab() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <p style={{ color: '#fff', fontWeight: 600, margin: 0, fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.title}</p>
-                  <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, background: b.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: b.is_active ? '#4ade80' : '#f87171', flexShrink: 0 }}>
+                  <span style={{ display: 'inline-block', padding: '1px 8px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, background: b.is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: b.is_active ? 'var(--success)' : 'var(--danger)', flexShrink: 0 }}>
                     {b.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -222,7 +222,7 @@ export function BannersTab() {
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 <button onClick={() => openEdit(b)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>✏️</button>
                 <button onClick={() => toggleActive(b)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>{b.is_active ? '⏸' : '▶️'}</button>
-                <button onClick={() => deleteBanner(b)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: '#f87171', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>🗑</button>
+                <button onClick={() => deleteBanner(b)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: 'var(--danger)', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>🗑</button>
               </div>
             </div>
           ))}
@@ -259,7 +259,7 @@ export function BannersTab() {
               <label htmlFor="banner-order" style={LABEL_STYLE}>Ordre d&apos;affichage</label>
               <input id="banner-order" type="number" min="0" style={INPUT_STYLE} value={form.display_order} onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))} placeholder="0" />
             </div>
-            {error && <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '13px', margin: 0 }}>{error}</p>}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => setShowForm(false)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer' }}>Annuler</button>
               <button type="submit" disabled={saving} style={{ background: GOLD, color: '#000', border: 'none', borderRadius: '8px', padding: '10px 24px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>

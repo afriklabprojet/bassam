@@ -8,9 +8,11 @@ import ProductGallery from '@/components/ProductGallery';
 import OlfactoryPyramid from '@/components/OlfactoryPyramid';
 import AddToCartCTA from '@/components/AddToCartCTA';
 import ProductCard from '@/components/ProductCard';
-import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import { normalizeProductImage } from '@/lib/product-images';
 import { formatPrice } from '@/lib/format';
+import { TOAST_DURATION_SHORT_MS } from '@/lib/constants';
 import type { Product } from '@/types/product.types';
 
 type ProductDetail = Product & {
@@ -57,7 +59,8 @@ export default function ProductDetailClient({
   const [activeTab, setActiveTab] = useState<'description' | 'notes' | 'details'>('description');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const hasWhatsappSupport = hasWhatsAppSupport();
+  const siteSettings = useSiteSettings();
+  const hasWhatsappSupport = hasWhatsApp(siteSettings);
 
   useEffect(() => {
     // Skip client fetch if data was pre-loaded by the server
@@ -90,7 +93,7 @@ export default function ProductDetailClient({
       });
     }
     setAdded(true);
-    setTimeout(() => setAdded(false), 2500);
+    setTimeout(() => setAdded(false), TOAST_DURATION_SHORT_MS);
   };
 
   const handleBuyNow = () => {
@@ -519,7 +522,7 @@ export default function ProductDetailClient({
             {/* WhatsApp CTA premium */}
             {hasWhatsappSupport ? (
               <a
-                href={buildWhatsAppHref(`Bonjour! Je suis intéressé(e) par ${product.name} de ${product.brand}`)}
+                href={buildWhatsAppHref(siteSettings, `Bonjour! Je suis intéressé(e) par ${product.name} de ${product.brand}`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="whatsapp-cta"

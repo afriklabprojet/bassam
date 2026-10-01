@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -263,9 +263,17 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-export default function AdminShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function AdminShell({ children, siteName }: Readonly<{ children: React.ReactNode; siteName: string }>) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setAdminEmail(data.user?.email ?? '');
+    });
+  }, []);
 
   if (pathname === '/admin/login') {
     return <>{children}</>;
@@ -299,7 +307,7 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         style={{
-          background: 'linear-gradient(180deg, #0D0D0D 0%, #0A0A0A 100%)',
+          background: 'linear-gradient(180deg, var(--noir) 0%, #0A0A0A 100%)',
           borderRight: '1px solid rgba(197,165,90,0.1)',
         }}
       >
@@ -311,11 +319,11 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, #C5A55A 0%, #A68B3E 100%)',
+              background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%)',
               boxShadow: '0 2px 12px rgba(197,165,90,0.25)',
             }}
           >
-            <span style={{ color: '#080808', fontWeight: 800, fontSize: '0.8125rem', letterSpacing: '0.02em' }}>VP</span>
+            <span style={{ color: 'var(--noir)', fontWeight: 800, fontSize: '0.8125rem', letterSpacing: '0.02em' }}>VP</span>
           </div>
           <div className="flex flex-col">
             <span
@@ -323,14 +331,14 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
                 fontFamily: 'var(--font-serif)',
                 fontSize: '1.125rem',
                 fontWeight: 600,
-                color: '#F5F0E8',
+                color: 'var(--cream)',
                 letterSpacing: '0.03em',
               }}
             >
-              VIP Admin
+              Admin
             </span>
             <span style={{ fontSize: '0.6875rem', color: '#555', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Parfumerie Bar
+              {siteName}
             </span>
           </div>
         </div>
@@ -364,7 +372,7 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
                         background: isActive
                           ? 'linear-gradient(135deg, rgba(197,165,90,0.15), rgba(197,165,90,0.05))'
                           : 'transparent',
-                        color: isActive ? '#C5A55A' : '#666',
+                        color: isActive ? 'var(--gold)' : '#666',
                         fontWeight: isActive ? 600 : 400,
                         fontSize: '0.8125rem',
                         border: isActive ? '1px solid rgba(197,165,90,0.12)' : '1px solid transparent',
@@ -383,7 +391,7 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
                       {isActive && (
                         <span
                           className="ml-auto w-1 h-4 rounded-full shrink-0"
-                          style={{ background: 'linear-gradient(180deg, #C5A55A, #A68B3E)' }}
+                          style={{ background: 'linear-gradient(180deg, var(--gold), var(--gold-deep))' }}
                         />
                       )}
                     </Link>
@@ -418,7 +426,7 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
             onClick={handleLogout}
             className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all duration-200 w-full text-left"
             style={{
-              color: '#EF4444',
+              color: 'var(--danger)',
               fontSize: '0.8125rem',
               background: 'rgba(239,68,68,0.05)',
               border: '1px solid rgba(239,68,68,0.08)',
@@ -464,7 +472,7 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
           <div className="flex items-center gap-5">
             <div className="flex flex-col items-end">
               <span style={{ color: '#bbb', fontSize: '0.8125rem', fontWeight: 500 }}>Admin</span>
-              <span style={{ color: '#555', fontSize: '0.6875rem' }}>admin@vip-parfumerie.com</span>
+              <span style={{ color: '#555', fontSize: '0.6875rem' }}>{adminEmail}</span>
             </div>
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -473,7 +481,7 @@ export default function AdminShell({ children }: Readonly<{ children: React.Reac
                 border: '1px solid rgba(197,165,90,0.2)',
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C5A55A" strokeWidth={1.5}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth={1.5}>
                 <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>

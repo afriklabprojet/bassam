@@ -1,4 +1,5 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
@@ -8,19 +9,23 @@ import type { Product } from '@/types/product.types';
 export const dynamic = 'force-dynamic';
 
 
-export const metadata: Metadata = {
-  title: 'Parfums Femme à Abidjan -- Chanel, Dior, YSL, Lancôme | VIP Parfumerie Bar',
-  description: "Collection parfums femme à Abidjan -- Floraux enivrants, orientaux profonds, muscs sensuels. Chanel N°5, Miss Dior, La Vie est Belle. Livraison Côte d'Ivoire.",
-  keywords: "parfum femme Abidjan, parfum féminin Côte d'Ivoire, Chanel N5 Abidjan, Miss Dior Abidjan, La Vie est Belle Abidjan, parfum floral Abidjan",
-  alternates: { canonical: `${BASE_URL}/collections/femme` },
-  openGraph: {
-    title: 'Parfums Femme | VIP Parfumerie Bar Abidjan',
-    description: "Les meilleures fragrances féminines disponibles à Abidjan. Livraison Côte d'Ivoire.",
-    url: `${BASE_URL}/collections/femme`,
-    type: 'website',
-    locale: 'fr_CI',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Parfums Femme à Abidjan -- Chanel, Dior, YSL, Lancôme | ${siteName}`,
+    description: "Collection parfums femme à Abidjan -- Floraux enivrants, orientaux profonds, muscs sensuels. Chanel N°5, Miss Dior, La Vie est Belle. Livraison Côte d'Ivoire.",
+    keywords: "parfum femme Abidjan, parfum féminin Côte d'Ivoire, Chanel N5 Abidjan, Miss Dior Abidjan, La Vie est Belle Abidjan, parfum floral Abidjan",
+    alternates: { canonical: `${BASE_URL}/collections/femme` },
+    openGraph: {
+      title: `Parfums Femme | ${siteName} Abidjan`,
+      description: "Les meilleures fragrances féminines disponibles à Abidjan. Livraison Côte d'Ivoire.",
+      url: `${BASE_URL}/collections/femme`,
+      type: 'website',
+      locale: 'fr_CI',
+    },
+  };
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function FemmePage() {
@@ -51,8 +56,8 @@ export default async function FemmePage() {
             <div style={{ paddingBottom: '4rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
                 <svg width="16" height="16" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                  <circle cx="20" cy="16" r="9" stroke="#C5A55A" strokeWidth="1.5"/>
-                  <path d="M20 25v10M15 30h10" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="20" cy="16" r="9" stroke="var(--gold)" strokeWidth="1.5"/>
+                  <path d="M20 25v10M15 30h10" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
                   Collection féminine

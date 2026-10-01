@@ -3,8 +3,9 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf
 import { escapeHtml } from '@/lib/sanitize';
 import { formatPrice } from '@/lib/format';
 import { logger } from '@/lib/logger';
-
-export const ORDER_NOTIFICATION_EMAIL = 'commande@vipparfumeriebar.com';
+import { getSiteSettings } from '@/lib/site-settings';
+import { buildFromAddress } from '@/lib/email-from';
+import { EMAIL_BODY_COLOR } from '@/lib/email-theme';
 
 type ShippingAddress = {
   firstName?: string;
@@ -61,7 +62,7 @@ function drawText(page: PDFPage, font: PDFFont, text: string, x: number, y: numb
   page.drawText(pdfSafe(text), { x, y, size, font, color: rgb(0.13, 0.12, 0.1) });
 }
 
-async function buildInvoicePdf(data: OrderNotificationData) {
+async function buildInvoicePdf(data: OrderNotificationData, siteName: string) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -73,7 +74,7 @@ async function buildInvoicePdf(data: OrderNotificationData) {
     y = 790;
   };
 
-  drawText(page, bold, 'VIP PARFUMERIE BAR', 48, y, 18);
+  drawText(page, bold, siteName.toUpperCase(), 48, y, 18);
   drawText(page, bold, 'FACTURE', 460, y, 16);
   y -= 32;
   drawText(page, regular, `Facture : ${orderNumber(data.order.id)}`, 48, y);
@@ -124,7 +125,7 @@ async function buildInvoicePdf(data: OrderNotificationData) {
   return pdf.save();
 }
 
-function buildOrderHtml(data: OrderNotificationData, sellerCopy: boolean) {
+function buildOrderHtml(data: OrderNotificationData, sellerCopy: boolean, siteName: string) {
   const address = data.order.shipping_address ?? {};
   const rows = data.items.map((item) => {
     const unitPrice = Number(item.unit_price);
@@ -135,7 +136,7 @@ function buildOrderHtml(data: OrderNotificationData, sellerCopy: boolean) {
     </tr>`;
   }).join('');
 
-  return `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#211d17">
+  return `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:${EMAIL_BODY_COLOR}">
     <h1 style="font-size:22px">${sellerCopy ? 'Nouvelle commande payée' : 'Merci pour votre commande'}</h1>
     <p>Commande <strong>${orderNumber(data.order.id)}</strong></p>
     ${sellerCopy ? `<p><strong>Client :</strong> ${escapeHtml(customerName(address))}<br><strong>Email :</strong> ${escapeHtml(data.order.email)}<br><strong>Téléphone :</strong> ${escapeHtml(data.order.phone)}<br><strong>Livraison :</strong> ${escapeHtml([address.address, address.city, address.country].filter(Boolean).join(', '))}</p>` : '<p>Votre paiement est confirmé. Votre facture est jointe à cet e-mail.</p>'}
@@ -144,7 +145,7 @@ function buildOrderHtml(data: OrderNotificationData, sellerCopy: boolean) {
       <tbody>${rows}</tbody>
     </table>
     <p style="text-align:right;font-size:18px"><strong>Total payé : ${formatPrice(Number(data.order.total_amount))}</strong></p>
-    <p style="font-size:12px;color:#777">VIP Parfumerie Bar</p>
+    <p style="font-size:12px;color:#777">${escapeHtml(siteName)}</p>
   </div>`;
 }
 
@@ -251,16 +252,19 @@ async function loadOrderNotificationData(supabase: SupabaseClient, id: string): 
 
 export async function sendOrderNotifications(supabase: SupabaseClient, id: string) {
   const resendKey = process.env.RESEND_API_KEY;
-  const data = resendKey || (process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID)
-    ? await loadOrderNotificationData(supabase, id)
-    : null;
+  const [data, settings] = await Promise.all([
+    resendKey || (process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID)
+      ? loadOrderNotificationData(supabase, id)
+      : Promise.resolve(null),
+    getSiteSettings(),
+  ]);
 
   if (!data) {
     if (!resendKey) logger.info('Order notification', 'No RESEND_API_KEY configured, emails skipped', { orderId: id });
     return;
   }
 
-  const pdf = await buildInvoicePdf(data);
+  const pdf = await buildInvoicePdf(data, settings.site_name);
 
   const emailSend = resendKey
     ? (async () => {
@@ -268,11 +272,11 @@ export async function sendOrderNotifications(supabase: SupabaseClient, id: strin
           filename: `facture-${orderNumber(id)}.pdf`,
           content: Buffer.from(pdf).toString('base64'),
         };
-        const from = process.env.RESEND_FROM_EMAIL ?? 'VIP Parfumerie Bar <contact@vipparfumeriebar.com>';
+        const from = process.env.RESEND_FROM_EMAIL ?? buildFromAddress('contact', settings.site_name);
         const number = orderNumber(id);
         const messages = [
-          { to: data.order.email, subject: `Confirmation de votre commande ${number}`, html: buildOrderHtml(data, false) },
-          { to: ORDER_NOTIFICATION_EMAIL, subject: `Nouvelle commande payée ${number}`, html: buildOrderHtml(data, true) },
+          { to: data.order.email, subject: `Confirmation de votre commande ${number}`, html: buildOrderHtml(data, false, settings.site_name) },
+          { to: settings.order_notification_email, subject: `Nouvelle commande payée ${number}`, html: buildOrderHtml(data, true, settings.site_name) },
         ];
 
         await Promise.all(messages.map(async (message) => {

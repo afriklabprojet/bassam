@@ -72,7 +72,7 @@ export default function ContactForm() {
         {/* Nom */}
         <div>
           <label htmlFor="name" style={labelStyle}>
-            Nom complet <span style={{ color: '#EF4444' }}>*</span>
+            Nom complet <span style={{ color: 'var(--danger)' }}>*</span>
           </label>
           <input id="name" name="name" type="text" required placeholder="Votre nom" style={inputStyle} />
         </div>
@@ -80,7 +80,7 @@ export default function ContactForm() {
         {/* Email */}
         <div>
           <label htmlFor="email" style={labelStyle}>
-            Email <span style={{ color: '#EF4444' }}>*</span>
+            Email <span style={{ color: 'var(--danger)' }}>*</span>
           </label>
           <input id="email" name="email" type="email" required placeholder="votre@email.com" style={inputStyle} />
         </div>
@@ -101,7 +101,7 @@ export default function ContactForm() {
         {/* Message */}
         <div>
           <label htmlFor="message" style={labelStyle}>
-            Message <span style={{ color: '#EF4444' }}>*</span>
+            Message <span style={{ color: 'var(--danger)' }}>*</span>
           </label>
           <textarea
             id="message" name="message" required rows={5}
@@ -111,7 +111,7 @@ export default function ContactForm() {
         </div>
 
         {status === 'error' && (
-          <p style={{ fontSize: '0.8125rem', color: '#EF4444', margin: 0 }}>{errorMsg}</p>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--danger)', margin: 0 }}>{errorMsg}</p>
         )}
 
         <button

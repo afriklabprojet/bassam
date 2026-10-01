@@ -36,7 +36,7 @@ function LoginForm() {
           width: '18px',
           height: '18px',
           border: '2px solid rgba(8,8,8,0.3)',
-          borderTopColor: '#080808',
+          borderTopColor: 'var(--noir)',
           borderRadius: '50%',
           animation: 'spin 0.8s linear infinite',
         }}
@@ -200,7 +200,7 @@ function LoginForm() {
           style={{
             background: 'rgba(239,68,68,0.1)',
             border: '1px solid rgba(239,68,68,0.2)',
-            color: '#EF4444',
+            color: 'var(--danger)',
             padding: '10px 14px',
             borderRadius: '10px',
             fontSize: '0.8125rem',
@@ -223,8 +223,8 @@ function LoginForm() {
           border: 'none',
           background: loading
             ? 'rgba(197,165,90,0.3)'
-            : 'linear-gradient(135deg, #C5A55A, #9B7B38)',
-          color: '#080808',
+            : 'linear-gradient(135deg, var(--gold), var(--gold-dark))',
+          color: 'var(--noir)',
           fontSize: '0.875rem',
           fontWeight: 600,
           letterSpacing: '0.04em',
@@ -247,7 +247,7 @@ export default function AdminLoginPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: '#080808',
+        background: 'var(--noir)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -306,7 +306,7 @@ export default function AdminLoginPage() {
             <span
               style={{
                 fontFamily: 'var(--font-serif)',
-                color: '#C5A55A',
+                color: 'var(--gold)',
                 fontSize: '1.125rem',
                 fontWeight: 300,
                 letterSpacing: '0.2em',

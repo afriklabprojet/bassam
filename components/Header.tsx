@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useSiteSettings } from '@/lib/site-settings-context';
+import { splitBrandWordmark } from '@/lib/brand-name';
 
 // ─── Navigation data ────────────────────────────────────────────────────────
 type NavChild = { label: string; href: string; description?: string };
@@ -125,6 +126,7 @@ function getCartAriaLabel(totalItems: number): string {
 export default function Header({ navCategories }: Readonly<{ navCategories?: NavCategory[] }>) {
   const { totalItems, toggleCart } = useCart();
   const settings = useSiteSettings();
+  const wordmark = splitBrandWordmark(settings.site_name);
   const pathname = usePathname();
   const navLinks = React.useMemo(() => buildNavLinks(navCategories), [navCategories]);
 
@@ -211,7 +213,7 @@ export default function Header({ navCategories }: Readonly<{ navCategories?: Nav
             {/* ── LEFT: Logo ────────────────────────────────────────────────── */}
             <Link
               href="/"
-              aria-label="VIP Parfumerie Bar — accueil"
+              aria-label={`${settings.site_name} — accueil`}
               style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}
             >
               {/* Logo */}
@@ -245,7 +247,7 @@ export default function Header({ navCategories }: Readonly<{ navCategories?: Nav
                   lineHeight: 1.1,
                   transition: 'color 0.3s',
                 }}>
-                  VIP Parfumerie
+                  {wordmark.primary}
                 </span>
                 <span style={{
                   fontFamily: 'var(--font-sans)',
@@ -256,7 +258,7 @@ export default function Header({ navCategories }: Readonly<{ navCategories?: Nav
                   lineHeight: 1,
                   transition: 'color 0.3s',
                 }}>
-                  Bar
+                  {wordmark.accent}
                 </span>
               </div>
             </Link>
@@ -475,7 +477,7 @@ function MobileDrawer({
               />
             </div>
             <span style={{ fontFamily: 'var(--font-serif)', color: '#fff', fontSize: '0.875rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              VIP Parfumerie
+              {settings.site_name}
             </span>
           </Link>
           <button
@@ -594,7 +596,7 @@ function MobileDrawer({
             Mon compte
           </Link>
           <p style={{ textAlign: 'center', fontSize: '0.5rem', color: 'rgba(255,255,255,0.25)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 18 }}>
-            © VIP Parfumerie Bar
+            © {settings.site_name}
           </p>
         </div>
       </dialog>

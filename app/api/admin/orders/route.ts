@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin, getAdminOrders, getOrderCountByPhone, updateOrderStatus } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 // GET /api/admin/orders
 // GET /api/admin/orders?phone=&excludeId= → returns { previousCount }
@@ -20,8 +21,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ previousCount });
     }
 
-    const page = Number(searchParams.get('page') ?? 1);
-    const limit = Number(searchParams.get('limit') ?? 20);
+    const page = Number(searchParams.get('page') ?? ADMIN_PAGE_DEFAULT);
+    const limit = Number(searchParams.get('limit') ?? ADMIN_LIMIT_DEFAULT);
     const status = searchParams.get('status') || undefined;
 
     const result = await getAdminOrders(page, limit, status);

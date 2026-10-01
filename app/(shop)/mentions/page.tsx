@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
-import { supportConfig } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 
-export const metadata: Metadata = {
-  title: 'Mentions légales | VIP Parfumerie Bar',
-  description: 'Retrouvez les mentions légales de VIP Parfumerie Bar: éditeur, hébergement, responsabilité et contact.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
 
-export default function MentionsPage() {
+  return {
+    title: `Mentions légales | ${siteName}`,
+    description: `Retrouvez les mentions légales de ${siteName}: éditeur, hébergement, responsabilité et contact.`,
+  };
+}
+
+export default async function MentionsPage() {
+  const settings = await getSiteSettings();
   return (
     <main style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <section style={{ background: 'var(--noir)', padding: '5.5rem 0 3rem' }}>
@@ -27,8 +32,8 @@ export default function MentionsPage() {
               <section>
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>1. Éditeur du site</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-                  VIP Parfumerie Bar est une boutique de parfums de luxe opérant depuis Abidjan, Côte d’Ivoire.
-                  Pour toute demande commerciale ou légale, vous pouvez nous écrire à <a href={`mailto:${supportConfig.email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{supportConfig.email}</a>.
+                  {settings.site_name} est une boutique de parfums de luxe opérant depuis Abidjan, Côte d’Ivoire.
+                  Pour toute demande commerciale ou légale, vous pouvez nous écrire à <a href={`mailto:${settings.support_email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{settings.support_email}</a>.
                 </p>
               </section>
 
@@ -51,7 +56,7 @@ export default function MentionsPage() {
               <section>
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>4. Responsabilité</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-                  Nous nous efforçons de fournir des informations exactes et à jour. Toutefois, VIP Parfumerie Bar ne
+                  Nous nous efforçons de fournir des informations exactes et à jour. Toutefois, {settings.site_name} ne
                   saurait être tenu responsable d’une erreur involontaire, d’une indisponibilité temporaire ou d’un usage
                   inadapté du site par un tiers.
                 </p>

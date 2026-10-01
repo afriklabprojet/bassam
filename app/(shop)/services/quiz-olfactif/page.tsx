@@ -1,22 +1,27 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 import { getServicesContent } from '@/lib/supabase/services-content';
 import QuizClient from './QuizClient';
 
 
-export const metadata: Metadata = {
-  title: 'Quiz Olfactif IA — Trouvez Votre Parfum Idéal | VIP Parfumerie Bar Abidjan',
-  description: "Répondez à notre quiz olfactif intelligent et découvrez les parfums faits pour vous. Recommandations personnalisées en 5 minutes. Disponible à Abidjan et en Côte d'Ivoire.",
-  keywords: "quiz parfum Abidjan, trouver son parfum Côte d'Ivoire, recommandation parfum personnalisée, quiz olfactif IA Abidjan",
-  alternates: { canonical: `${BASE_URL}/services/quiz-olfactif` },
-  openGraph: {
-    title: 'Quiz Olfactif IA — Votre Signature Olfactive | VIP Parfumerie Bar',
-    description: 'Découvrez les parfums qui vous correspondent grâce à notre quiz olfactif intelligent.',
-    url: `${BASE_URL}/services/quiz-olfactif`,
-    type: 'website',
-    locale: 'fr_CI',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Quiz Olfactif IA — Trouvez Votre Parfum Idéal | ${siteName} Abidjan`,
+    description: "Répondez à notre quiz olfactif intelligent et découvrez les parfums faits pour vous. Recommandations personnalisées en 5 minutes. Disponible à Abidjan et en Côte d'Ivoire.",
+    keywords: "quiz parfum Abidjan, trouver son parfum Côte d'Ivoire, recommandation parfum personnalisée, quiz olfactif IA Abidjan",
+    alternates: { canonical: `${BASE_URL}/services/quiz-olfactif` },
+    openGraph: {
+      title: `Quiz Olfactif IA — Votre Signature Olfactive | ${siteName}`,
+      description: 'Découvrez les parfums qui vous correspondent grâce à notre quiz olfactif intelligent.',
+      url: `${BASE_URL}/services/quiz-olfactif`,
+      type: 'website',
+      locale: 'fr_CI',
+    },
+  };
+}
 
 const breadcrumbLd = {
   '@context': 'https://schema.org',
@@ -28,20 +33,23 @@ const breadcrumbLd = {
   ],
 };
 
-const serviceLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: 'Quiz Olfactif IA — VIP Parfumerie Bar',
-  description: "Quiz interactif pour identifier votre signature olfactive et recevoir des recommandations personnalisées de parfums de luxe.",
-  provider: { '@type': 'Organization', name: 'VIP Parfumerie Bar', '@id': `${BASE_URL}/#organization` },
-  areaServed: { '@type': 'Country', name: "Côte d'Ivoire" },
-  url: `${BASE_URL}/services/quiz-olfactif`,
-  serviceType: 'Conseil en parfumerie',
-};
-
 export default async function QuizOlfactifPage() {
-  const servicesContent = await getServicesContent();
+  const [servicesContent, { site_name: siteName }] = await Promise.all([
+    getServicesContent(),
+    getSiteSettings(),
+  ]);
   const heroImageUrl = servicesContent.find((s) => s.slug === 'quiz-olfactif')?.hero_image_url ?? '';
+
+  const serviceLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: `Quiz Olfactif IA — ${siteName}`,
+    description: "Quiz interactif pour identifier votre signature olfactive et recevoir des recommandations personnalisées de parfums de luxe.",
+    provider: { '@type': 'Organization', name: siteName, '@id': `${BASE_URL}/#organization` },
+    areaServed: { '@type': 'Country', name: "Côte d'Ivoire" },
+    url: `${BASE_URL}/services/quiz-olfactif`,
+    serviceType: 'Conseil en parfumerie',
+  };
 
   return (
     <>

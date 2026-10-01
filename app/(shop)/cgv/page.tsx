@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
-import { supportConfig } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 
-export const metadata: Metadata = {
-  title: 'Conditions générales de vente | VIP Parfumerie Bar',
-  description: 'Consultez les conditions générales de vente de VIP Parfumerie Bar: commandes, paiements, livraisons, retours et service client.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
 
-export default function CgvPage() {
+  return {
+    title: `Conditions générales de vente | ${siteName}`,
+    description: `Consultez les conditions générales de vente de ${siteName}: commandes, paiements, livraisons, retours et service client.`,
+  };
+}
+
+export default async function CgvPage() {
+  const settings = await getSiteSettings();
   return (
     <main style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <section style={{ background: 'var(--noir)', padding: '5.5rem 0 3rem' }}>
@@ -44,7 +49,7 @@ export default function CgvPage() {
               <section>
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>3. Livraison</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-                  Les délais de livraison sont donnés à titre indicatif. VIP Parfumerie Bar met tout en œuvre pour
+                  Les délais de livraison sont donnés à titre indicatif. {settings.site_name} met tout en œuvre pour
                   assurer une expédition rapide, mais ne peut être tenu responsable d’un retard causé par un transporteur,
                   un événement exceptionnel ou une adresse incomplète.
                 </p>
@@ -54,7 +59,7 @@ export default function CgvPage() {
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>4. Retours</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
                   Les retours sont étudiés au cas par cas. Un produit ouvert, utilisé ou détérioré ne peut pas être
-                  remboursé, sauf défaut avéré. Pour toute demande, contactez notre service client à <a href={`mailto:${supportConfig.email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{supportConfig.email}</a>.
+                  remboursé, sauf défaut avéré. Pour toute demande, contactez notre service client à <a href={`mailto:${settings.support_email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{settings.support_email}</a>.
                 </p>
               </section>
             </div>

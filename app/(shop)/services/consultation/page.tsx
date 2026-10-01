@@ -9,19 +9,23 @@ import ConsultationForm from '@/components/ConsultationForm';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: 'Consultation Olfactive Privée à Abidjan | VIP Parfumerie Bar',
-  description: "Réservez une consultation olfactive privée à Abidjan avec notre experte. 60 à 90 minutes pour construire votre garde-robe parfum sur-mesure, en présentiel ou en visio.",
-  keywords: "consultation parfum Abidjan, conseil olfactif Côte d'Ivoire, consultation privée parfumerie Abidjan",
-  alternates: { canonical: `${SITE_URL}/services/consultation` },
-  openGraph: {
-    title: 'Consultation Olfactive Privée | VIP Parfumerie Bar Abidjan',
-    description: "Consultation personnalisée avec une experte en parfumerie à Abidjan.",
-    url: `${SITE_URL}/services/consultation`,
-    type: 'website',
-    locale: 'fr_CI',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Consultation Olfactive Privée à Abidjan | ${siteName}`,
+    description: "Réservez une consultation olfactive privée à Abidjan avec notre experte. 60 à 90 minutes pour construire votre garde-robe parfum sur-mesure, en présentiel ou en visio.",
+    keywords: "consultation parfum Abidjan, conseil olfactif Côte d'Ivoire, consultation privée parfumerie Abidjan",
+    alternates: { canonical: `${SITE_URL}/services/consultation` },
+    openGraph: {
+      title: `Consultation Olfactive Privée | ${siteName} Abidjan`,
+      description: "Consultation personnalisée avec une experte en parfumerie à Abidjan.",
+      url: `${SITE_URL}/services/consultation`,
+      type: 'website',
+      locale: 'fr_CI',
+    },
+  };
+}
 
 /* ─── Data ───────────────────────────────────────────────── */
 
@@ -89,7 +93,7 @@ export default async function ConsultationPage() {
     .map((c) => ({ ...c, ...sharedContact }));
 
   const fallbackConsultant = {
-    name: 'VIP Parfumerie Bar',
+    name: settings.site_name,
     photoUrl: '',
     specialty: '',
     ...sharedContact,

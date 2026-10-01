@@ -1,4 +1,6 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
+import { PAGE_SIZE_DEFAULT } from '@/lib/constants';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getProductBySlug, getProducts } from '@/lib/supabase/products';
@@ -26,17 +28,17 @@ async function getRelatedProducts(product: Product): Promise<Product[]> {
   };
 
   if (product.category) {
-    const sameCategory = await getProducts({ category: product.category, limit: 8 });
+    const sameCategory = await getProducts({ category: product.category, limit: PAGE_SIZE_DEFAULT });
     appendUnique(sameCategory.products);
   }
 
   if (relatedProducts.length < 4) {
-    const featured = await getProducts({ featured: true, limit: 8 });
+    const featured = await getProducts({ featured: true, limit: PAGE_SIZE_DEFAULT });
     appendUnique(featured.products);
   }
 
   if (relatedProducts.length < 4) {
-    const latest = await getProducts({ tri: 'nouveautes', limit: 8 });
+    const latest = await getProducts({ tri: 'nouveautes', limit: PAGE_SIZE_DEFAULT });
     appendUnique(latest.products);
   }
 
@@ -45,18 +47,19 @@ async function getRelatedProducts(product: Product): Promise<Product[]> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const { site_name: siteName } = await getSiteSettings();
 
   try {
     const product = await getProductBySlug(slug);
     if (product) {
-      const desc = product.description?.slice(0, 155) || `Achetez ${product.name} de ${product.brand} chez VIP Parfumerie Bar à Abidjan. Authentique, livraison Côte d'Ivoire.`;
+      const desc = product.description?.slice(0, 155) || `Achetez ${product.name} de ${product.brand} chez ${siteName} à Abidjan. Authentique, livraison Côte d'Ivoire.`;
       return {
-        title: `${product.name} - ${product.brand} | VIP Parfumerie Bar Abidjan`,
+        title: `${product.name} - ${product.brand} | ${siteName} Abidjan`,
         description: desc,
         keywords: `${product.name}, ${product.brand}, parfum Abidjan, acheter ${product.brand} Côte d'Ivoire, parfum luxe Afrique`,
         alternates: { canonical: `${BASE_URL}/produits/${product.slug}` },
         openGraph: {
-          title: `${product.name} — ${product.brand} | VIP Parfumerie Bar`,
+          title: `${product.name} — ${product.brand} | ${siteName}`,
           description: desc,
           images: product.images[0] ? [{ url: product.images[0] }] : [],
           type: 'website',
@@ -69,14 +72,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: 'Produit | VIP Parfumerie Bar',
-    description: 'Découvrez nos parfums de luxe authentiques chez VIP Parfumerie Bar.',
+    title: `Produit | ${siteName}`,
+    description: `Découvrez nos parfums de luxe authentiques chez ${siteName}.`,
   };
 }
 
 export default async function ProductPage({ params }: Readonly<PageProps>) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, { site_name: siteName }] = await Promise.all([
+    getProductBySlug(slug),
+    getSiteSettings(),
+  ]);
 
   // Hard 404 for unknown slugs
   if (product === null) notFound();
@@ -109,7 +115,7 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
       itemCondition: 'https://schema.org/NewCondition',
       seller: {
         '@type': 'Organization',
-        name: 'VIP Parfumerie Bar',
+        name: siteName,
         '@id': `${BASE_URL}/#organization`,
       },
       shippingDetails: {

@@ -258,7 +258,7 @@ function TaxonomyImageUpload({
         }}
       />
       {uploadError && (
-        <p style={{ color: '#f87171', fontSize: 12, marginTop: 6 }}>{uploadError}</p>
+        <p style={{ color: 'var(--danger)', fontSize: 12, marginTop: 6 }}>{uploadError}</p>
       )}
     </div>
   );
@@ -508,7 +508,7 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
                     style={{
                       background: 'rgba(255,100,100,0.12)',
                       border: '1px solid rgba(255,100,100,0.25)',
-                      borderRadius: 6, color: '#ff6b6b',
+                      borderRadius: 6, color: 'var(--danger)',
                       padding: '6px 14px', fontSize: 12, fontWeight: 600,
                       cursor: 'pointer',
                     }}
@@ -537,7 +537,7 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
         <button
           onClick={openCreate}
           style={{
-            background: GOLD, color: '#1a1008', border: 'none',
+            background: GOLD, color: 'var(--noir)', border: 'none',
             borderRadius: 8, padding: '11px 20px',
             fontSize: 14, fontWeight: 700, cursor: 'pointer',
           }}
@@ -550,9 +550,9 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
         <div style={{
           padding: '12px 18px', borderRadius: 8, marginBottom: 24,
           fontSize: 13, fontWeight: 600,
-          background: toast.ok ? 'rgba(72,199,142,0.15)' : 'rgba(255,100,100,0.15)',
-          border: `1px solid ${toast.ok ? 'rgba(72,199,142,0.4)' : 'rgba(255,100,100,0.4)'}`,
-          color: toast.ok ? '#48c78e' : '#ff6b6b',
+          background: toast.ok ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+          border: `1px solid ${toast.ok ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'}`,
+          color: toast.ok ? 'var(--success)' : 'var(--danger)',
         }}>
           {toast.msg}
         </div>
@@ -572,7 +572,7 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
           />
           <div style={{
             position: 'fixed', top: 0, right: 0, bottom: 0, width: 460,
-            background: '#16120a',
+            background: 'var(--noir-card)',
             borderLeft: '1px solid rgba(197,165,90,0.2)',
             zIndex: 50, overflowY: 'auto', padding: 28,
           }}>
@@ -658,7 +658,7 @@ export default function TaxonomyManager(config: Readonly<TaxonomyManagerProps>) 
               style={{
                 width: '100%',
                 background: saving ? 'rgba(197,165,90,0.3)' : GOLD,
-                color: '#1a1008', border: 'none',
+                color: 'var(--noir)', border: 'none',
                 borderRadius: 8, padding: 13,
                 fontSize: 14, fontWeight: 700,
                 cursor: saving ? 'not-allowed' : 'pointer',

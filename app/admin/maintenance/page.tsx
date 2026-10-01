@@ -18,22 +18,22 @@ interface Task {
 
 interface Stats { pending: number; in_progress: number; done: number; cancelled: number; critical: number; high: number; medium: number; low: number; }
 
-import { GOLD } from '@/lib/admin-theme';
+import { GOLD, GOLD_DEEP, CARD_BG } from '@/lib/admin-theme';
+import { getSemanticStatusStyle } from '@/lib/status-theme';
 
-const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  pending:     { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B', label: 'En attente' },
-  in_progress: { bg: 'rgba(59,130,246,0.12)',  color: '#3B82F6', label: 'En cours' },
-  done:        { bg: 'rgba(16,185,129,0.12)',  color: '#10B981', label: 'Terminé' },
-  cancelled:   { bg: 'rgba(107,114,128,0.12)', color: '#6B7280', label: 'Annulé' },
+  pending:     { ...getSemanticStatusStyle('warning'), label: 'En attente' },
+  in_progress: { ...getSemanticStatusStyle('info'),    label: 'En cours' },
+  done:        { ...getSemanticStatusStyle('success'), label: 'Terminé' },
+  cancelled:   { ...getSemanticStatusStyle('neutral'), label: 'Annulé' },
 };
 
 const PRIORITY_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  critical: { bg: 'rgba(239,68,68,0.12)',  color: '#EF4444', label: 'Critique' },
+  critical: { ...getSemanticStatusStyle('danger'), label: 'Critique' },
   high:     { bg: 'rgba(249,115,22,0.12)', color: '#F97316', label: 'Haute' },
-  medium:   { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B', label: 'Moyenne' },
+  medium:   { ...getSemanticStatusStyle('warning'), label: 'Moyenne' },
   low:      { bg: 'rgba(107,114,128,0.12)',color: '#9CA3AF', label: 'Basse' },
 };
 
@@ -115,7 +115,7 @@ export default function AdminMaintenance() {
 
   if (error) return (
     <div className="flex items-center justify-center h-64">
-      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{error}</div>
+      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>{error}</div>
     </div>
   );
 
@@ -126,7 +126,7 @@ export default function AdminMaintenance() {
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600, color: '#fff' }}>Maintenance</h1>
           <p style={{ color: '#666', fontSize: '0.875rem', marginTop: 2 }}>{tasks.length} tâche{tasks.length > 1 ? 's' : ''}</p>
         </div>
-        <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: 'linear-gradient(135deg,#C5A55A,#A68B3E)', color: '#080808' }}>
+        <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14" /></svg>
           Nouvelle tâche
         </button>
@@ -135,10 +135,10 @@ export default function AdminMaintenance() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'En attente', value: stats.pending, color: '#F59E0B', icon: '⏳' },
-          { label: 'En cours', value: stats.in_progress, color: '#3B82F6', icon: '🔧' },
-          { label: 'Terminées', value: stats.done, color: '#10B981', icon: '✅' },
-          { label: 'Critiques', value: stats.critical, color: '#EF4444', icon: '🚨' },
+          { label: 'En attente', value: stats.pending, color: 'var(--warning)', icon: '⏳' },
+          { label: 'En cours', value: stats.in_progress, color: 'var(--info)', icon: '🔧' },
+          { label: 'Terminées', value: stats.done, color: 'var(--success)', icon: '✅' },
+          { label: 'Critiques', value: stats.critical, color: 'var(--danger)', icon: '🚨' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl p-5" style={{ background: CARD_BG, border: BORDER }}>
             <div className="flex items-center justify-between mb-2">
@@ -154,14 +154,14 @@ export default function AdminMaintenance() {
       <div className="flex flex-wrap gap-2 mb-5">
         <div className="flex gap-1 flex-wrap">
           <span style={{ color: '#666', fontSize: '0.75rem', alignSelf: 'center', marginRight: 4 }}>Statut:</span>
-          <button onClick={() => setStatusFilter('')} className="px-3 py-1 rounded-lg text-xs transition-all" style={{ background: !statusFilter ? GOLD : CARD_BG, color: !statusFilter ? '#080808' : '#999' }}>Tous</button>
+          <button onClick={() => setStatusFilter('')} className="px-3 py-1 rounded-lg text-xs transition-all" style={{ background: !statusFilter ? GOLD : CARD_BG, color: !statusFilter ? 'var(--noir)' : '#999' }}>Tous</button>
           {Object.entries(STATUS_STYLE).map(([k, v]) => (
             <button key={k} onClick={() => setStatusFilter(k)} className="px-3 py-1 rounded-lg text-xs transition-all" style={{ background: statusFilter === k ? v.bg : CARD_BG, color: statusFilter === k ? v.color : '#999' }}>{v.label}</button>
           ))}
         </div>
         <div className="flex gap-1 flex-wrap ml-auto">
           <span style={{ color: '#666', fontSize: '0.75rem', alignSelf: 'center', marginRight: 4 }}>Priorité:</span>
-          <button onClick={() => setPriorityFilter('')} className="px-3 py-1 rounded-lg text-xs transition-all" style={{ background: !priorityFilter ? GOLD : CARD_BG, color: !priorityFilter ? '#080808' : '#999' }}>Toutes</button>
+          <button onClick={() => setPriorityFilter('')} className="px-3 py-1 rounded-lg text-xs transition-all" style={{ background: !priorityFilter ? GOLD : CARD_BG, color: !priorityFilter ? 'var(--noir)' : '#999' }}>Toutes</button>
           {Object.entries(PRIORITY_STYLE).map(([k, v]) => (
             <button key={k} onClick={() => setPriorityFilter(k)} className="px-3 py-1 rounded-lg text-xs transition-all" style={{ background: priorityFilter === k ? v.bg : CARD_BG, color: priorityFilter === k ? v.color : '#999' }}>{v.label}</button>
           ))}
@@ -244,7 +244,7 @@ export default function AdminMaintenance() {
               <input type="date" placeholder="Date prévue" value={newTask.scheduled_at} onChange={(e) => setNewTask({ ...newTask, scheduled_at: e.target.value })} className="px-4 py-2.5 rounded-xl text-sm outline-none" style={{ background: CARD_BG, border: BORDER, color: '#fff' }} />
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={addTask} disabled={saving === 'new' || !newTask.title} className="flex-1 py-2.5 rounded-xl font-semibold text-sm" style={{ background: `linear-gradient(135deg,${GOLD},#A68B3E)`, color: '#080808' }}>
+              <button onClick={addTask} disabled={saving === 'new' || !newTask.title} className="flex-1 py-2.5 rounded-xl font-semibold text-sm" style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}>
                 {saving === 'new' ? 'Enregistrement…' : 'Créer la tâche'}
               </button>
               <button onClick={() => setShowAdd(false)} className="px-5 py-2.5 rounded-xl text-sm" style={{ background: CARD_BG, color: '#999', border: BORDER }}>Annuler</button>

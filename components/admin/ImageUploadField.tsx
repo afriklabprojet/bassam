@@ -311,7 +311,7 @@ function ImageTile({
         <span
           style={{
             fontSize: '0.55rem',
-            color: '#EF4444',
+            color: 'var(--danger)',
             textAlign: 'center',
             marginTop: '2px',
             lineHeight: 1.2,
@@ -389,7 +389,7 @@ function RemoveBtn({ onClick }: Readonly<{ onClick: () => void }>) {
         width: '18px',
         height: '18px',
         borderRadius: '50%',
-        background: hover ? '#EF4444' : 'rgba(0,0,0,0.65)',
+        background: hover ? 'var(--danger)' : 'rgba(0,0,0,0.65)',
         color: '#fff',
         border: 'none',
         cursor: 'pointer',
@@ -414,7 +414,7 @@ function Spinner() {
         width: '18px',
         height: '18px',
         border: '2px solid rgba(197,165,90,0.2)',
-        borderTopColor: '#C5A55A',
+        borderTopColor: 'var(--gold)',
         borderRadius: '50%',
         animation: 'spin 0.7s linear infinite',
       }}

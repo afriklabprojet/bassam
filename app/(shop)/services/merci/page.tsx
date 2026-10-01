@@ -1,10 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getSiteSettings } from '@/lib/site-settings';
 
-export const metadata: Metadata = {
-  title: 'Demande envoyée — VIP Parfumerie Bar',
-  description: 'Votre demande a bien été reçue. Nous vous recontactons très prochainement.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Demande envoyée — ${siteName}`,
+    description: 'Votre demande a bien été reçue. Nous vous recontactons très prochainement.',
+  };
+}
 
 export default function MerciPage() {
   return (

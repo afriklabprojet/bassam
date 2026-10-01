@@ -3,9 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { NEWSLETTER_RATE_LIMIT } from '@/lib/rate-limit-config';
 import { logger } from '@/lib/logger';
-
-const NEWSLETTER_RATE_LIMIT = { limit: 3, windowSec: 300 };
 
 const newsletterSchema = z.object({
   email: z.string().trim().toLowerCase().email('Email invalide'),

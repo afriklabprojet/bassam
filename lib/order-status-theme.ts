@@ -16,8 +16,8 @@ const FALLBACK_LIGHT_STYLE: LightStatusStyle = {
 
 const FALLBACK_DARK_STYLE: DarkStatusStyle = {
   bg: 'rgba(255,255,255,0.06)',
-  color: '#F0ECE4',
-  dot: '#C5A55A',
+  color: 'var(--cream)',
+  dot: 'var(--gold)',
 };
 
 export const ORDER_STATUS_KEYS: OrderStatus[] = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
@@ -45,39 +45,39 @@ export const LIGHT_ORDER_STATUS_STYLES: Record<OrderStatus, LightStatusStyle> = 
   },
   delivered: {
     bg: 'rgba(127,167,133,0.14)',
-    color: '#5A7C5E',
+    color: 'var(--order-success-text-light)',
   },
   cancelled: {
     bg: 'rgba(209,106,95,0.14)',
-    color: '#B34F45',
+    color: 'var(--order-danger-text-light)',
   },
 };
 
 export const DARK_ORDER_STATUS_STYLES: Record<OrderStatus, DarkStatusStyle> = {
   pending: {
     bg: 'rgba(197,165,90,0.14)',
-    color: '#D9BE80',
-    dot: '#C5A55A',
+    color: 'var(--gold-light)',
+    dot: 'var(--gold)',
   },
   confirmed: {
     bg: 'rgba(255,255,255,0.06)',
-    color: '#F0ECE4',
-    dot: '#C5A55A',
+    color: 'var(--cream)',
+    dot: 'var(--gold)',
   },
   shipped: {
     bg: 'rgba(197,165,90,0.1)',
-    color: '#E7C98A',
-    dot: '#D9BE80',
+    color: 'var(--gold-light)',
+    dot: 'var(--gold-light)',
   },
   delivered: {
     bg: 'rgba(127,167,133,0.18)',
-    color: '#A9D0AD',
-    dot: '#7FA785',
+    color: 'var(--order-success-text-dark)',
+    dot: 'var(--order-success)',
   },
   cancelled: {
     bg: 'rgba(209,106,95,0.18)',
-    color: '#F3A29A',
-    dot: '#D16A5F',
+    color: 'var(--order-danger-text-dark)',
+    dot: 'var(--order-danger)',
   },
 };
 

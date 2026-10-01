@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { GOLD } from '@/lib/admin-theme';
+import { GOLD, CARD_BG } from '@/lib/admin-theme';
+import { TOAST_DURATION_MS } from '@/lib/constants';
+import { getSemanticStatusStyle } from '@/lib/status-theme';
 
 interface StockAlert {
   id: string;
@@ -26,18 +28,17 @@ interface Stats {
   critical: number;
 }
 
-const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  pending:      { bg: 'rgba(245,158,11,0.12)',  color: '#F59E0B', label: 'En attente' },
-  acknowledged: { bg: 'rgba(59,130,246,0.12)',  color: '#3B82F6', label: 'Accusée' },
-  resolved:     { bg: 'rgba(16,185,129,0.12)',  color: '#10B981', label: 'Résolue' },
+  pending:      { ...getSemanticStatusStyle('warning'), label: 'En attente' },
+  acknowledged: { ...getSemanticStatusStyle('info'),    label: 'Accusée' },
+  resolved:     { ...getSemanticStatusStyle('success'), label: 'Résolue' },
 };
 
 const SEVERITY_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  critical: { bg: 'rgba(239,68,68,0.12)',  color: '#EF4444', label: 'Critique' },
-  warning:  { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B', label: 'Avertissement' },
+  critical: { ...getSemanticStatusStyle('danger'),  label: 'Critique' },
+  warning:  { ...getSemanticStatusStyle('warning'), label: 'Avertissement' },
 };
 
 function fmtDate(iso: string | null) {
@@ -71,7 +72,7 @@ export default function AlertesStockPage() {
 
   const showToast = (msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), TOAST_DURATION_MS);
   };
 
   async function load() {
@@ -174,11 +175,11 @@ export default function AlertesStockPage() {
   }
 
   const statCards = [
-    { label: 'Total',     value: stats.total,        color: '#9CA3AF' },
-    { label: 'En attente', value: stats.pending,     color: '#F59E0B' },
-    { label: 'Accusées',  value: stats.acknowledged, color: '#3B82F6' },
-    { label: 'Résolues',  value: stats.resolved,     color: '#10B981' },
-    { label: 'Critiques', value: stats.critical,     color: '#EF4444' },
+    { label: 'Total',     value: stats.total,        color: 'var(--neutral)' },
+    { label: 'En attente', value: stats.pending,     color: 'var(--warning)' },
+    { label: 'Accusées',  value: stats.acknowledged, color: 'var(--info)' },
+    { label: 'Résolues',  value: stats.resolved,     color: 'var(--success)' },
+    { label: 'Critiques', value: stats.critical,     color: 'var(--danger)' },
   ];
 
   return (
@@ -234,7 +235,7 @@ export default function AlertesStockPage() {
       {toast && (
         <div style={{
           position: 'fixed', top: 24, right: 24, zIndex: 9999,
-          background: '#1a1a1a', border: `1px solid ${GOLD}`,
+          background: 'var(--noir-card)', border: `1px solid ${GOLD}`,
           color: '#fff', padding: '12px 20px', borderRadius: 10,
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)', fontSize: 14,
         }}>
@@ -297,7 +298,7 @@ export default function AlertesStockPage() {
 
       {/* Error */}
       {error && (
-        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#EF4444', padding: '12px 16px', borderRadius: 8, marginBottom: 24 }}>
+        <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--danger)', padding: '12px 16px', borderRadius: 8, marginBottom: 24 }}>
           {error}
         </div>
       )}
@@ -311,7 +312,7 @@ export default function AlertesStockPage() {
         ) : alerts.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
-            <div style={{ color: '#10B981', fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+            <div style={{ color: 'var(--success)', fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
               Aucune alerte
             </div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>
@@ -342,7 +343,7 @@ export default function AlertesStockPage() {
                       {a.sku ?? '—'}
                     </td>
                     <td style={{ padding: '14px 16px' }}>
-                      <span style={{ color: a.current_quantity === 0 ? '#EF4444' : '#F59E0B', fontWeight: 700 }}>
+                      <span style={{ color: a.current_quantity === 0 ? 'var(--danger)' : 'var(--warning)', fontWeight: 700 }}>
                         {a.current_quantity}
                       </span>
                       <span style={{ color: 'rgba(255,255,255,0.3)', margin: '0 4px' }}>/</span>
@@ -365,7 +366,7 @@ export default function AlertesStockPage() {
                             disabled={saving === a.id}
                             style={{
                               background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)',
-                              color: '#3B82F6', padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
+                              color: 'var(--info)', padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
                               fontSize: 12, fontWeight: 600, opacity: saving === a.id ? 0.5 : 1,
                             }}
                           >
@@ -378,7 +379,7 @@ export default function AlertesStockPage() {
                             disabled={saving === a.id}
                             style={{
                               background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
-                              color: '#10B981', padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
+                              color: 'var(--success)', padding: '5px 12px', borderRadius: 6, cursor: 'pointer',
                               fontSize: 12, fontWeight: 600, opacity: saving === a.id ? 0.5 : 1,
                             }}
                           >
@@ -390,7 +391,7 @@ export default function AlertesStockPage() {
                           disabled={deleting === a.id}
                           style={{
                             background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                            color: '#EF4444', padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
+                            color: 'var(--danger)', padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
                             fontSize: 12, opacity: deleting === a.id ? 0.5 : 1,
                           }}
                         >

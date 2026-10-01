@@ -1,25 +1,30 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
+import { REVALIDATE_SHORT_SEC } from '@/lib/constants';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
-export const metadata: Metadata = {
-title: 'Parfums Mixtes & Unisexes à Abidjan -- Baccarat Rouge, Oud Wood | VIP Parfumerie Bar',
+export async function generateMetadata(): Promise<Metadata> {
+const { site_name: siteName } = await getSiteSettings();
+return {
+title: `Parfums Mixtes & Unisexes à Abidjan -- Baccarat Rouge, Oud Wood | ${siteName}`,
 description: "Collection parfums unisexes à Abidjan -- Fragrances qui transcendent les genres. Baccarat Rouge 540, Oud Wood Tom Ford, Santal 33. Livraison Côte d'Ivoire.",
 keywords: "parfum mixte Abidjan, parfum unisexe Côte d'Ivoire, Baccarat Rouge Abidjan, Oud Wood Abidjan, parfum gender neutral Abidjan",
 alternates: { canonical: `${BASE_URL}/collections/mixte` },
 openGraph: {
-title: 'Parfums Mixtes & Unisexes | VIP Parfumerie Bar Abidjan',
+title: `Parfums Mixtes & Unisexes | ${siteName} Abidjan`,
 description: "Fragrances unisexes d'exception disponibles à Abidjan. Livraison Côte d'Ivoire.",
 url: `${BASE_URL}/collections/mixte`,
 type: 'website',
 locale: 'fr_CI',
 },
 };
+}
 // ─── Data ─────────────────────────────────────────────────────────────────────
 async function getMixteProducts(): Promise<Product[]> {
 try {
-const res = await fetch(`${BASE_URL}/api/products?category=mixte`, { next: { revalidate: 60 } });
+const res = await fetch(`${BASE_URL}/api/products?category=mixte`, { next: { revalidate: REVALIDATE_SHORT_SEC } });
 if (!res.ok) return [];
 const data = await res.json();
 return data.products || [];
@@ -54,8 +59,8 @@ return (
 <div style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto' }}>
 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: '1.5rem' }}>
 <svg width="18" height="18" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-<path d="M14 20c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z" stroke="#C5A55A" strokeWidth="1.5"/>
-<path d="M10 10l5 5M30 10l-5 5M10 30l5-5M30 30l-5-5" stroke="#C5A55A" strokeWidth="1.2" strokeLinecap="round"/>
+<path d="M14 20c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z" stroke="var(--gold)" strokeWidth="1.5"/>
+<path d="M10 10l5 5M30 10l-5 5M10 30l5-5M30 30l-5-5" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round"/>
 </svg>
 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
 Au-delà des genres

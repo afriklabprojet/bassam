@@ -1,26 +1,31 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
+import { REVALIDATE_SHORT_SEC } from '@/lib/constants';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = {
-title: 'Parfums Homme à Abidjan -- Sauvage, Bleu de Chanel, Tom Ford | VIP Parfumerie Bar',
+export async function generateMetadata(): Promise<Metadata> {
+const { site_name: siteName } = await getSiteSettings();
+return {
+title: `Parfums Homme à Abidjan -- Sauvage, Bleu de Chanel, Tom Ford | ${siteName}`,
 description: "Collection parfums homme à Abidjan -- Boisés élégants, orientaux intenses, signatures fraîches. Sauvage Dior, Bleu de Chanel, Tom Ford. Livraison Côte d'Ivoire.",
 keywords: "parfum homme Abidjan, parfum masculin Côte d'Ivoire, Sauvage Dior Abidjan, Bleu de Chanel Abidjan, Tom Ford homme Abidjan",
 alternates: { canonical: `${BASE_URL}/collections/homme` },
 openGraph: {
-title: 'Parfums Homme | VIP Parfumerie Bar Abidjan',
+title: `Parfums Homme | ${siteName} Abidjan`,
 description: "Les meilleures fragrances masculines disponibles à Abidjan. Livraison Côte d'Ivoire.",
 url: `${BASE_URL}/collections/homme`,
 type: 'website',
 locale: 'fr_CI',
 },
 };
+}
 // ─── Fragrance guides ─────────────────────────────────────────────────────────
 async function getHommeProducts(): Promise<Product[]> {
 try {
-const res = await fetch(`${BASE_URL}/api/products?category=homme`, { next: { revalidate: 60 } });
+const res = await fetch(`${BASE_URL}/api/products?category=homme`, { next: { revalidate: REVALIDATE_SHORT_SEC } });
 if (!res.ok) return [];
 const data = await res.json();
 return data.products || [];
@@ -57,8 +62,8 @@ return (
 <div style={{ paddingBottom: '4.5rem' }}>
 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
 <svg width="16" height="16" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-<circle cx="20" cy="20" r="9" stroke="#C5A55A" strokeWidth="1.5"/>
-<path d="M27 13l7-7M34 6h-5M34 6v5" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<circle cx="20" cy="20" r="9" stroke="var(--gold)" strokeWidth="1.5"/>
+<path d="M27 13l7-7M34 6h-5M34 6v5" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
 Collection masculine

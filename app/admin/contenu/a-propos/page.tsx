@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { TOAST_DURATION_MS } from '@/lib/constants';
 import {
   DEFAULT_STATS,
   DEFAULT_VALEURS,
@@ -155,7 +156,7 @@ export default function AdminAProposPage() {
       setToast({ ok: false, msg: 'Erreur réseau' });
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 3500);
+      setTimeout(() => setToast(null), TOAST_DURATION_MS);
     }
   }
 
@@ -191,7 +192,7 @@ export default function AdminAProposPage() {
               disabled={isDisabled}
               style={{
                 background: isDisabled ? 'rgba(197,165,90,0.3)' : GOLD,
-                color: '#1a1008',
+                color: 'var(--noir)',
                 border: 'none',
                 borderRadius: 8,
                 padding: '11px 24px',
@@ -209,7 +210,7 @@ export default function AdminAProposPage() {
 
       {/* Toast */}
       {toast && (
-        <div style={{ padding: '12px 18px', borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 600, background: toast.ok ? 'rgba(72,199,142,0.15)' : 'rgba(255,100,100,0.15)', border: `1px solid ${toast.ok ? 'rgba(72,199,142,0.4)' : 'rgba(255,100,100,0.4)'}`, color: toast.ok ? '#48c78e' : '#ff6b6b' }}>
+        <div style={{ padding: '12px 18px', borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 600, background: toast.ok ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', border: `1px solid ${toast.ok ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'}`, color: toast.ok ? 'var(--success)' : 'var(--danger)' }}>
           {toast.msg}
         </div>
       )}

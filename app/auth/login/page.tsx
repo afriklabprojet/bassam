@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSiteSettings } from '@/lib/site-settings-context';
+import { splitBrandWordmark } from '@/lib/brand-name';
 
 // ── Icônes inline ─────────────────────────────────────────────────────────────
 const IconEye = ({ open }: { open: boolean }) => open ? (
@@ -19,6 +21,8 @@ const IconEye = ({ open }: { open: boolean }) => open ? (
 
 export default function LoginPage() {
   const router = useRouter();
+  const settings = useSiteSettings();
+  const wordmark = splitBrandWordmark(settings.site_name);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -80,8 +84,8 @@ export default function LoginPage() {
               <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)', fontSize: 16, fontWeight: 300, letterSpacing: 3 }}>VB</span>
             </div>
             <div>
-              <p style={{ margin: 0, fontFamily: 'var(--font-serif)', color: '#fff', fontSize: '1rem', fontWeight: 500, letterSpacing: '0.06em', lineHeight: 1.1 }}>VIP Parfumerie</p>
-              <p style={{ margin: 0, fontFamily: 'var(--font-sans)', color: 'var(--gold)', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: 2 }}>Bar</p>
+              <p style={{ margin: 0, fontFamily: 'var(--font-serif)', color: '#fff', fontSize: '1rem', fontWeight: 500, letterSpacing: '0.06em', lineHeight: 1.1 }}>{wordmark.primary}</p>
+              <p style={{ margin: 0, fontFamily: 'var(--font-sans)', color: 'var(--gold)', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: 2 }}>{wordmark.accent}</p>
             </div>
           </Link>
         </div>
@@ -138,7 +142,7 @@ export default function LoginPage() {
 
         {/* Footer brand */}
         <p style={{ position: 'relative', zIndex: 1, fontSize: '0.5625rem', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>
-          © 2026 VIP Parfumerie Bar
+          © 2026 {settings.site_name}
         </p>
       </div>
 
@@ -158,7 +162,7 @@ export default function LoginPage() {
             <div style={{ width: 40, height: 40, background: 'var(--noir)', border: '1px solid rgba(197,165,90,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 3 }}>
               <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)', fontSize: 15, fontWeight: 300, letterSpacing: 3 }}>VB</span>
             </div>
-            <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1rem', letterSpacing: '0.06em' }}>VIP Parfumerie Bar</span>
+            <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1rem', letterSpacing: '0.06em' }}>{settings.site_name}</span>
           </Link>
         </div>
 

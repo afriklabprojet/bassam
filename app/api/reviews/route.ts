@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApprovedReviews, submitReview } from '@/lib/supabase/reviews';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { REVIEWS_POST_RATE_LIMIT } from '@/lib/rate-limit-config';
 
 /** GET /api/reviews — avis approuvés (public) */
 export async function GET() {
@@ -15,6 +17,9 @@ export async function GET() {
 
 /** POST /api/reviews — soumettre un nouvel avis (en attente de modération) */
 export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(request, 'reviews:post', REVIEWS_POST_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const body = await request.json();
     const { name, ville, texte, rating } = body;

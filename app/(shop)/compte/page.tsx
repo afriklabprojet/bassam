@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { getLightOrderStatusStyle, getOrderStatusLabel } from '@/lib/order-status-theme';
-import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import { formatPrice } from '@/lib/format';
 import type { User } from '@supabase/supabase-js';
 
@@ -54,6 +55,7 @@ function isTabValue(value: string | null): value is Tab {
 }
 
 export default function AccountPage() {
+  const siteSettings = useSiteSettings();
   const router = useRouter();
   const routerRef = useRef(router);
   const [user, setUser]       = useState<User | null>(null);
@@ -270,9 +272,9 @@ export default function AccountPage() {
                       </div>
                     </div>
                     <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--line-light)', display: 'flex', gap: '0.75rem' }}>
-                      {hasWhatsAppSupport() ? (
+                      {hasWhatsApp(siteSettings) ? (
                         <a
-                          href={buildWhatsAppHref(`Suivi commande ${shortId}`)}
+                          href={buildWhatsAppHref(siteSettings, `Suivi commande ${shortId}`)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm font-medium"
@@ -454,7 +456,7 @@ export default function AccountPage() {
                 />
               </div>
               {profileMsg && (
-                <p style={{ fontSize: '0.8125rem', color: profileMsg.type === 'success' ? 'var(--gold)' : '#ef4444' }}>
+                <p style={{ fontSize: '0.8125rem', color: profileMsg.type === 'success' ? 'var(--gold)' : 'var(--danger)' }}>
                   {profileMsg.text}
                 </p>
               )}

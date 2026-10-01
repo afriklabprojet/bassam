@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { TOAST_DURATION_LONG_MS } from '@/lib/constants';
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 interface ServiceRow {
@@ -168,7 +169,7 @@ function ServiceImageUpload({ value, onChange }: Readonly<{ value: string; onCha
         </label>
       )}
       <input id={inputId} ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" hidden disabled={uploading} onChange={onFileChange} />
-      {uploadError && <p style={{ color: '#f87171', fontSize: 12, marginTop: 6 }}>{uploadError}</p>}
+      {uploadError && <p style={{ color: 'var(--danger)', fontSize: 12, marginTop: 6 }}>{uploadError}</p>}
     </div>
   );
 }
@@ -320,7 +321,7 @@ export default function AdminServicesPage() {
       setToast({ ok: false, msg: err instanceof Error ? err.message : 'Erreur inconnue' });
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 4000);
+      setTimeout(() => setToast(null), TOAST_DURATION_LONG_MS);
     }
   };
 
@@ -346,7 +347,7 @@ export default function AdminServicesPage() {
           style={{
             background: toast.ok ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
             border: `1px solid ${toast.ok ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
-            color: toast.ok ? '#86efac' : '#fca5a5',
+            color: toast.ok ? 'var(--success)' : 'var(--danger)',
             borderRadius: 8,
             padding: '12px 16px',
             marginBottom: 24,
@@ -483,7 +484,7 @@ export default function AdminServicesPage() {
           disabled={saving}
           style={{
             background: saving ? 'rgba(197,165,90,0.4)' : GOLD,
-            color: '#0D0D0D',
+            color: 'var(--noir)',
             border: 'none',
             borderRadius: 8,
             padding: '12px 32px',

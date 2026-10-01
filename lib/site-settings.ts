@@ -11,9 +11,13 @@
  */
 
 export interface SiteSettings {
+  /** Nom de la marque, affiché partout sur le site (metadata, header, footer, emails...) */
+  site_name: string;
   support_phone: string;
   support_phone_display: string;
   support_email: string;
+  /** Boîte de réception des notifications de commande (vendeur). Retombe sur support_email si vide. */
+  order_notification_email: string;
   whatsapp_number: string;
   whatsapp_display: string;
   instagram_url: string;
@@ -43,9 +47,11 @@ export interface SiteSettings {
 
 /** Fallback values from env vars (backward-compatible) */
 export const DEFAULT_SETTINGS: SiteSettings = {
+  site_name: process.env.NEXT_PUBLIC_SITE_NAME ?? 'VIP Parfumerie Bar',
   support_phone: (process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? '').replaceAll(/\D/g, ''),
   support_phone_display: process.env.NEXT_PUBLIC_SUPPORT_PHONE_DISPLAY ?? '',
   support_email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? '',
+  order_notification_email: process.env.ORDER_NOTIFICATION_EMAIL ?? 'commande@vipparfumeriebar.com',
   whatsapp_number: (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replaceAll(/\D/g, ''),
   whatsapp_display: process.env.NEXT_PUBLIC_WHATSAPP_DISPLAY ?? '',
   instagram_url: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? '',
@@ -84,9 +90,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
 
     return {
+      site_name: map.site_name || DEFAULT_SETTINGS.site_name,
       support_phone: (map.support_phone ?? DEFAULT_SETTINGS.support_phone).replaceAll(/\D/g, ''),
       support_phone_display: map.support_phone_display ?? DEFAULT_SETTINGS.support_phone_display,
       support_email: map.support_email ?? DEFAULT_SETTINGS.support_email,
+      order_notification_email: map.order_notification_email || map.support_email || DEFAULT_SETTINGS.order_notification_email,
       whatsapp_number: (map.whatsapp_number ?? DEFAULT_SETTINGS.whatsapp_number).replaceAll(/\D/g, ''),
       whatsapp_display: map.whatsapp_display ?? DEFAULT_SETTINGS.whatsapp_display,
       instagram_url: map.instagram_url ?? DEFAULT_SETTINGS.instagram_url,

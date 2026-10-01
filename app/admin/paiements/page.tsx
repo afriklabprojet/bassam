@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { ADMIN_LIST_LIMIT } from '@/lib/constants';
 
 interface Payment {
   id: string;
@@ -25,17 +26,17 @@ interface Stats {
   count_refunded: number;
 }
 
-import { GOLD } from '@/lib/admin-theme';
+import { GOLD, CARD_BG } from '@/lib/admin-theme';
+import { getSemanticStatusStyle } from '@/lib/status-theme';
 
-const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  completed:  { bg: 'rgba(16,185,129,0.12)', color: '#10B981', label: 'Complété' },
-  pending:    { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B', label: 'En attente' },
-  failed:     { bg: 'rgba(239,68,68,0.12)',  color: '#EF4444', label: 'Échoué' },
-  refunded:   { bg: 'rgba(139,92,246,0.12)', color: '#8B5CF6', label: 'Remboursé' },
-  cancelled:  { bg: 'rgba(107,114,128,0.12)',color: '#6B7280', label: 'Annulé' },
+  completed:  { ...getSemanticStatusStyle('success'), label: 'Complété' },
+  pending:    { ...getSemanticStatusStyle('warning'), label: 'En attente' },
+  failed:     { ...getSemanticStatusStyle('danger'),  label: 'Échoué' },
+  refunded:   { ...getSemanticStatusStyle('purple'),  label: 'Remboursé' },
+  cancelled:  { ...getSemanticStatusStyle('neutral'), label: 'Annulé' },
 };
 
 function fmtCFA(n: number) { return new Intl.NumberFormat('fr-FR').format(n) + ' F'; }
@@ -52,7 +53,7 @@ export default function AdminPaiements() {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const LIMIT = 50;
+  const LIMIT = ADMIN_LIST_LIMIT;
 
   useEffect(() => {
     void (async () => {
@@ -72,7 +73,7 @@ export default function AdminPaiements() {
 
   if (error) return (
     <div className="flex items-center justify-center h-64">
-      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{error}</div>
+      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>{error}</div>
     </div>
   );
 
@@ -88,12 +89,12 @@ export default function AdminPaiements() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {[
-          { label: 'Revenus totaux', value: fmtCFA(stats.total_revenue), color: '#10B981', icon: '💵' },
-          { label: 'En attente', value: fmtCFA(stats.pending_amount), color: '#F59E0B', icon: '⏳' },
+          { label: 'Revenus totaux', value: fmtCFA(stats.total_revenue), color: 'var(--success)', icon: '💵' },
+          { label: 'En attente', value: fmtCFA(stats.pending_amount), color: 'var(--warning)', icon: '⏳' },
           { label: 'Complétés', value: String(stats.count_completed), color: GOLD, icon: '✅' },
-          { label: 'En attente', value: String(stats.count_pending), color: '#F59E0B', icon: '🔄' },
-          { label: 'Échoués', value: String(stats.count_failed), color: '#EF4444', icon: '❌' },
-          { label: 'Remboursés', value: String(stats.count_refunded), color: '#8B5CF6', icon: '↩️' },
+          { label: 'En attente', value: String(stats.count_pending), color: 'var(--warning)', icon: '🔄' },
+          { label: 'Échoués', value: String(stats.count_failed), color: 'var(--danger)', icon: '❌' },
+          { label: 'Remboursés', value: String(stats.count_refunded), color: 'var(--purple)', icon: '↩️' },
         ].map((s) => (
           <div key={s.label + s.icon} className="rounded-xl p-5" style={{ background: CARD_BG, border: BORDER }}>
             <div className="flex items-center justify-between mb-2">
@@ -107,7 +108,7 @@ export default function AdminPaiements() {
 
       {/* Status filter */}
       <div className="flex flex-wrap gap-2 mb-5">
-        <button onClick={() => { setStatusFilter(''); setPage(1); }} className="px-3.5 py-1.5 rounded-lg text-sm transition-all" style={{ background: !statusFilter ? GOLD : CARD_BG, color: !statusFilter ? '#080808' : '#999', fontWeight: !statusFilter ? 600 : 400 }}>Tous</button>
+        <button onClick={() => { setStatusFilter(''); setPage(1); }} className="px-3.5 py-1.5 rounded-lg text-sm transition-all" style={{ background: !statusFilter ? GOLD : CARD_BG, color: !statusFilter ? 'var(--noir)' : '#999', fontWeight: !statusFilter ? 600 : 400 }}>Tous</button>
         {Object.entries(STATUS_STYLE).map(([k, v]) => (
           <button key={k} onClick={() => { setStatusFilter(k); setPage(1); }} className="px-3.5 py-1.5 rounded-lg text-sm transition-all" style={{ background: statusFilter === k ? v.bg : CARD_BG, color: statusFilter === k ? v.color : '#999', fontWeight: statusFilter === k ? 600 : 400 }}>{v.label}</button>
         ))}

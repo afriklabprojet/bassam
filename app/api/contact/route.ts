@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { CONTACT_RATE_LIMIT } from '@/lib/rate-limit-config';
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/sanitize';
-
-const CONTACT_RATE_LIMIT = { limit: 5, windowSec: 600 };
+import { getSiteSettings } from '@/lib/site-settings';
+import { buildFromAddress } from '@/lib/email-from';
+import { EMAIL_HEADING_COLOR, EMAIL_ACCENT_COLOR, EMAIL_LABEL_COLOR, EMAIL_BODY_COLOR, EMAIL_MUTED_COLOR, EMAIL_FOOTER_COLOR } from '@/lib/email-theme';
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, 'Nom trop court').max(80, 'Nom trop long'),
@@ -29,9 +31,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, sujet, message } = parsed.data;
-    const to = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+    const settings = await getSiteSettings();
+    const to = settings.support_email;
     const resendKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'VIP Parfumerie Bar <contact@vipparfumeriebar.com>';
+    const fromEmail = process.env.RESEND_FROM_EMAIL ?? buildFromAddress('contact', settings.site_name);
 
     if (resendKey && to) {
       const safeName = escapeHtml(name);
@@ -41,17 +44,17 @@ export async function POST(request: NextRequest) {
 
       const html = `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
-          <h2 style="color:#0d0a06;margin-bottom:8px">Nouveau message de contact</h2>
-          <p style="color:#888;margin-bottom:24px;font-size:14px">VIP Parfumerie Bar</p>
+          <h2 style="color:${EMAIL_HEADING_COLOR};margin-bottom:8px">Nouveau message de contact</h2>
+          <p style="color:${EMAIL_MUTED_COLOR};margin-bottom:24px;font-size:14px">${escapeHtml(settings.site_name)}</p>
           <table style="width:100%;border-collapse:collapse">
-            <tr><td style="padding:8px 0;font-weight:600;width:120px;color:#555">Nom</td><td style="padding:8px 0;color:#222">${safeName}</td></tr>
-            <tr><td style="padding:8px 0;font-weight:600;color:#555">Email</td><td style="padding:8px 0"><a href="mailto:${safeEmail}" style="color:#C5A55A">${safeEmail}</a></td></tr>
-            ${safeSujet ? `<tr><td style="padding:8px 0;font-weight:600;color:#555">Sujet</td><td style="padding:8px 0;color:#222">${safeSujet}</td></tr>` : ''}
+            <tr><td style="padding:8px 0;font-weight:600;width:120px;color:${EMAIL_LABEL_COLOR}">Nom</td><td style="padding:8px 0;color:${EMAIL_BODY_COLOR}">${safeName}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:600;color:${EMAIL_LABEL_COLOR}">Email</td><td style="padding:8px 0"><a href="mailto:${safeEmail}" style="color:${EMAIL_ACCENT_COLOR}">${safeEmail}</a></td></tr>
+            ${safeSujet ? `<tr><td style="padding:8px 0;font-weight:600;color:${EMAIL_LABEL_COLOR}">Sujet</td><td style="padding:8px 0;color:${EMAIL_BODY_COLOR}">${safeSujet}</td></tr>` : ''}
           </table>
           <hr style="margin:20px 0;border:none;border-top:1px solid #eee"/>
-          <p style="color:#222;white-space:pre-wrap;line-height:1.6">${safeMessage}</p>
+          <p style="color:${EMAIL_BODY_COLOR};white-space:pre-wrap;line-height:1.6">${safeMessage}</p>
           <hr style="margin:20px 0;border:none;border-top:1px solid #eee"/>
-          <p style="font-size:12px;color:#aaa">Répondre directement à ${safeEmail}</p>
+          <p style="font-size:12px;color:${EMAIL_FOOTER_COLOR}">Répondre directement à ${safeEmail}</p>
         </div>`;
 
       const res = await fetch('https://api.resend.com/emails', {

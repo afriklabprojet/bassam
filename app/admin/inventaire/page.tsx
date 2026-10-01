@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
+import { ADMIN_EXPORT_LIMIT } from '@/lib/constants';
 
 interface ProductOption {
   id: string;
@@ -54,9 +55,8 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-import { GOLD } from '@/lib/admin-theme';
+import { GOLD, GOLD_DEEP, CARD_BG } from '@/lib/admin-theme';
 
-const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 
 const EMPTY_NEW: NewItem = { product_id: '', name: '', sku: '', quantity: 0, low_stock_threshold: 5, unit_cost: 0, location: '' };
@@ -109,7 +109,7 @@ export default function AdminInventaire() {
     if (!showAdd) return;
     void (async () => {
       try {
-        const res = await fetch('/api/admin/products?limit=200');
+        const res = await fetch(`/api/admin/products?limit=${ADMIN_EXPORT_LIMIT}`);
         if (!res.ok) return;
         const d = await res.json();
         setAllProducts(d.products ?? []);
@@ -203,7 +203,7 @@ export default function AdminInventaire() {
 
   if (error) return (
     <div className="flex items-center justify-center h-64">
-      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{error}</div>
+      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>{error}</div>
     </div>
   );
 
@@ -218,7 +218,7 @@ export default function AdminInventaire() {
         <button
           onClick={() => setShowAdd(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
-          style={{ background: 'linear-gradient(135deg,#C5A55A,#A68B3E)', color: '#080808' }}
+          style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14" /></svg>
           Ajouter
@@ -229,9 +229,9 @@ export default function AdminInventaire() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total articles', value: fmt(stats.total), icon: '📦', color: GOLD },
-          { label: 'Stock faible', value: fmt(stats.low_stock), icon: '⚠️', color: '#F59E0B' },
-          { label: 'Rupture', value: fmt(stats.out_of_stock), icon: '🚫', color: '#EF4444' },
-          { label: 'Valeur totale', value: fmtCFA(stats.total_value), icon: '💰', color: '#10B981' },
+          { label: 'Stock faible', value: fmt(stats.low_stock), icon: '⚠️', color: 'var(--warning)' },
+          { label: 'Rupture', value: fmt(stats.out_of_stock), icon: '🚫', color: 'var(--danger)' },
+          { label: 'Valeur totale', value: fmtCFA(stats.total_value), icon: '💰', color: 'var(--success)' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl p-5" style={{ background: CARD_BG, border: BORDER }}>
             <div className="flex items-center justify-between mb-2">
@@ -260,7 +260,7 @@ export default function AdminInventaire() {
             className="px-4 py-2 rounded-xl text-sm transition-all"
             style={{
               background: filter === f ? GOLD : CARD_BG,
-              color: filter === f ? '#080808' : '#999',
+              color: filter === f ? 'var(--noir)' : '#999',
               fontWeight: filter === f ? 600 : 400,
               border: BORDER,
             }}
@@ -317,7 +317,7 @@ export default function AdminInventaire() {
                             ) : (
                               <div style={{ color: '#444', fontSize: '0.7rem', marginTop: 1 }}>Sans produit lié</div>
                             )}
-                            {item.is_low_stock && <div style={{ color: item.quantity === 0 ? '#EF4444' : '#F59E0B', fontSize: '0.7rem', marginTop: 1 }}>{item.quantity === 0 ? '● Rupture' : '● Stock faible'}</div>}
+                            {item.is_low_stock && <div style={{ color: item.quantity === 0 ? 'var(--danger)' : 'var(--warning)', fontSize: '0.7rem', marginTop: 1 }}>{item.quantity === 0 ? '● Rupture' : '● Stock faible'}</div>}
                           </div>
                         </div>
                       </td>
@@ -332,11 +332,11 @@ export default function AdminInventaire() {
                               className="w-20 px-2 py-1 rounded-lg text-sm outline-none"
                               style={{ background: 'rgba(255,255,255,0.08)', border: `1px solid ${GOLD}`, color: '#fff' }}
                             />
-                            <button onClick={() => saveQty(item.id)} disabled={saving} className="px-2 py-1 rounded-lg text-xs" style={{ background: GOLD, color: '#080808', fontWeight: 600 }}>OK</button>
+                            <button onClick={() => saveQty(item.id)} disabled={saving} className="px-2 py-1 rounded-lg text-xs" style={{ background: GOLD, color: 'var(--noir)', fontWeight: 600 }}>OK</button>
                             <button onClick={() => setEditId(null)} className="px-2 py-1 rounded-lg text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: '#999' }}>✕</button>
                           </div>
                         ) : (
-                          <button onClick={() => { setEditId(item.id); setEditQty(String(item.quantity)); }} style={{ color: item.quantity === 0 ? '#EF4444' : '#fff', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none' }}>
+                          <button onClick={() => { setEditId(item.id); setEditQty(String(item.quantity)); }} style={{ color: item.quantity === 0 ? 'var(--danger)' : '#fff', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none' }}>
                             {fmt(item.quantity)}
                           </button>
                         )}
@@ -393,7 +393,7 @@ export default function AdminInventaire() {
                   </div>
 
                   {showProductDrop && filteredProducts.length > 0 && (
-                    <div className="absolute left-0 right-0 z-10 mt-1 rounded-xl overflow-hidden overflow-y-auto" style={{ background: '#1a1a1a', border: `1px solid rgba(197,165,90,0.15)`, maxHeight: 220 }}>
+                    <div className="absolute left-0 right-0 z-10 mt-1 rounded-xl overflow-hidden overflow-y-auto" style={{ background: 'var(--noir-card)', border: `1px solid rgba(197,165,90,0.15)`, maxHeight: 220 }}>
                       {filteredProducts.slice(0, 20).map((p) => (
                         <button
                           key={p.id}
@@ -469,7 +469,7 @@ export default function AdminInventaire() {
                 onClick={addItem}
                 disabled={saving || !newItem.name}
                 className="flex-1 py-2.5 rounded-xl font-semibold text-sm"
-                style={{ background: `linear-gradient(135deg,${GOLD},#A68B3E)`, color: '#080808', opacity: saving || !newItem.name ? 0.5 : 1 }}
+                style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)', opacity: saving || !newItem.name ? 0.5 : 1 }}
               >
                 {saving ? 'Enregistrement…' : 'Ajouter à l\'inventaire'}
               </button>

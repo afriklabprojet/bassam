@@ -6,12 +6,16 @@ import ContactForm from '@/components/ContactForm';
 import { getContactFaq } from '@/lib/supabase/contact-content';
 
 
-export const metadata: Metadata = {
-  title: 'Contact \u2014 VIP Parfumerie Bar Abidjan',
-  description: 'Contactez VIP Parfumerie Bar \u00e0 Abidjan pour vos parfums de luxe. WhatsApp, t\u00e9l\u00e9phone, email \u2014 r\u00e9ponse en moins de 2h. Livraison C\u00f4te d\'Ivoire.',
-  keywords: 'contact parfumerie Abidjan, boutique parfum Abidjan t\u00e9l\u00e9phone, VIP Parfumerie Bar contact',
-  alternates: { canonical: `${BASE_URL}/contact` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Contact \u2014 ${siteName} Abidjan`,
+    description: `Contactez ${siteName} \u00e0 Abidjan pour vos parfums de luxe. WhatsApp, t\u00e9l\u00e9phone, email \u2014 r\u00e9ponse en moins de 2h. Livraison C\u00f4te d'Ivoire.`,
+    keywords: `contact parfumerie Abidjan, boutique parfum Abidjan t\u00e9l\u00e9phone, ${siteName} contact`,
+    alternates: { canonical: `${BASE_URL}/contact` },
+  };
+}
 
 /* ─── Données ───────────────────────────────────────────── */
 
@@ -31,7 +35,7 @@ function buildCanaux(s: SiteSettings) {
       titre: 'WhatsApp',
       valeur: whatsappValue,
       sous: 'Réponse en moins de 2h — 7j/7',
-      href: buildWhatsAppHref(s, 'Bonjour VIP Parfumerie Bar, je souhaite vous contacter.'),
+      href: buildWhatsAppHref(s, `Bonjour ${s.site_name}, je souhaite vous contacter.`),
       label: 'Écrire sur WhatsApp',
       extern: true,
     });

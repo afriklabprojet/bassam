@@ -6,9 +6,8 @@ import { normalizeOrderItemsForPersistence, type IncomingOrderItem } from '@/lib
 import { createOrder } from '@/lib/supabase/orders';
 import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY, getJekoConfigDiagnostics } from '@/lib/payment/jeko';
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { PAYMENT_INITIATE_RATE_LIMIT as PAYMENT_RATE_LIMIT } from '@/lib/rate-limit-config';
 import { logger } from '@/lib/logger';
-
-const PAYMENT_RATE_LIMIT = { limit: 5, windowSec: 60 };
 const PAYMENT_LOG_CONTEXT = 'API /payment/initiate';
 
 type MobileProvider = 'orange' | 'mtn' | 'wave' | 'moov' | 'djamo';

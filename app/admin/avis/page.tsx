@@ -18,8 +18,8 @@ function Stars({ rating }: Readonly<{ rating: number }>) {
     <span style={{ display: 'flex', gap: 2 }}>
       {[1, 2, 3, 4, 5].map(n => (
         <svg key={n} width="12" height="12" viewBox="0 0 24 24"
-          fill={n <= rating ? '#C5A55A' : 'none'}
-          stroke={n <= rating ? '#C5A55A' : '#555'}
+          fill={n <= rating ? 'var(--gold)' : 'none'}
+          stroke={n <= rating ? 'var(--gold)' : '#555'}
           strokeWidth="1.5"
         >
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -110,11 +110,11 @@ export default function AdminAvisPage() {
               {/* Info */}
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.625rem' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#C5A55A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#080808', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--noir)', fontWeight: 700, fontSize: '0.875rem', flexShrink: 0 }}>
                     {r.name.charAt(0)}
                   </div>
                   <div>
-                    <p style={{ color: '#F5F0E8', fontWeight: 600, fontSize: '0.9375rem', lineHeight: 1.2 }}>{r.name}</p>
+                    <p style={{ color: 'var(--cream)', fontWeight: 600, fontSize: '0.9375rem', lineHeight: 1.2 }}>{r.name}</p>
                     <p style={{ color: 'rgba(245,240,232,0.45)', fontSize: '0.75rem' }}>{r.ville} · {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                 </div>
@@ -141,7 +141,7 @@ export default function AdminAvisPage() {
                   <button
                     onClick={() => handleAction(r.id, 'approve')}
                     disabled={actionId === r.id}
-                    style={{ padding: '0.5rem 1rem', background: '#27ae60', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.8125rem' }}
+                    style={{ padding: '0.5rem 1rem', background: 'var(--success)', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: '0.8125rem' }}
                   >
                     ✓ Approuver
                   </button>
@@ -149,7 +149,7 @@ export default function AdminAvisPage() {
                 <button
                   onClick={() => handleAction(r.id, 'delete')}
                   disabled={actionId === r.id}
-                  style={{ padding: '0.5rem 0.75rem', background: 'rgba(192,57,43,0.15)', color: '#e74c3c', border: '1px solid rgba(192,57,43,0.3)', borderRadius: 8, cursor: 'pointer', fontSize: '0.8125rem' }}
+                  style={{ padding: '0.5rem 0.75rem', background: 'rgba(239,68,68,0.15)', color: 'var(--danger)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, cursor: 'pointer', fontSize: '0.8125rem' }}
                   title="Supprimer définitivement"
                 >
                   ✕
@@ -166,7 +166,7 @@ export default function AdminAvisPage() {
     <div style={{ padding: '2rem', maxWidth: 900 }}>
       {/* En-tête */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ color: '#F5F0E8', fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '0.375rem' }}>
+        <h1 style={{ color: 'var(--cream)', fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '0.375rem' }}>
           Avis clients
         </h1>
         <p style={{ color: 'rgba(245,240,232,0.5)', fontSize: '0.875rem' }}>
@@ -177,9 +177,9 @@ export default function AdminAvisPage() {
       {/* Compteurs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem', marginBottom: '2rem' }}>
         {[
-          { label: 'En attente',  value: pending,  color: '#f39c12' },
-          { label: 'Approuvés',   value: approved, color: '#27ae60' },
-          { label: 'Total',       value: reviews.length, color: '#C5A55A' },
+          { label: 'En attente',  value: pending,  color: 'var(--warning)' },
+          { label: 'Approuvés',   value: approved, color: 'var(--success)' },
+          { label: 'Total',       value: reviews.length, color: 'var(--gold)' },
         ].map(s => (
           <div key={s.label} style={{ ...card, textAlign: 'center' }}>
             <p style={{ fontSize: '2rem', fontWeight: 700, color: s.color }}>{s.value}</p>
@@ -200,8 +200,8 @@ export default function AdminAvisPage() {
             onClick={() => setTab(t.key)}
             style={{
               padding: '0.5rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: tab === t.key ? '#C5A55A' : 'rgba(255,255,255,0.05)',
-              color: tab === t.key ? '#080808' : 'rgba(245,240,232,0.7)',
+              background: tab === t.key ? 'var(--gold)' : 'rgba(255,255,255,0.05)',
+              color: tab === t.key ? 'var(--noir)' : 'rgba(245,240,232,0.7)',
               fontWeight: tab === t.key ? 700 : 400, fontSize: '0.875rem',
             }}
           >

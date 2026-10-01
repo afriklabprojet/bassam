@@ -3,11 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import BrandingPanel from './BrandingPanel';
+import { TOAST_DURATION_LONG_MS } from '@/lib/constants';
 
 interface SettingsForm {
+  site_name: string;
   support_phone: string;
   support_phone_display: string;
   support_email: string;
+  order_notification_email: string;
   whatsapp_number: string;
   whatsapp_display: string;
   address_display: string;
@@ -28,9 +31,11 @@ interface SettingsForm {
 }
 
 const EMPTY: SettingsForm = {
+  site_name: '',
   support_phone: '',
   support_phone_display: '',
   support_email: '',
+  order_notification_email: '',
   whatsapp_number: '',
   whatsapp_display: '',
   address_display: '',
@@ -231,7 +236,7 @@ function PhotoUpload({
         </div>
       </div>
 
-      {error && <span style={{ color: '#fca5a5', fontSize: 11 }}>{error}</span>}
+      {error && <span style={{ color: 'var(--danger)', fontSize: 11 }}>{error}</span>}
       <span style={{ color: '#666', fontSize: 11 }}>JPEG, PNG ou WebP · max 5 Mo · affiché dans la confirmation de réservation</span>
 
       <input
@@ -293,7 +298,7 @@ export default function ParametresPage() {
       setToast({ ok: false, msg: err instanceof Error ? err.message : 'Erreur inconnue' });
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 4000);
+      setTimeout(() => setToast(null), TOAST_DURATION_LONG_MS);
     }
   };
 
@@ -323,7 +328,7 @@ export default function ParametresPage() {
           style={{
             background: toast.ok ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
             border: `1px solid ${toast.ok ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
-            color: toast.ok ? '#86efac' : '#fca5a5',
+            color: toast.ok ? 'var(--success)' : 'var(--danger)',
             borderRadius: 8,
             padding: '12px 16px',
             marginBottom: 24,
@@ -333,6 +338,25 @@ export default function ParametresPage() {
           {toast.msg}
         </div>
       )}
+
+      {/* 🏷️ Identité */}
+      <Section
+        icon={
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke={GOLD} strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+          </svg>
+        }
+        title="Identité"
+      >
+        <Field
+          label="Nom de la marque"
+          name="site_name"
+          value={form.site_name}
+          onChange={handleChange}
+          placeholder="VIP Parfumerie Bar"
+          hint="Affiché partout sur le site (titres, header, footer, emails)"
+        />
+      </Section>
 
       {/* 📞 Contact téléphonique */}
       <Section
@@ -367,6 +391,15 @@ export default function ParametresPage() {
           type="email"
           placeholder="contact@vip-parfumerie.com"
           hint="Affiché sur la page Contact"
+        />
+        <Field
+          label="Email des commandes (vendeur)"
+          name="order_notification_email"
+          value={form.order_notification_email}
+          onChange={handleChange}
+          type="email"
+          placeholder="commande@vip-parfumerie.com"
+          hint="Reçoit la copie des notifications de commande payée. Vide = utilise l'email de contact"
         />
       </Section>
 
@@ -412,7 +445,7 @@ export default function ParametresPage() {
           name="whatsapp_number"
           value={form.whatsapp_number}
           onChange={handleChange}
-          placeholder="22600000000"
+          placeholder="22500000000"
           hint="Doit être enregistré sur WhatsApp"
         />
         <Field
@@ -420,7 +453,7 @@ export default function ParametresPage() {
           name="whatsapp_display"
           value={form.whatsapp_display}
           onChange={handleChange}
-          placeholder="+226 00 00 00 00"
+          placeholder="+225 00 00 00 00"
           hint="Texte affiché sur le bouton flottant"
         />
       </Section>
@@ -588,7 +621,7 @@ export default function ParametresPage() {
           disabled={saving}
           style={{
             background: saving ? 'rgba(197,165,90,0.4)' : GOLD,
-            color: '#0D0D0D',
+            color: 'var(--noir)',
             border: 'none',
             borderRadius: 8,
             padding: '12px 32px',

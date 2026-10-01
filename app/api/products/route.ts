@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { ProductFilters } from '@/types/product.types';
 import { getProducts, getBrands } from '@/lib/supabase/products';
 import { logger } from '@/lib/logger';
+import { CACHE_CONTROL_MEDIUM, CACHE_CONTROL_SHORT, PRODUCTS_LIST_PAGE_DEFAULT, PRODUCTS_LIST_LIMIT_DEFAULT } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     if (searchParams.get('brands') === 'true') {
       const brands = await getBrands();
       return NextResponse.json({ brands }, {
-        headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+        headers: { 'Cache-Control': CACHE_CONTROL_MEDIUM },
       });
     }
 
@@ -25,14 +26,14 @@ export async function GET(request: NextRequest) {
       featured: searchParams.get('featured') === 'true' ? true : undefined,
       promo: searchParams.get('filtre') === 'promo' ? true : undefined,
       tri: (searchParams.get('tri') as ProductFilters['tri']) || undefined,
-      page: searchParams.get('page') ? Number(searchParams.get('page')) : 1,
-      limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : 12,
+      page: searchParams.get('page') ? Number(searchParams.get('page')) : PRODUCTS_LIST_PAGE_DEFAULT,
+      limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : PRODUCTS_LIST_LIMIT_DEFAULT,
     };
 
     const response = await getProducts(filters);
 
     return NextResponse.json(response, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
+      headers: { 'Cache-Control': CACHE_CONTROL_SHORT },
     });
   } catch (error) {
     logger.error('API /products', 'Failed to load products', error);

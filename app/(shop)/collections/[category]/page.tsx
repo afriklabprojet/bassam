@@ -1,4 +1,6 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
+import { PAGE_SIZE_COLLECTION } from '@/lib/constants';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,6 +16,7 @@ interface PageProps {
 
 
 // ISR: revalidate every 5 minutes
+// Next.js requires a static literal here (must match REVALIDATE_MEDIUM_SEC in lib/constants.ts)
 export const revalidate = 300;
 
 type CategoryMeta = {
@@ -42,7 +45,7 @@ const CATEGORY_META: Record<string, CategoryMeta> = {
   },
   nouveautes: {
     title: 'Nouveautés',
-    description: 'Les dernières fragrances arrivées chez VIP Parfumerie Bar.',
+    description: 'Les dernières fragrances arrivées.',
   },
   'soins-visage': {
     title: 'Soins Visage',
@@ -62,7 +65,7 @@ const CATEGORY_META: Record<string, CategoryMeta> = {
 // Cela évite les timeouts Supabase au moment du build
 export const dynamicParams = true;
 
-async function resolveCategoryMeta(category: string): Promise<CategoryMeta | null> {
+async function resolveCategoryMeta(category: string, siteName: string): Promise<CategoryMeta | null> {
   const staticMeta = CATEGORY_META[category];
   if (staticMeta) {
     return staticMeta;
@@ -72,7 +75,7 @@ async function resolveCategoryMeta(category: string): Promise<CategoryMeta | nul
   if (dbCategory) {
     return {
       title: dbCategory.name,
-      description: dbCategory.description ?? `Découvrez la catégorie ${dbCategory.name} chez VIP Parfumerie Bar.`,
+      description: dbCategory.description ?? `Découvrez la catégorie ${dbCategory.name} chez ${siteName}.`,
       category: dbCategory.slug,
       imageUrl: dbCategory.image_url,
     };
@@ -86,7 +89,7 @@ async function resolveCategoryMeta(category: string): Promise<CategoryMeta | nul
 
   return {
     title: dbCollection.name,
-    description: dbCollection.description ?? `Découvrez la collection ${dbCollection.name} chez VIP Parfumerie Bar.`,
+    description: dbCollection.description ?? `Découvrez la collection ${dbCollection.name} chez ${siteName}.`,
     collectionId: dbCollection.id,
     imageUrl: dbCollection.image_url,
   };
@@ -94,37 +97,38 @@ async function resolveCategoryMeta(category: string): Promise<CategoryMeta | nul
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category } = await params;
-  const meta = await resolveCategoryMeta(category);
+  const { site_name: siteName } = await getSiteSettings();
+  const meta = await resolveCategoryMeta(category, siteName);
 
   if (!meta) {
-    return { title: 'Collection | VIP Parfumerie Bar' };
+    return { title: `Collection | ${siteName}` };
   }
 
   return {
-    title: `${meta.title} | VIP Parfumerie Bar Abidjan`,
+    title: `${meta.title} | ${siteName} Abidjan`,
     description: meta.description,
     keywords: `${meta.title.toLowerCase()} Abidjan, ${meta.title.toLowerCase()} Côte d'Ivoire, parfum luxe ${meta.title.toLowerCase()}, acheter parfum Abidjan`,
     alternates: { canonical: `${BASE_URL}/collections/${category}` },
     openGraph: {
-      title: `${meta.title} — VIP Parfumerie Bar`,
+      title: `${meta.title} — ${siteName}`,
       description: meta.description,
       locale: 'fr_CI',
     },
   };
 }
 
-async function getProductsByCategory(category: string): Promise<Product[]> {
-  const meta = await resolveCategoryMeta(category);
+async function getProductsByCategory(category: string, siteName: string): Promise<Product[]> {
+  const meta = await resolveCategoryMeta(category, siteName);
   try {
     let filters: Parameters<typeof getProducts>[0];
     if (category === 'nouveautes') {
-      filters = { tri: 'nouveautes' as const, limit: 48 };
+      filters = { tri: 'nouveautes' as const, limit: PAGE_SIZE_COLLECTION };
     } else if (meta?.collectionId) {
-      filters = { collectionId: meta.collectionId, limit: 48 };
+      filters = { collectionId: meta.collectionId, limit: PAGE_SIZE_COLLECTION };
     } else if (meta?.category) {
-      filters = { category: meta.category, limit: 48 };
+      filters = { category: meta.category, limit: PAGE_SIZE_COLLECTION };
     } else {
-      filters = { category, limit: 48 };
+      filters = { category, limit: PAGE_SIZE_COLLECTION };
     }
     const { products } = await getProducts(filters);
     return products;
@@ -135,11 +139,12 @@ async function getProductsByCategory(category: string): Promise<Product[]> {
 
 export default async function CategoryPage({ params }: Readonly<PageProps>) {
   const { category } = await params;
-  const meta = await resolveCategoryMeta(category);
+  const { site_name: siteName } = await getSiteSettings();
+  const meta = await resolveCategoryMeta(category, siteName);
 
   if (!meta) notFound();
 
-  const products = await getProductsByCategory(category);
+  const products = await getProductsByCategory(category, siteName);
 
   // Schema.org BreadcrumbList JSON-LD
   const jsonLd = {

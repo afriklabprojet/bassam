@@ -1,26 +1,31 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
+import { PAGE_SIZE_DEFAULT, REVALIDATE_SHORT_SEC } from '@/lib/constants';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import type { Product } from '@/types/product.types';
-export const metadata: Metadata = {
-title: 'Nouveaux Parfums à Abidjan -- Dernières Arrivées | VIP Parfumerie Bar',
-description: "Découvrez les derniers parfums de luxe arrivés à Abidjan chez VIP Parfumerie Bar. Sauvage Elixir, Baccarat Rouge 540 et plus. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
+export async function generateMetadata(): Promise<Metadata> {
+const { site_name: siteName } = await getSiteSettings();
+return {
+title: `Nouveaux Parfums à Abidjan -- Dernières Arrivées | ${siteName}`,
+description: `Découvrez les derniers parfums de luxe arrivés à Abidjan chez ${siteName}. Sauvage Elixir, Baccarat Rouge 540 et plus. Livraison Côte d'Ivoire et Afrique de l'Ouest.`,
 keywords: "nouveaux parfums Abidjan, nouveautés parfums Côte d'Ivoire, dernières arrivées parfumerie Abidjan, parfum 2024 Abidjan",
 alternates: { canonical: `${BASE_URL}/collections/nouveautes` },
 openGraph: {
-title: 'Nouveaux Parfums à Abidjan | VIP Parfumerie Bar',
+title: `Nouveaux Parfums à Abidjan | ${siteName}`,
 description: "Les dernières fragrances de luxe disponibles à Abidjan. Livraison Côte d'Ivoire.",
 url: `${BASE_URL}/collections/nouveautes`,
 type: 'website',
 locale: 'fr_CI',
 },
 };
+}
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
 async function getNewArrivals(): Promise<Product[]> {
 try {
-const res = await fetch(`${BASE_URL}/api/products?sort=newest&limit=8`, {
-next: { revalidate: 60 },
+const res = await fetch(`${BASE_URL}/api/products?sort=newest&limit=${PAGE_SIZE_DEFAULT}`, {
+next: { revalidate: REVALIDATE_SHORT_SEC },
 });
 if (!res.ok) return [];
 const data = await res.json();
@@ -55,7 +60,7 @@ return (
 <div style={{ maxWidth: 680 }}>
 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
 <svg width="18" height="18" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-<path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="#C5A55A" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+<path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="var(--gold)" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
 </svg>
 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
 Dernières arrivées

@@ -1,4 +1,5 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import CreationConfigurator from '@/components/CreationConfigurator';
@@ -8,52 +9,58 @@ import { getServicesContent } from '@/lib/supabase/services-content';
 export const dynamic = 'force-dynamic';
 
 
-export const metadata: Metadata = {
-  title: 'Parfum Personnalisé sur Mesure à Abidjan | VIP Parfumerie Bar',
-  description: "Faites créer votre parfum unique à Abidjan : accord sur-mesure, flacon gravé, coffret luxe numéroté. La fragrance exclusive signée à votre nom en Côte d'Ivoire.",
-  keywords: "parfum sur mesure Abidjan, création parfum personnalisé Côte d'Ivoire, parfum unique Abidjan, parfumeur Abidjan",
-  alternates: { canonical: `${BASE_URL}/services/creation-personnalisee` },
-  openGraph: {
-    title: 'Parfum Personnalisé sur Mesure | VIP Parfumerie Bar Abidjan',
-    description: "Créez votre parfum unique à Abidjan — accord sur-mesure, flacon gravé, coffret luxe.",
-    url: `${BASE_URL}/services/creation-personnalisee`,
-    type: 'website',
-    locale: 'fr_CI',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Parfum Personnalisé sur Mesure à Abidjan | ${siteName}`,
+    description: "Faites créer votre parfum unique à Abidjan : accord sur-mesure, flacon gravé, coffret luxe numéroté. La fragrance exclusive signée à votre nom en Côte d'Ivoire.",
+    keywords: "parfum sur mesure Abidjan, création parfum personnalisé Côte d'Ivoire, parfum unique Abidjan, parfumeur Abidjan",
+    alternates: { canonical: `${BASE_URL}/services/creation-personnalisee` },
+    openGraph: {
+      title: `Parfum Personnalisé sur Mesure | ${siteName} Abidjan`,
+      description: "Créez votre parfum unique à Abidjan — accord sur-mesure, flacon gravé, coffret luxe.",
+      url: `${BASE_URL}/services/creation-personnalisee`,
+      type: 'website',
+      locale: 'fr_CI',
+    },
+  };
+}
 
 /* ─── Data ───────────────────────────────────────────────── */
 
-const etapes = [
-  {
-    num: '01',
-    titre: "Votre brief créatif",
-    description:
-      "Vous nous décrivez votre vision : inspirations, émotions recherchées, occasions. Plus votre brief est précis, plus le résultat sera juste.",
-    duree: "2–3 jours",
-  },
-  {
-    num: '02',
-    titre: "Formulation & accords",
-    description:
-      "Notre master-parfumeur sélectionne les meilleures matières premières et compose 3 propositions olfactives distinctes selon votre brief.",
-    duree: "7–10 jours",
-  },
-  {
-    num: '03',
-    titre: "Sélection & affinage",
-    description:
-      "Vous testez les 3 accords. Nous affinons ensemble jusqu'à atteindre exactement ce que vous imaginiez. Jusqu'à 2 cycles de retouches inclus.",
-    duree: "3–5 jours",
-  },
-  {
-    num: '04',
-    titre: "Production & livraison",
-    description:
-      "Votre formule est produite en exclusivité, embouteillée dans votre flacon gravé, présentée dans le coffret luxe VIP Parfumerie Bar.",
-    duree: "5–7 jours",
-  },
-];
+function getEtapes(siteName: string) {
+  return [
+    {
+      num: '01',
+      titre: "Votre brief créatif",
+      description:
+        "Vous nous décrivez votre vision : inspirations, émotions recherchées, occasions. Plus votre brief est précis, plus le résultat sera juste.",
+      duree: "2–3 jours",
+    },
+    {
+      num: '02',
+      titre: "Formulation & accords",
+      description:
+        "Notre master-parfumeur sélectionne les meilleures matières premières et compose 3 propositions olfactives distinctes selon votre brief.",
+      duree: "7–10 jours",
+    },
+    {
+      num: '03',
+      titre: "Sélection & affinage",
+      description:
+        "Vous testez les 3 accords. Nous affinons ensemble jusqu'à atteindre exactement ce que vous imaginiez. Jusqu'à 2 cycles de retouches inclus.",
+      duree: "3–5 jours",
+    },
+    {
+      num: '04',
+      titre: "Production & livraison",
+      description:
+        `Votre formule est produite en exclusivité, embouteillée dans votre flacon gravé, présentée dans le coffret luxe ${siteName}.`,
+      duree: "5–7 jours",
+    },
+  ];
+}
 
 const familles = [
   { nom: 'Floral', notes: 'Rose de Grasse, Jasmin Sambac, Pivoine, Tubéreuse', icone: '✦' },
@@ -67,12 +74,14 @@ const familles = [
 /* ─── Page ───────────────────────────────────────────────── */
 
 export default async function CreationPersonnalisee() {
-  const [creationConfig, servicesContent] = await Promise.all([
+  const [creationConfig, servicesContent, settings] = await Promise.all([
     fetchCreationConfig(),
     getServicesContent(),
+    getSiteSettings(),
   ]);
   const serviceData = servicesContent.find((s) => s.slug === 'creation-personnalisee');
   const heroImageUrl = serviceData?.hero_image_url ?? '';
+  const etapes = getEtapes(settings.site_name);
 
   return (
     <main>

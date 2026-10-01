@@ -1,26 +1,32 @@
 import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getProductCountsByCategory } from '@/lib/supabase/products';
 import { getCollectionsContent } from '@/lib/supabase/collections-content';
 import { getPublicCategories, getPublicCollections } from '@/lib/supabase/taxonomies';
 
+// Next.js requires a static literal here (must match REVALIDATE_MEDIUM_SEC in lib/constants.ts)
 export const revalidate = 300;
 
 
-export const metadata: Metadata = {
-  title: 'Collections de Parfums à Abidjan -- Femme, Homme, Mixte | VIP Parfumerie Bar',
-  description: "Explorez nos collections de parfums de luxe à Abidjan -- Femme, Homme, Mixte, Nouveautés. Les plus grandes maisons. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
-  keywords: "collections parfums Abidjan, parfumerie Côte d'Ivoire, collection parfum luxe Abidjan, catalogue parfum Abidjan",
-  alternates: { canonical: `${BASE_URL}/collections` },
-  openGraph: {
-    title: 'Collections de Parfums | VIP Parfumerie Bar Abidjan',
-    description: "Femme, Homme, Mixte -- toutes nos collections disponibles à Abidjan.",
-    url: `${BASE_URL}/collections`,
-    type: 'website',
-    locale: 'fr_CI',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `Collections de Parfums à Abidjan -- Femme, Homme, Mixte | ${siteName}`,
+    description: "Explorez nos collections de parfums de luxe à Abidjan -- Femme, Homme, Mixte, Nouveautés. Les plus grandes maisons. Livraison Côte d'Ivoire et Afrique de l'Ouest.",
+    keywords: "collections parfums Abidjan, parfumerie Côte d'Ivoire, collection parfum luxe Abidjan, catalogue parfum Abidjan",
+    alternates: { canonical: `${BASE_URL}/collections` },
+    openGraph: {
+      title: `Collections de Parfums | ${siteName} Abidjan`,
+      description: "Femme, Homme, Mixte -- toutes nos collections disponibles à Abidjan.",
+      url: `${BASE_URL}/collections`,
+      type: 'website',
+      locale: 'fr_CI',
+    },
+  };
+}
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -35,7 +41,7 @@ const COLLECTIONS = [
     textLight: false,
     icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="#C5A55A" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+        <path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="var(--gold)" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
       </svg>
     ),
     bg: '#0F0F0D',
@@ -51,8 +57,8 @@ const COLLECTIONS = [
     textLight: true,
     icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <circle cx="20" cy="16" r="9" stroke="#C5A55A" strokeWidth="1.5"/>
-        <path d="M20 25v10M15 30h10" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="20" cy="16" r="9" stroke="var(--gold)" strokeWidth="1.5"/>
+        <path d="M20 25v10M15 30h10" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
     ),
     bg: '#0D0A0F',
@@ -68,8 +74,8 @@ const COLLECTIONS = [
     textLight: true,
     icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <circle cx="20" cy="20" r="9" stroke="#C5A55A" strokeWidth="1.5"/>
-        <path d="M27 13l7-7M34 6h-5M34 6v5" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="20" cy="20" r="9" stroke="var(--gold)" strokeWidth="1.5"/>
+        <path d="M27 13l7-7M34 6h-5M34 6v5" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     ),
     bg: '#08090F',
@@ -85,8 +91,8 @@ const COLLECTIONS = [
     textLight: true,
     icon: (
       <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path d="M14 20c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z" stroke="#C5A55A" strokeWidth="1.5"/>
-        <path d="M10 10l5 5M30 10l-5 5M10 30l5-5M30 30l-5-5" stroke="#C5A55A" strokeWidth="1.2" strokeLinecap="round"/>
+        <path d="M14 20c0-3.3 2.7-6 6-6s6 2.7 6 6-2.7 6-6 6-6-2.7-6-6z" stroke="var(--gold)" strokeWidth="1.5"/>
+        <path d="M10 10l5 5M30 10l-5 5M10 30l5-5M30 30l-5-5" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round"/>
       </svg>
     ),
     bg: '#0A0D0A',
@@ -112,6 +118,7 @@ export default async function CollectionsPage() {
   } catch {
     // non-blocking
   }
+  const { site_name: siteName } = await getSiteSettings();
 
   const collectionsWithCounts = COLLECTIONS.map((col) => ({
     ...col,
@@ -137,7 +144,7 @@ export default async function CollectionsPage() {
       textLight: true,
       icon: (
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="#C5A55A" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+          <path d="M20 4l2.5 10h10l-8 5.5 3 10-7.5-5.5-7.5 5.5 3-10-8-5.5h10z" stroke="var(--gold)" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
         </svg>
       ),
       bg: '#0B0B0B',
@@ -158,8 +165,8 @@ export default async function CollectionsPage() {
       textLight: true,
       icon: (
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-          <rect x="8" y="10" width="24" height="20" rx="4" stroke="#C5A55A" strokeWidth="1.5" />
-          <path d="M14 18h12M14 23h8" stroke="#C5A55A" strokeWidth="1.5" strokeLinecap="round" />
+          <rect x="8" y="10" width="24" height="20" rx="4" stroke="var(--gold)" strokeWidth="1.5" />
+          <path d="M14 18h12M14 23h8" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       ),
       bg: '#0B0B0B',
@@ -178,7 +185,7 @@ export default async function CollectionsPage() {
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: '0.875rem' }}>
             <span style={{ display: 'block', width: 24, height: '1px', background: 'var(--gold)' }} />
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: '0.6rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>
-              VIP Parfumerie Bar
+              {siteName}
             </span>
             <span style={{ display: 'block', width: 24, height: '1px', background: 'var(--gold)' }} />
           </div>

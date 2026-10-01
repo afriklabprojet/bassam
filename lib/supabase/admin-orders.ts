@@ -1,9 +1,10 @@
 import { createClient } from './server';
+import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 type OrderItemJoin = { name: string; brand: string; slug: string };
 
 /** Get all orders (paginated) for admin */
-export async function getAdminOrders(page = 1, limit = 20, status?: string) {
+export async function getAdminOrders(page = ADMIN_PAGE_DEFAULT, limit = ADMIN_LIMIT_DEFAULT, status?: string) {
   const supabase = await createClient();
   const from = (page - 1) * limit;
   const to = from + limit - 1;

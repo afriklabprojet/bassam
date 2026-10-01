@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { isCurrentUserAdmin, getAdminProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 function normalizeProductPayload(body: unknown) {
   if (!body || typeof body !== 'object') {
@@ -66,8 +67,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const page = Number(searchParams.get('page') ?? 1);
-    const limit = Number(searchParams.get('limit') ?? 20);
+    const page = Number(searchParams.get('page') ?? ADMIN_PAGE_DEFAULT);
+    const limit = Number(searchParams.get('limit') ?? ADMIN_LIMIT_DEFAULT);
     const search = searchParams.get('q') || undefined;
 
     const result = await getAdminProducts(page, limit, search);

@@ -4,7 +4,8 @@ import { useCart } from '@/lib/cart-context';
 import Link from 'next/link';
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import { computePromoDiscount } from '@/lib/promo';
 import { DEFAULT_SHIPPING_CONFIG, getShippingFee, type ShippingConfig } from '@/lib/shipping';
 import type { Step, Direction, DeliveryInfo, PaymentMethod } from './checkout-ui';
@@ -17,7 +18,8 @@ import {
 function CheckoutPageInner() {
   const { items, totalPrice, promo, clearCart } = useCart();
   const searchParams = useSearchParams();
-  const hasWhatsappSupport = hasWhatsAppSupport();
+  const siteSettings = useSiteSettings();
+  const hasWhatsappSupport = hasWhatsApp(siteSettings);
   const [step, setStep] = useState<Step>(1);
   const [direction, setDirection] = useState<Direction>('forward');
   const [attempted, setAttempted] = useState(false);
@@ -149,9 +151,9 @@ function CheckoutPageInner() {
 
       <div className="checkout-main container mx-auto py-10" style={{ maxWidth: '960px' }}>
         {paymentFailedNotice && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.8125rem', color: '#c0392b', padding: '0.875rem 1rem', background: 'rgba(192,57,43,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(192,57,43,0.2)', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', fontSize: '0.8125rem', color: 'var(--danger)', padding: '0.875rem 1rem', background: 'rgba(239,68,68,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '1.5rem' }}>
             <span>Le paiement a échoué ou a été annulé. Vos articles sont toujours dans votre panier, vous pouvez réessayer.</span>
-            <button type="button" onClick={() => setPaymentFailedNotice(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}>×</button>
+            <button type="button" onClick={() => setPaymentFailedNotice(false)} aria-label="Fermer" style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}>×</button>
           </div>
         )}
         <ProgressBar step={step} />
@@ -239,7 +241,7 @@ function CheckoutPageInner() {
                   </p>
                   <div style={{ animation: 'fadeSlideUp 0.45s ease 0.76s both' }}>
                     {hasWhatsappSupport ? (
-                      <a href={buildWhatsAppHref(`Bonjour, j'ai passé la commande ${orderNumber}.`)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}>
+                      <a href={buildWhatsAppHref(siteSettings, `Bonjour, j'ai passé la commande ${orderNumber}.`)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45z"/>
                         </svg>

@@ -91,7 +91,7 @@ function StepDots({ step, total }: Readonly<{ step: number; total: number }>) {
 function Label({ htmlFor, children, required }: Readonly<{ htmlFor: string; children: React.ReactNode; required?: boolean }>) {
   return (
     <label htmlFor={htmlFor} style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-      {children}{required && <span style={{ color: '#EF4444', marginLeft: 3 }}>*</span>}
+      {children}{required && <span style={{ color: 'var(--danger)', marginLeft: 3 }}>*</span>}
     </label>
   );
 }
@@ -447,7 +447,7 @@ export default function ConsultationForm({ siteUrl: _siteUrl, consultants }: Rea
           </div>
 
           {status === 'error' && (
-            <p style={{ fontSize: '0.8125rem', color: '#EF4444', margin: '12px 0 0' }}>{errorMsg}</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--danger)', margin: '12px 0 0' }}>{errorMsg}</p>
           )}
 
           <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>

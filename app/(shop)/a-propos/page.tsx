@@ -7,6 +7,7 @@ import {
 } from '@/lib/supabase/about-content';
 
 // ISR — revalide toutes les 5 minutes
+// Next.js requires a static literal here (must match REVALIDATE_MEDIUM_SEC in lib/constants.ts)
 export const revalidate = 300;
 
 

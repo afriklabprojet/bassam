@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { buildFromAddress } from '@/lib/email-from';
+import { getSiteSettings } from '@/lib/site-settings';
 
 // GET /api/admin/marketing/newsletter?page=1&limit=50
 export async function GET(request: NextRequest) {
@@ -82,8 +84,9 @@ export async function POST(request: NextRequest) {
     } else if (resendKey && subs && subs.length > 0) {
       // Send via Resend REST API (no package needed)
       try {
+        const { site_name: siteName } = await getSiteSettings();
         const fromEmail = process.env.RESEND_FROM_EMAIL
-          ?? 'VIP Parfumerie Bar <newsletter@vipparfumeriebar.com>';
+          ?? buildFromAddress('newsletter', siteName);
         const htmlContent = `${preview_text?.trim() ? `<p style="color:#999;font-size:14px;margin-bottom:16px">${preview_text.trim()}</p>` : ''}${body_html.trim()}`;
 
         // Resend supports batch up to 100 emails per call

@@ -3,11 +3,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
 import { formatCFA } from '@/lib/format';
+import { ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 function getStockStyle(qty: number): { background: string; color: string } {
-  if (qty > 5) return { background: 'rgba(34,197,94,0.15)', color: '#22C55E' };
-  if (qty > 0) return { background: 'rgba(251,191,36,0.15)', color: '#FBBF24' };
-  return { background: 'rgba(239,68,68,0.15)', color: '#EF4444' };
+  if (qty > 5) return { background: 'rgba(16,185,129,0.15)', color: 'var(--success)' };
+  if (qty > 0) return { background: 'rgba(245,158,11,0.15)', color: 'var(--warning)' };
+  return { background: 'rgba(239,68,68,0.15)', color: 'var(--danger)' };
 }
 
 interface CategoryOption {
@@ -121,7 +122,7 @@ export default function AdminProducts() {
 
   async function load() {
     try {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
+      const params = new URLSearchParams({ page: String(page), limit: String(ADMIN_LIMIT_DEFAULT) });
       if (search) params.set('q', search);
       const res = await fetch(`/api/admin/products?${params}`);
       if (!res.ok) {
@@ -142,7 +143,7 @@ export default function AdminProducts() {
   useEffect(() => {
     void (async () => {
       try {
-        const params = new URLSearchParams({ page: String(page), limit: '20' });
+        const params = new URLSearchParams({ page: String(page), limit: String(ADMIN_LIMIT_DEFAULT) });
         if (search) params.set('q', search);
         const res = await fetch(`/api/admin/products?${params}`);
         if (!res.ok) {
@@ -406,7 +407,7 @@ export default function AdminProducts() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => openEdit(p)}
-                        style={{ color: '#60A5FA', cursor: 'pointer' }}
+                        style={{ color: 'var(--info)', cursor: 'pointer' }}
                         title="Modifier"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -417,7 +418,7 @@ export default function AdminProducts() {
                       <button
                         onClick={() => handleDelete(p.id, p.name)}
                         disabled={actionLoading === p.id}
-                        style={{ color: '#EF4444', opacity: 0.7, cursor: 'pointer' }}
+                        style={{ color: 'var(--danger)', opacity: 0.7, cursor: 'pointer' }}
                         title="Supprimer"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -439,7 +440,7 @@ export default function AdminProducts() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>
+        <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>
           {error}
         </div>
       </div>
@@ -759,7 +760,7 @@ export default function AdminProducts() {
 
               {/* Form error */}
               {formError && (
-                <div className="px-4 py-3 rounded-lg text-sm" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>
+                <div className="px-4 py-3 rounded-lg text-sm" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>
                   {formError}
                 </div>
               )}

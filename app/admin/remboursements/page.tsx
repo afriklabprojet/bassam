@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { GOLD } from '@/lib/admin-theme';
+import { GOLD, GOLD_DEEP, CARD_BG } from '@/lib/admin-theme';
+import { ADMIN_LIST_LIMIT } from '@/lib/constants';
+import { getSemanticStatusStyle } from '@/lib/status-theme';
 
 interface Refund {
   id: string;
@@ -24,15 +26,14 @@ interface Stats {
   total_pending_amount: number; total_processed_amount: number;
 }
 
-const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  pending:   { bg: 'rgba(245,158,11,0.12)', color: '#F59E0B', label: 'En attente' },
-  approved:  { bg: 'rgba(59,130,246,0.12)',  color: '#3B82F6', label: 'Approuvé' },
-  rejected:  { bg: 'rgba(239,68,68,0.12)',  color: '#EF4444', label: 'Rejeté' },
-  processed: { bg: 'rgba(16,185,129,0.12)', color: '#10B981', label: 'Traité' },
-  cancelled: { bg: 'rgba(107,114,128,0.12)',color: '#6B7280', label: 'Annulé' },
+  pending:   { ...getSemanticStatusStyle('warning'), label: 'En attente' },
+  approved:  { ...getSemanticStatusStyle('info'),    label: 'Approuvé' },
+  rejected:  { ...getSemanticStatusStyle('danger'),  label: 'Rejeté' },
+  processed: { ...getSemanticStatusStyle('success'), label: 'Traité' },
+  cancelled: { ...getSemanticStatusStyle('neutral'), label: 'Annulé' },
 };
 
 function fmtCFA(n: number) { return new Intl.NumberFormat('fr-FR').format(n) + ' F'; }
@@ -53,7 +54,7 @@ export default function AdminRemboursements() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newRefund, setNewRefund] = useState({ order_id: '', amount: 0, currency: 'XOF', reason: '', refund_method: 'original', notes: '' });
-  const LIMIT = 50;
+  const LIMIT = ADMIN_LIST_LIMIT;
 
   async function load() {
     try {
@@ -111,7 +112,7 @@ export default function AdminRemboursements() {
 
   if (error) return (
     <div className="flex items-center justify-center h-64">
-      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{error}</div>
+      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>{error}</div>
     </div>
   );
 
@@ -124,7 +125,7 @@ export default function AdminRemboursements() {
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.75rem', fontWeight: 600, color: '#fff' }}>Remboursements</h1>
           <p style={{ color: '#666', fontSize: '0.875rem', marginTop: 2 }}>{total} demande{total > 1 ? 's' : ''}</p>
         </div>
-        <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: 'linear-gradient(135deg,#C5A55A,#A68B3E)', color: '#080808' }}>
+        <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14" /></svg>
           Nouvelle demande
         </button>
@@ -133,10 +134,10 @@ export default function AdminRemboursements() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'En attente', value: stats.pending, amount: stats.total_pending_amount, color: '#F59E0B', icon: '⏳' },
-          { label: 'Approuvés', value: stats.approved, amount: null, color: '#3B82F6', icon: '✓' },
-          { label: 'Traités', value: stats.processed, amount: stats.total_processed_amount, color: '#10B981', icon: '💸' },
-          { label: 'Rejetés', value: stats.rejected, amount: null, color: '#EF4444', icon: '✗' },
+          { label: 'En attente', value: stats.pending, amount: stats.total_pending_amount, color: 'var(--warning)', icon: '⏳' },
+          { label: 'Approuvés', value: stats.approved, amount: null, color: 'var(--info)', icon: '✓' },
+          { label: 'Traités', value: stats.processed, amount: stats.total_processed_amount, color: 'var(--success)', icon: '💸' },
+          { label: 'Rejetés', value: stats.rejected, amount: null, color: 'var(--danger)', icon: '✗' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl p-5" style={{ background: CARD_BG, border: BORDER }}>
             <div className="flex items-center justify-between mb-2">
@@ -151,7 +152,7 @@ export default function AdminRemboursements() {
 
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-2 mb-5">
-        <button onClick={() => { setStatusFilter(''); setPage(1); }} className="px-3.5 py-1.5 rounded-lg text-sm transition-all" style={{ background: !statusFilter ? GOLD : CARD_BG, color: !statusFilter ? '#080808' : '#999', fontWeight: !statusFilter ? 600 : 400 }}>Toutes</button>
+        <button onClick={() => { setStatusFilter(''); setPage(1); }} className="px-3.5 py-1.5 rounded-lg text-sm transition-all" style={{ background: !statusFilter ? GOLD : CARD_BG, color: !statusFilter ? 'var(--noir)' : '#999', fontWeight: !statusFilter ? 600 : 400 }}>Toutes</button>
         {Object.entries(STATUS_STYLE).map(([k, v]) => (
           <button key={k} onClick={() => { setStatusFilter(k); setPage(1); }} className="px-3.5 py-1.5 rounded-lg text-sm transition-all" style={{ background: statusFilter === k ? v.bg : CARD_BG, color: statusFilter === k ? v.color : '#999', fontWeight: statusFilter === k ? 600 : 400 }}>{v.label}</button>
         ))}
@@ -288,7 +289,7 @@ export default function AdminRemboursements() {
               <textarea placeholder="Notes admin" value={newRefund.notes} onChange={(e) => setNewRefund({ ...newRefund, notes: e.target.value })} rows={3} className="px-4 py-2.5 rounded-xl text-sm outline-none resize-none" style={{ background: CARD_BG, border: BORDER, color: '#fff' }} />
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={addRefund} disabled={saving === 'new' || !newRefund.amount || !newRefund.reason} className="flex-1 py-2.5 rounded-xl font-semibold text-sm" style={{ background: `linear-gradient(135deg,${GOLD},#A68B3E)`, color: '#080808' }}>
+              <button onClick={addRefund} disabled={saving === 'new' || !newRefund.amount || !newRefund.reason} className="flex-1 py-2.5 rounded-xl font-semibold text-sm" style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}>
                 {saving === 'new' ? 'Enregistrement…' : 'Créer la demande'}
               </button>
               <button onClick={() => setShowAdd(false)} className="px-5 py-2.5 rounded-xl text-sm" style={{ background: CARD_BG, color: '#999', border: BORDER }}>Annuler</button>

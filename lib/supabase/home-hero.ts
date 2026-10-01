@@ -136,7 +136,7 @@ function collectionLinksOrFallback(value: unknown, fallback: HeroCollectionLink[
       href: stringOrFallback(item.href, ''),
       name: stringOrFallback(item.name, ''),
       count: stringOrFallback(item.count, ''),
-      tone: stringOrFallback(item.tone, '#C5A55A'),
+      tone: stringOrFallback(item.tone, 'var(--gold)'),
     }))
     .filter((item) => item.href && item.name && item.count)
     .slice(0, 6);

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { GOLD } from '@/lib/admin-theme';
+import { GOLD, GOLD_DEEP, CARD_BG } from '@/lib/admin-theme';
+import { ADMIN_EXPORT_LIMIT, TOAST_DURATION_XS_MS } from '@/lib/constants';
 
 interface Barcode {
   id: string;
@@ -20,7 +21,6 @@ interface Product {
   brand: string;
 }
 
-const CARD_BG = 'rgba(255,255,255,0.04)';
 const BORDER = '1px solid rgba(255,255,255,0.07)';
 const FORMATS = ['EAN13', 'CODE128', 'QR', 'UPC', 'EAN8'];
 
@@ -76,7 +76,7 @@ export default function AdminCodesBarres() {
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch('/api/admin/products?limit=200');
+        const res = await fetch(`/api/admin/products?limit=${ADMIN_EXPORT_LIMIT}`);
         if (!res.ok) return;
         const d = await res.json();
         setProducts(d.products ?? []);
@@ -136,7 +136,7 @@ export default function AdminCodesBarres() {
   async function copyToClipboard(text: string) {
     await navigator.clipboard.writeText(text);
     setCopied(text);
-    setTimeout(() => setCopied(null), 2000);
+    setTimeout(() => setCopied(null), TOAST_DURATION_XS_MS);
   }
 
   const filtered = barcodes.filter((b) => {
@@ -150,7 +150,7 @@ export default function AdminCodesBarres() {
 
   if (error) return (
     <div className="flex items-center justify-center h-64">
-      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{error}</div>
+      <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>{error}</div>
     </div>
   );
 
@@ -165,7 +165,7 @@ export default function AdminCodesBarres() {
           <button onClick={generateEAN} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all" style={{ background: 'transparent', color: GOLD, border: `1px solid rgba(197,165,90,0.3)` }}>
             🔢 Générer EAN13
           </button>
-          <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: 'linear-gradient(135deg,#C5A55A,#A68B3E)', color: '#080808' }}>
+          <button onClick={() => setShowAdd(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14" /></svg>
             Ajouter
           </button>
@@ -179,7 +179,7 @@ export default function AdminCodesBarres() {
             <div style={{ color: '#888', fontSize: '0.7rem', marginBottom: 2 }}>EAN-13 généré</div>
             <div style={{ fontFamily: 'monospace', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.15em', color: GOLD }}>{generated}</div>
           </div>
-          <button onClick={() => copyToClipboard(generated)} className="ml-auto px-4 py-2 rounded-xl text-sm transition-all" style={{ background: copied === generated ? '#10B981' : CARD_BG, color: copied === generated ? '#fff' : '#999', border: BORDER }}>
+          <button onClick={() => copyToClipboard(generated)} className="ml-auto px-4 py-2 rounded-xl text-sm transition-all" style={{ background: copied === generated ? 'var(--success)' : CARD_BG, color: copied === generated ? '#fff' : '#999', border: BORDER }}>
             {copied === generated ? '✓ Copié' : '📋 Copier'}
           </button>
           <button onClick={() => setGenerated(null)} style={{ color: '#555', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 4 }}>✕</button>
@@ -189,12 +189,12 @@ export default function AdminCodesBarres() {
       {/* Alert: unlinked barcodes */}
       {unlinkedCount > 0 && (
         <div className="flex items-center gap-3 mb-5 px-5 py-3.5 rounded-xl" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-          <span style={{ color: '#F59E0B', fontSize: '1rem' }}>⚠️</span>
+          <span style={{ color: 'var(--warning)', fontSize: '1rem' }}>⚠️</span>
           <div>
-            <span style={{ color: '#F59E0B', fontWeight: 600, fontSize: '0.875rem' }}>{unlinkedCount} code{unlinkedCount > 1 ? 's' : ''} sans produit lié</span>
+            <span style={{ color: 'var(--warning)', fontWeight: 600, fontSize: '0.875rem' }}>{unlinkedCount} code{unlinkedCount > 1 ? 's' : ''} sans produit lié</span>
             <span style={{ color: '#666', fontSize: '0.8rem', marginLeft: 8 }}>— Cliquez sur «&nbsp;Lier&nbsp;» dans la colonne Produit</span>
           </div>
-          <button onClick={() => setFilterLinked('unlinked')} className="ml-auto px-3 py-1 rounded-lg text-xs" style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <button onClick={() => setFilterLinked('unlinked')} className="ml-auto px-3 py-1 rounded-lg text-xs" style={{ background: 'rgba(245,158,11,0.12)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.2)' }}>
             Voir uniquement
           </button>
         </div>
@@ -210,7 +210,7 @@ export default function AdminCodesBarres() {
             </button>
           ))}
         </div>
-        <label className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm cursor-pointer select-none" style={{ background: activeOnly ? 'rgba(16,185,129,0.12)' : CARD_BG, color: activeOnly ? '#10B981' : '#999', border: BORDER }}>
+        <label className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm cursor-pointer select-none" style={{ background: activeOnly ? 'rgba(16,185,129,0.12)' : CARD_BG, color: activeOnly ? 'var(--success)' : '#999', border: BORDER }}>
           <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} className="hidden" />
           {activeOnly ? '✓' : '○'} Actifs
         </label>
@@ -240,7 +240,7 @@ export default function AdminCodesBarres() {
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#fff', letterSpacing: '0.08em', fontSize: '0.9rem' }}>{b.barcode}</span>
-                        <button onClick={() => copyToClipboard(b.barcode)} style={{ color: copied === b.barcode ? '#10B981' : '#444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem' }}>
+                        <button onClick={() => copyToClipboard(b.barcode)} style={{ color: copied === b.barcode ? 'var(--success)' : '#444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem' }}>
                           {copied === b.barcode ? '✓' : '📋'}
                         </button>
                       </div>
@@ -257,7 +257,7 @@ export default function AdminCodesBarres() {
                             value={linkProductId}
                             onChange={(e) => setLinkProductId(e.target.value)}
                             className="flex-1 px-2 py-1 rounded-lg text-xs outline-none"
-                            style={{ background: '#1a1a1a', border: `1px solid rgba(197,165,90,0.3)`, color: '#fff' }}
+                            style={{ background: 'var(--noir-card)', border: `1px solid rgba(197,165,90,0.3)`, color: '#fff' }}
                           >
                             <option value="">— Aucun produit —</option>
                             {products.map((p) => (
@@ -268,7 +268,7 @@ export default function AdminCodesBarres() {
                             onClick={() => linkProduct(b.id, linkProductId)}
                             disabled={saving}
                             className="px-2 py-1 rounded-lg text-xs font-semibold"
-                            style={{ background: `linear-gradient(135deg,${GOLD},#A68B3E)`, color: '#080808', border: 'none', cursor: 'pointer' }}
+                            style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)', border: 'none', cursor: 'pointer' }}
                           >✓</button>
                           <button
                             onClick={() => { setEditingLink(null); setLinkProductId(''); }}
@@ -278,7 +278,7 @@ export default function AdminCodesBarres() {
                       ) : b.products?.name ? (
                         <div className="flex items-center gap-2 group">
                           <span className="flex items-center gap-1.5">
-                            <span style={{ color: '#10B981', fontSize: '0.65rem' }}>●</span>
+                            <span style={{ color: 'var(--success)', fontSize: '0.65rem' }}>●</span>
                             <span style={{ color: '#fff', fontSize: '0.8rem' }}>{b.products.name}</span>
                           </span>
                           <button
@@ -291,7 +291,7 @@ export default function AdminCodesBarres() {
                         <button
                           onClick={() => { setEditingLink(b.id); setLinkProductId(''); }}
                           className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all hover:border-yellow-500/40"
-                          style={{ background: 'rgba(245,158,11,0.08)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)', cursor: 'pointer' }}
+                          style={{ background: 'rgba(245,158,11,0.08)', color: 'var(--warning)', border: '1px solid rgba(245,158,11,0.2)', cursor: 'pointer' }}
                         >
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path d="M12 5v14M5 12h14" /></svg>
                           Lier un produit
@@ -299,7 +299,7 @@ export default function AdminCodesBarres() {
                       )}
                     </td>
                     <td className="px-5 py-3.5">
-                      <button onClick={() => toggleActive(b.id, b.active)} className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all" style={{ background: b.active ? 'rgba(16,185,129,0.12)' : 'rgba(107,114,128,0.12)', color: b.active ? '#10B981' : '#6B7280', cursor: 'pointer', border: 'none' }}>
+                      <button onClick={() => toggleActive(b.id, b.active)} className="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all" style={{ background: b.active ? 'rgba(16,185,129,0.12)' : 'rgba(107,114,128,0.12)', color: b.active ? 'var(--success)' : 'var(--neutral)', cursor: 'pointer', border: 'none' }}>
                         {b.active ? '● Actif' : '○ Inactif'}
                       </button>
                     </td>
@@ -350,7 +350,7 @@ export default function AdminCodesBarres() {
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={addBarcode} disabled={saving || !newCode.barcode} className="flex-1 py-2.5 rounded-xl font-semibold text-sm" style={{ background: `linear-gradient(135deg,${GOLD},#A68B3E)`, color: '#080808' }}>
+              <button onClick={addBarcode} disabled={saving || !newCode.barcode} className="flex-1 py-2.5 rounded-xl font-semibold text-sm" style={{ background: `linear-gradient(135deg,${GOLD},${GOLD_DEEP})`, color: 'var(--noir)' }}>
                 {saving ? 'Enregistrement…' : 'Ajouter'}
               </button>
               <button onClick={() => { setShowAdd(false); setGenerated(null); }} className="px-5 py-2.5 rounded-xl text-sm" style={{ background: CARD_BG, color: '#999', border: BORDER }}>Annuler</button>

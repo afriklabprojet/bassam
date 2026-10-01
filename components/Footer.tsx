@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useSiteSettings } from '@/lib/site-settings-context';
 import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
+import { splitBrandWordmark } from '@/lib/brand-name';
 
 type FooterLink = {
   label: string;
@@ -57,6 +58,7 @@ const LEGAL = [
 
 export default function Footer() {
   const settings = useSiteSettings();
+  const wordmark = splitBrandWordmark(settings.site_name);
 
   const socials: SocialLink[] = SOCIALS_DEFS
     .map((def) => ({ label: def.label, href: settings[def.key], d: def.d }))
@@ -69,7 +71,7 @@ export default function Footer() {
           ...SERVICE_LINKS,
           {
             label: 'WhatsApp',
-            href: buildWhatsAppHref(settings, 'Bonjour VIP Parfumerie Bar, je souhaite des informations sur vos parfums.'),
+            href: buildWhatsAppHref(settings, `Bonjour ${settings.site_name}, je souhaite des informations sur vos parfums.`),
             external: true,
           },
         ]
@@ -120,12 +122,12 @@ export default function Footer() {
                 <span style={{
                   fontFamily: 'var(--font-serif)', fontSize: '1rem', fontWeight: 500,
                   letterSpacing: '0.06em', color: 'rgba(255,255,255,0.9)', lineHeight: 1.1,
-                }}>VIP Parfumerie</span>
+                }}>{wordmark.primary}</span>
                 <span style={{
                   fontFamily: 'var(--font-sans)', fontSize: '0.5625rem',
                   letterSpacing: '0.28em', textTransform: 'uppercase',
                   color: 'var(--gold)', lineHeight: 1,
-                }}>Bar</span>
+                }}>{wordmark.accent}</span>
               </div>
             </Link>
 
@@ -247,7 +249,7 @@ export default function Footer() {
             fontSize: '0.6875rem', color: 'rgba(255,255,255,0.75)',
             letterSpacing: '0.04em', margin: 0,
           }}>
-            © {new Date().getFullYear()} VIP Parfumerie Bar — Abidjan, Côte d&rsquo;Ivoire
+            © {new Date().getFullYear()} {settings.site_name} — Abidjan, Côte d&rsquo;Ivoire
           </p>
           <div className="flex flex-wrap gap-6">
             {LEGAL.map((item) => (

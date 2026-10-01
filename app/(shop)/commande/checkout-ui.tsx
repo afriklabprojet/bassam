@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { formatPrice } from '@/lib/format';
-import { buildWhatsAppHref } from '@/lib/site-config';
+import { buildWhatsAppHref } from '@/lib/site-settings';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import type { DeliveryMode } from '@/lib/shipping';
 import type { useCart } from '@/lib/cart-context';
 
@@ -207,7 +208,7 @@ export function FieldRow({ children }: Readonly<{ children: React.ReactNode }>) 
 export function Field({ id, label, required, error, children }: Readonly<{ id: string; label: string; required?: boolean; error?: boolean; children: React.ReactNode }>) {
   return (
     <div>
-      <label htmlFor={id} style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: error ? '#c0392b' : 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: 500 }}>
+      <label htmlFor={id} style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.07em', textTransform: 'uppercase', color: error ? 'var(--danger)' : 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: 500 }}>
         {label}{required && <span style={{ color: 'var(--gold)', marginLeft: '3px' }}>*</span>}
       </label>
       {children}
@@ -218,9 +219,10 @@ export function Field({ id, label, required, error, children }: Readonly<{ id: s
 /* ── DeliveryContactBlock ──────────────────────────────────────────────────── */
 
 export function DeliveryContactBlock({ hasWhatsappSupport: waSup }: Readonly<{ hasWhatsappSupport: boolean }>) {
+  const siteSettings = useSiteSettings();
   if (waSup) {
     return (
-      <a href={buildWhatsAppHref('Bonjour, je souhaite commander et partager ma localisation.')} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', border: '1px solid rgba(37,211,102,0.2)', borderRadius: 'var(--r-md)', padding: '1rem', textDecoration: 'none', color: 'var(--text-primary)', background: 'rgba(37,211,102,0.04)' }}>
+      <a href={buildWhatsAppHref(siteSettings, 'Bonjour, je souhaite commander et partager ma localisation.')} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', border: '1px solid rgba(37,211,102,0.2)', borderRadius: 'var(--r-md)', padding: '1rem', textDecoration: 'none', color: 'var(--text-primary)', background: 'rgba(37,211,102,0.04)' }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#25D366" style={{ flexShrink: 0 }}>
           <path d="M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896.002-3.176-1.24-6.165-3.48-8.45z"/>
         </svg>
@@ -380,17 +382,17 @@ export function Step2Contact({ delivery, guestEmail, isPickup, selectedMode, att
       <FieldGroup>
         <FieldRow>
           <Field id="firstName" label="Prénom" required error={fieldError(!!delivery.firstName)}>
-            <input id="firstName" type="text" value={delivery.firstName} onChange={(e) => onChange('firstName', e.target.value)} className="input" style={fieldError(!!delivery.firstName) ? { borderColor: '#c0392b' } : {}} />
+            <input id="firstName" type="text" value={delivery.firstName} onChange={(e) => onChange('firstName', e.target.value)} className="input" style={fieldError(!!delivery.firstName) ? { borderColor: 'var(--danger)' } : {}} />
           </Field>
           <Field id="lastName" label="Nom" required error={fieldError(!!delivery.lastName)}>
-            <input id="lastName" type="text" value={delivery.lastName} onChange={(e) => onChange('lastName', e.target.value)} className="input" style={fieldError(!!delivery.lastName) ? { borderColor: '#c0392b' } : {}} />
+            <input id="lastName" type="text" value={delivery.lastName} onChange={(e) => onChange('lastName', e.target.value)} className="input" style={fieldError(!!delivery.lastName) ? { borderColor: 'var(--danger)' } : {}} />
           </Field>
         </FieldRow>
         <Field id="phone" label="Téléphone" required error={fieldError(!!delivery.phone)}>
-          <input id="phone" type="tel" value={delivery.phone} onChange={(e) => onChange('phone', e.target.value)} placeholder="+225 XX XX XX XX" className="input" style={fieldError(!!delivery.phone) ? { borderColor: '#c0392b' } : {}} />
+          <input id="phone" type="tel" value={delivery.phone} onChange={(e) => onChange('phone', e.target.value)} placeholder="+225 XX XX XX XX" className="input" style={fieldError(!!delivery.phone) ? { borderColor: 'var(--danger)' } : {}} />
         </Field>
         <Field id="guestEmail" label="Email de confirmation" required error={fieldError(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()))}>
-          <input id="guestEmail" type="email" required value={guestEmail} onChange={(e) => onGuestEmail(e.target.value)} placeholder="vous@email.com" className="input" style={fieldError(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) ? { borderColor: '#c0392b' } : {}} />
+          <input id="guestEmail" type="email" required value={guestEmail} onChange={(e) => onGuestEmail(e.target.value)} placeholder="vous@email.com" className="input" style={fieldError(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) ? { borderColor: 'var(--danger)' } : {}} />
           <p style={{ fontSize: '0.6875rem', color: 'var(--text-pale)', marginTop: '0.35rem' }}>La confirmation et la facture seront envoyées à cette adresse.</p>
         </Field>
         {!isPickup && (
@@ -409,10 +411,10 @@ export function Step2Contact({ delivery, guestEmail, isPickup, selectedMode, att
               </select>
             </Field>
             <Field id="city" label="Ville" required error={fieldError(!!delivery.city)}>
-              <input id="city" type="text" value={delivery.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Abidjan" className="input" style={fieldError(!!delivery.city) ? { borderColor: '#c0392b' } : {}} />
+              <input id="city" type="text" value={delivery.city} onChange={(e) => onChange('city', e.target.value)} placeholder="Abidjan" className="input" style={fieldError(!!delivery.city) ? { borderColor: 'var(--danger)' } : {}} />
             </Field>
             <Field id="address" label="Adresse" required error={fieldError(!!delivery.address)}>
-              <input id="address" type="text" value={delivery.address} onChange={(e) => onChange('address', e.target.value)} placeholder="Quartier, rue, numéro..." className="input" style={fieldError(!!delivery.address) ? { borderColor: '#c0392b' } : {}} />
+              <input id="address" type="text" value={delivery.address} onChange={(e) => onChange('address', e.target.value)} placeholder="Quartier, rue, numéro..." className="input" style={fieldError(!!delivery.address) ? { borderColor: 'var(--danger)' } : {}} />
             </Field>
             <Field id="notes" label="Instructions de livraison">
               <textarea id="notes" value={delivery.notes} onChange={(e) => onChange('notes', e.target.value)} placeholder="Point de repère, instructions particulières..." rows={3} className="input" style={{ resize: 'none' }} />
@@ -435,7 +437,7 @@ export function Step2Contact({ delivery, guestEmail, isPickup, selectedMode, att
       </FieldGroup>
       <div style={{ marginTop: '1.75rem' }}>
         {attempted && !step2Valid && (
-          <p style={{ fontSize: '0.75rem', color: '#c0392b', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--danger)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>
             Veuillez remplir tous les champs obligatoires.
           </p>
@@ -487,7 +489,7 @@ export function Step3Payment({ paymentMethod, isSubmitting, submitError, onPayme
             Votre numéro de téléphone vous sera demandé directement sur la page de paiement.
           </div>
         {submitError && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', fontSize: '0.8125rem', color: '#c0392b', padding: '0.875rem 1rem', background: 'rgba(192,57,43,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(192,57,43,0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', fontSize: '0.8125rem', color: 'var(--danger)', padding: '0.875rem 1rem', background: 'rgba(239,68,68,0.05)', borderRadius: 'var(--r-md)', border: '1px solid rgba(239,68,68,0.2)' }}>
             <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" style={{ flexShrink: 0, marginTop: '1px' }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" /></svg>
             {submitError}
           </div>
@@ -513,20 +515,20 @@ export function Step3Payment({ paymentMethod, isSubmitting, submitError, onPayme
 /* ── ConfettiParticles ─────────────────────────────────────────────────────── */
 
 const CONFETTI_PARTICLES = [
-  { id: 'c1',  x: 15,   y: -65, delay: 0,    color: '#C5A55A', size: 6 },
-  { id: 'c2',  x: -22,  y: -80, delay: 0.08, color: '#9B7B38', size: 4 },
-  { id: 'c3',  x: 55,   y: -52, delay: 0.14, color: '#E8C97A', size: 5 },
-  { id: 'c4',  x: -48,  y: -72, delay: 0.05, color: '#C5A55A', size: 4 },
-  { id: 'c5',  x: 82,   y: -38, delay: 0.2,  color: '#C5A55A', size: 3 },
-  { id: 'c6',  x: -78,  y: -58, delay: 0.1,  color: '#9B7B38', size: 5 },
-  { id: 'c7',  x: 32,   y: -92, delay: 0.24, color: '#E8C97A', size: 6 },
-  { id: 'c8',  x: -35,  y: -88, delay: 0.12, color: '#C5A55A', size: 4 },
-  { id: 'c9',  x: 65,   y: -78, delay: 0.18, color: '#9B7B38', size: 3 },
-  { id: 'c10', x: -62,  y: -68, delay: 0.22, color: '#C5A55A', size: 5 },
-  { id: 'c11', x: 105,  y: -28, delay: 0.28, color: '#E8C97A', size: 4 },
-  { id: 'c12', x: -98,  y: -42, delay: 0.06, color: '#C5A55A', size: 6 },
-  { id: 'c13', x: 42,   y: -45, delay: 0.16, color: '#9B7B38', size: 3 },
-  { id: 'c14', x: -15,  y: -95, delay: 0.3,  color: '#E8C97A', size: 5 },
+  { id: 'c1',  x: 15,   y: -65, delay: 0,    color: 'var(--gold)', size: 6 },
+  { id: 'c2',  x: -22,  y: -80, delay: 0.08, color: 'var(--gold-dark)', size: 4 },
+  { id: 'c3',  x: 55,   y: -52, delay: 0.14, color: 'var(--gold-light)', size: 5 },
+  { id: 'c4',  x: -48,  y: -72, delay: 0.05, color: 'var(--gold)', size: 4 },
+  { id: 'c5',  x: 82,   y: -38, delay: 0.2,  color: 'var(--gold)', size: 3 },
+  { id: 'c6',  x: -78,  y: -58, delay: 0.1,  color: 'var(--gold-dark)', size: 5 },
+  { id: 'c7',  x: 32,   y: -92, delay: 0.24, color: 'var(--gold-light)', size: 6 },
+  { id: 'c8',  x: -35,  y: -88, delay: 0.12, color: 'var(--gold)', size: 4 },
+  { id: 'c9',  x: 65,   y: -78, delay: 0.18, color: 'var(--gold-dark)', size: 3 },
+  { id: 'c10', x: -62,  y: -68, delay: 0.22, color: 'var(--gold)', size: 5 },
+  { id: 'c11', x: 105,  y: -28, delay: 0.28, color: 'var(--gold-light)', size: 4 },
+  { id: 'c12', x: -98,  y: -42, delay: 0.06, color: 'var(--gold)', size: 6 },
+  { id: 'c13', x: 42,   y: -45, delay: 0.16, color: 'var(--gold-dark)', size: 3 },
+  { id: 'c14', x: -15,  y: -95, delay: 0.3,  color: 'var(--gold-light)', size: 5 },
 ];
 
 export function ConfettiParticles() {

@@ -9,6 +9,7 @@ import {
   type BrandingPreset,
 } from '@/lib/branding';
 import { logger } from '@/lib/logger';
+import { TOAST_DURATION_MEDIUM_MS } from '@/lib/constants';
 import { GOLD } from '@/lib/admin-theme';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -106,7 +107,7 @@ export default function BrandingPanel() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erreur inconnue');
       setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      setTimeout(() => setSaved(false), TOAST_DURATION_MEDIUM_MS);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur sauvegarde');
     } finally {
@@ -250,7 +251,7 @@ export default function BrandingPanel() {
                   }}
                   style={{
                     width: 110, padding: '0.35rem 0.6rem',
-                    background: '#1a1a1a', border: '1px solid #333',
+                    background: 'var(--noir-card)', border: '1px solid #333',
                     borderRadius: 6, color: '#fff', fontSize: '0.82rem',
                     fontFamily: 'monospace',
                   }}
@@ -289,8 +290,8 @@ export default function BrandingPanel() {
             onChange={(e) => applyFontPair(e.target.value)}
             style={{
               padding: '0.5rem 0.8rem',
-              background: '#1a1a1a',
-              border: `1px solid ${GOLD}44`,
+              background: 'var(--noir-card)',
+              border: '1px solid rgba(197,165,90,0.27)',
               borderRadius: 8,
               color: '#fff',
               fontSize: '0.85rem',
@@ -378,10 +379,10 @@ export default function BrandingPanel() {
       {/* ── Actions ───────────────────────────────────────────────────────── */}
       {error && (
         <p style={{
-          color: '#f87171', fontSize: '0.82rem',
+          color: 'var(--danger)', fontSize: '0.82rem',
           padding: '0.5rem 0.75rem',
-          background: '#2a1010',
-          borderRadius: 6, border: '1px solid #f8717144',
+          background: 'rgba(239,68,68,0.08)',
+          borderRadius: 6, border: '1px solid rgba(239,68,68,0.27)',
         }}>
           {error}
         </p>
@@ -399,10 +400,10 @@ export default function BrandingPanel() {
             style={{
               alignSelf: 'flex-start',
               padding: '0.65rem 1.8rem',
-              background: saved ? '#1a3a1a' : `${GOLD}22`,
-              border: `1px solid ${saved ? '#4ade80' : GOLD}`,
+              background: saved ? 'rgba(16,185,129,0.15)' : 'rgba(197,165,90,0.13)',
+              border: `1px solid ${saved ? 'var(--success)' : GOLD}`,
               borderRadius: 8,
-              color: saved ? '#4ade80' : GOLD,
+              color: saved ? 'var(--success)' : GOLD,
               fontSize: '0.85rem',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',

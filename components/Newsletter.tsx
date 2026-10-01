@@ -104,7 +104,7 @@ export default function Newsletter() {
                 <p
                   style={{
                     marginTop: '0.75rem',
-                    color: '#e87070',
+                    color: 'var(--danger)',
                     fontSize: '0.875rem',
                   }}
                 >

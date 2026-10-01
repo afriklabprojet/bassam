@@ -3,10 +3,15 @@ import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 import { formatPrice } from '@/lib/format';
 import { validatePromoCode } from '@/lib/promo';
+import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
+import { PROMO_CODE_VALIDATE_RATE_LIMIT } from '@/lib/rate-limit-config';
 
 // POST /api/promo-codes/validate
 // Body: { code: string, orderAmount: number }
 export async function POST(request: NextRequest) {
+  const rl = checkRateLimit(request, 'promo-codes:validate', PROMO_CODE_VALIDATE_RATE_LIMIT);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   try {
     const { code, orderAmount } = await request.json() as { code: string; orderAmount: number };
     if (!code || typeof code !== 'string') {

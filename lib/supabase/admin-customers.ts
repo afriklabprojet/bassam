@@ -1,7 +1,8 @@
 import { createClient } from './server';
+import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 /** Get all customers (profiles with basic info) */
-export async function getAdminCustomers(page = 1, limit = 20) {
+export async function getAdminCustomers(page = ADMIN_PAGE_DEFAULT, limit = ADMIN_LIMIT_DEFAULT) {
   const supabase = await createClient();
   const from = (page - 1) * limit;
   const to = from + limit - 1;

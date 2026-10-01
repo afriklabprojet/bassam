@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import ImageUploadField from '@/components/admin/ImageUploadField';
+import { TOAST_DURATION_MS } from '@/lib/constants';
 import {
   DEFAULT_UNIVERS,
   type UniversContent,
@@ -116,7 +117,7 @@ function collectionLinksToText(links: HeroCollectionLink[]) {
 
 function textToCollectionLinks(rawText: string): HeroCollectionLink[] {
   return linesToList(rawText).map((line) => {
-    const [name = '', href = '', count = '', tone = '#C5A55A'] = line.split('|').map((part) => part.trim());
+    const [name = '', href = '', count = '', tone = 'var(--gold)'] = line.split('|').map((part) => part.trim());
     return { name, href, count, tone };
   }).filter((link) => link.name && link.href && link.count).slice(0, 6);
 }
@@ -221,7 +222,7 @@ export default function AdminAccueilPage() {
       setToast({ ok: false, msg: 'Erreur réseau' });
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 3500);
+      setTimeout(() => setToast(null), TOAST_DURATION_MS);
     }
   }
 
@@ -254,7 +255,7 @@ export default function AdminAccueilPage() {
           disabled={saving || loading || Boolean(loadError)}
           style={{
             background: saving || loading || loadError ? 'rgba(197,165,90,0.3)' : GOLD,
-            color: '#1a1008',
+            color: 'var(--noir)',
             border: 'none',
             borderRadius: 8,
             padding: '11px 24px',
@@ -269,14 +270,14 @@ export default function AdminAccueilPage() {
       </div>
 
       {loadError && (
-        <div style={{ padding: '12px 18px', borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 600, background: 'rgba(255,100,100,0.15)', border: '1px solid rgba(255,100,100,0.4)', color: '#ff6b6b' }}>
+        <div style={{ padding: '12px 18px', borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 600, background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', color: 'var(--danger)' }}>
           Impossible de charger le contenu actuel : {loadError}
         </div>
       )}
 
       {/* Toast */}
       {toast && (
-        <div style={{ padding: '12px 18px', borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 600, background: toast.ok ? 'rgba(72,199,142,0.15)' : 'rgba(255,100,100,0.15)', border: `1px solid ${toast.ok ? 'rgba(72,199,142,0.4)' : 'rgba(255,100,100,0.4)'}`, color: toast.ok ? '#48c78e' : '#ff6b6b' }}>
+        <div style={{ padding: '12px 18px', borderRadius: 8, marginBottom: 24, fontSize: 13, fontWeight: 600, background: toast.ok ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', border: `1px solid ${toast.ok ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'}`, color: toast.ok ? 'var(--success)' : 'var(--danger)' }}>
           {toast.msg}
         </div>
       )}

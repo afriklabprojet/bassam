@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { TOAST_DURATION_LONG_MS } from '@/lib/constants';
 import {
   getDefaultCreationConfig,
   type CreationConfig,
@@ -235,7 +236,7 @@ function Toast({ ok, msg }: Readonly<{ ok: boolean; msg: string }>) {
     <div style={{
       background: ok ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
       border: `1px solid ${ok ? 'rgba(34,197,94,0.4)' : 'rgba(239,68,68,0.4)'}`,
-      color: ok ? '#86efac' : '#fca5a5',
+      color: ok ? 'var(--success)' : 'var(--danger)',
       borderRadius: 8, padding: '12px 16px', marginBottom: 24, fontSize: 14,
     }}>
       {msg}
@@ -285,7 +286,7 @@ export default function AdminCreationPage() {
       setToast({ ok: false, msg: err instanceof Error ? err.message : 'Erreur inconnue' });
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 4000);
+      setTimeout(() => setToast(null), TOAST_DURATION_LONG_MS);
     }
   }, [config]);
 
@@ -362,7 +363,7 @@ export default function AdminCreationPage() {
             disabled={saving}
             style={{
               background: saving ? 'rgba(197,165,90,0.4)' : GOLD,
-              color: '#0D0D0D', border: 'none', borderRadius: 7,
+              color: 'var(--noir)', border: 'none', borderRadius: 7,
               padding: '9px 24px', fontSize: 13, fontWeight: 600,
               letterSpacing: '0.04em', cursor: saving ? 'not-allowed' : 'pointer',
             }}
@@ -383,7 +384,7 @@ export default function AdminCreationPage() {
             onClick={() => setActiveTab(tab.id)}
             style={{
               background: activeTab === tab.id ? GOLD : 'rgba(255,255,255,0.04)',
-              color: activeTab === tab.id ? '#0D0D0D' : '#888',
+              color: activeTab === tab.id ? 'var(--noir)' : '#888',
               border: `1px solid ${activeTab === tab.id ? GOLD : 'rgba(197,165,90,0.15)'}`,
               borderRadius: 6, padding: '8px 14px',
               fontSize: 12, fontWeight: activeTab === tab.id ? 600 : 400,
@@ -545,7 +546,7 @@ export default function AdminCreationPage() {
           disabled={saving}
           style={{
             background: saving ? 'rgba(197,165,90,0.4)' : GOLD,
-            color: '#0D0D0D', border: 'none', borderRadius: 7,
+            color: 'var(--noir)', border: 'none', borderRadius: 7,
             padding: '9px 28px', fontSize: 13, fontWeight: 600,
             letterSpacing: '0.04em', cursor: saving ? 'not-allowed' : 'pointer',
           }}

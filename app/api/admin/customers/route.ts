@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin, getAdminCustomers } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 // GET /api/admin/customers
 export async function GET(request: NextRequest) {
@@ -10,8 +11,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const page = Number(searchParams.get('page') ?? 1);
-    const limit = Number(searchParams.get('limit') ?? 20);
+    const page = Number(searchParams.get('page') ?? ADMIN_PAGE_DEFAULT);
+    const limit = Number(searchParams.get('limit') ?? ADMIN_LIMIT_DEFAULT);
 
     const result = await getAdminCustomers(page, limit);
     return NextResponse.json(result);

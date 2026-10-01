@@ -11,25 +11,31 @@ import { getProducts, getProductCountsByCategory } from '@/lib/supabase/products
 import { getApprovedReviews } from '@/lib/supabase/reviews';
 import { getHomeUnivers } from '@/lib/supabase/home-content';
 import { getHomeHero } from '@/lib/supabase/home-hero';
+import { getSiteSettings } from '@/lib/site-settings';
+import { PAGE_SIZE_DEFAULT } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
 
-export const metadata: Metadata = {
-  title: 'VIP Parfumerie Bar — Parfums de Luxe Authentiques à Abidjan, Côte d\'Ivoire',
-  description: 'Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford livrés partout en Côte d\'Ivoire et en Afrique de l\'Ouest. Paiement Mobile Money.',
-  keywords: 'parfum luxe Abidjan, parfumerie Côte d\'Ivoire, parfum authentique Abidjan, boutique parfum Abidjan, parfum Dior Abidjan, parfum Chanel Abidjan, livraison parfum Côte d\'Ivoire, Mobile Money parfum',
-  alternates: { canonical: BASE_URL },
-  openGraph: {
-    type: 'website',
-    locale: 'fr_CI',
-    url: BASE_URL,
-    siteName: 'VIP Parfumerie Bar',
-    title: 'VIP Parfumerie Bar — Parfums de Luxe à Abidjan',
-    description: 'Boutique de parfums de luxe authentiques à Abidjan. Livraison en Côte d\'Ivoire et Afrique de l\'Ouest.',
-    images: [{ url: `${BASE_URL}/og-image.svg`, width: 1200, height: 630, alt: 'VIP Parfumerie Bar — Parfums de Luxe Abidjan' }],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
+
+  return {
+    title: `${siteName} — Parfums de Luxe Authentiques à Abidjan, Côte d'Ivoire`,
+    description: 'Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford livrés partout en Côte d\'Ivoire et en Afrique de l\'Ouest. Paiement Mobile Money.',
+    keywords: 'parfum luxe Abidjan, parfumerie Côte d\'Ivoire, parfum authentique Abidjan, boutique parfum Abidjan, parfum Dior Abidjan, parfum Chanel Abidjan, livraison parfum Côte d\'Ivoire, Mobile Money parfum',
+    alternates: { canonical: BASE_URL },
+    openGraph: {
+      type: 'website',
+      locale: 'fr_CI',
+      url: BASE_URL,
+      siteName,
+      title: `${siteName} — Parfums de Luxe à Abidjan`,
+      description: 'Boutique de parfums de luxe authentiques à Abidjan. Livraison en Côte d\'Ivoire et Afrique de l\'Ouest.',
+      images: [{ url: `${BASE_URL}/og-image.svg`, width: 1200, height: 630, alt: `${siteName} — Parfums de Luxe Abidjan` }],
+    },
+  };
+}
 
 // ─── Contenu éditorial (statique) — descriptions, palettes, notes olfactives
 const UNIVERS_META = [
@@ -81,13 +87,14 @@ function ProductSectionEmptyState() {
 
 export default async function HomePage() {
   // ─── Fetch Supabase data en parallèle ────────────────────────────────────
-  const [{ products: rawNewArrivals }, { products: rawFeatured }, categoryCounts, reviews, universDB, homeHero] = await Promise.all([
-    getProducts({ tri: 'nouveautes', limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
-    getProducts({ featured: true, limit: 8 }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
+  const [{ products: rawNewArrivals }, { products: rawFeatured }, categoryCounts, reviews, universDB, homeHero, settings] = await Promise.all([
+    getProducts({ tri: 'nouveautes', limit: PAGE_SIZE_DEFAULT }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
+    getProducts({ featured: true, limit: PAGE_SIZE_DEFAULT }).catch(() => ({ products: [], total: 0, page: 1, totalPages: 0 })),
     getProductCountsByCategory().catch(() => ({} as Record<string, number>)),
     getApprovedReviews(6).catch(() => []),
     getHomeUnivers().catch(() => []),
     getHomeHero(),
+    getSiteSettings(),
   ]);
 
   const newArrivals = rawNewArrivals;
@@ -108,14 +115,14 @@ export default async function HomePage() {
     '@context': 'https://schema.org',
     '@type': ['LocalBusiness', 'Store'],
     '@id': `${BASE_URL}/#local-business`,
-    name: 'VIP Parfumerie Bar',
+    name: settings.site_name,
     url: BASE_URL,
     logo: `${BASE_URL}/icons/icon-192x192.png`,
     image: `${BASE_URL}/og-image.svg`,
     description: 'Boutique de parfums de luxe authentiques à Abidjan. Chanel, Dior, YSL, Tom Ford. Livraison partout en Côte d\'Ivoire et Afrique de l\'Ouest.',
     priceRange: '$$',
-    telephone: process.env.NEXT_PUBLIC_SUPPORT_PHONE_DISPLAY || '',
-    email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '',
+    telephone: settings.support_phone_display,
+    email: settings.support_email,
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Abidjan',
@@ -136,8 +143,8 @@ export default async function HomePage() {
     currenciesAccepted: 'XOF',
     paymentAccepted: 'Orange Money, MTN Money, Wave, Moov Money, Djamo',
     sameAs: [
-      process.env.NEXT_PUBLIC_INSTAGRAM_URL,
-      process.env.NEXT_PUBLIC_FACEBOOK_URL,
+      settings.instagram_url,
+      settings.facebook_url,
     ].filter(Boolean),
   };
 
@@ -145,7 +152,7 @@ export default async function HomePage() {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     '@id': `${BASE_URL}/#organization`,
-    name: 'VIP Parfumerie Bar',
+    name: settings.site_name,
     url: BASE_URL,
     logo: {
       '@type': 'ImageObject',
@@ -165,7 +172,7 @@ export default async function HomePage() {
     '@type': 'WebSite',
     '@id': `${BASE_URL}/#website`,
     url: BASE_URL,
-    name: 'VIP Parfumerie Bar',
+    name: settings.site_name,
     inLanguage: 'fr-CI',
     publisher: { '@id': `${BASE_URL}/#organization` },
     potentialAction: {

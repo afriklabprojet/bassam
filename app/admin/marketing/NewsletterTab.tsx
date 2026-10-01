@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GOLD } from '@/lib/admin-theme';
 import { Modal, INPUT_STYLE, LABEL_STYLE, formatDate, getCampaignStatusLabel, campaignStatusColor, campaignStatusBg } from './marketing-shared';
+import { TOAST_DURATION_SHORT_MS } from '@/lib/constants';
 import type { NewsletterSubscriber, NewsletterCampaign } from './marketing-shared';
 
 export function NewsletterTab() {
@@ -72,7 +73,7 @@ export function NewsletterTab() {
       setSendSuccess(`Campagne envoyée à ${json.recipientsCount} abonné(s) — statut : ${json.status}`);
       setComposeForm({ subject: '', preview_text: '', body_html: '' });
       load(1);
-      setTimeout(() => { setShowCompose(false); setSendSuccess(''); }, 2500);
+      setTimeout(() => { setShowCompose(false); setSendSuccess(''); }, TOAST_DURATION_SHORT_MS);
     } else {
       setSendError(json.error ?? 'Erreur lors de l\'envoi.');
     }
@@ -130,7 +131,7 @@ export function NewsletterTab() {
                     <td style={{ padding: '12px', color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>{s.source ?? 'site'}</td>
                     <td style={{ padding: '12px', color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>{formatDate(s.subscribed_at)}</td>
                     <td style={{ padding: '12px' }}>
-                      <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: s.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: s.is_active ? '#4ade80' : '#f87171' }}>
+                      <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, background: s.is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: s.is_active ? 'var(--success)' : 'var(--danger)' }}>
                         {s.is_active ? 'Actif' : 'Désabonné'}
                       </span>
                     </td>
@@ -139,7 +140,7 @@ export function NewsletterTab() {
                         <button onClick={() => toggleSubscriber(s)} title={s.is_active ? 'Désabonner' : 'Réactiver'} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>
                           {s.is_active ? '⏸' : '▶️'}
                         </button>
-                        <button onClick={() => deleteSubscriber(s)} title="Supprimer" style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: '#f87171', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>🗑</button>
+                        <button onClick={() => deleteSubscriber(s)} title="Supprimer" style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: 'var(--danger)', borderRadius: '6px', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>🗑</button>
                       </div>
                     </td>
                   </tr>
@@ -202,8 +203,8 @@ export function NewsletterTab() {
               <label htmlFor="nl-body" style={LABEL_STYLE}>Corps de l&apos;email (HTML) *</label>
               <textarea id="nl-body" required rows={10} style={{ ...INPUT_STYLE, resize: 'vertical', fontFamily: 'monospace', fontSize: '12px' }} value={composeForm.body_html} onChange={e => setComposeForm(f => ({ ...f, body_html: e.target.value }))} placeholder={'<h1 style="color:#C5A55A">Nouveautés</h1>\n<p>Bonjour,</p>'} />
             </div>
-            {sendError && <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{sendError}</p>}
-            {sendSuccess && <p style={{ color: '#4ade80', fontSize: '13px', margin: 0 }}>✓ {sendSuccess}</p>}
+            {sendError && <p style={{ color: 'var(--danger)', fontSize: '13px', margin: 0 }}>{sendError}</p>}
+            {sendSuccess && <p style={{ color: 'var(--success)', fontSize: '13px', margin: 0 }}>✓ {sendSuccess}</p>}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => setShowCompose(false)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer' }}>Annuler</button>
               <button type="submit" disabled={sending} style={{ background: GOLD, color: '#000', border: 'none', borderRadius: '8px', padding: '10px 24px', fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1 }}>

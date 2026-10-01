@@ -6,6 +6,7 @@ import {
 } from '@/lib/custom-creation';
 import type { OrderItem } from './orders';
 import { logger } from '@/lib/logger';
+import { getSiteSettings } from '@/lib/site-settings';
 
 export type IncomingOrderItem = {
   productId: string;
@@ -42,12 +43,13 @@ async function ensureCustomCreationProduct(
 
   if (existing) return { id: existing.id };
 
+  const { site_name: siteName } = await getSiteSettings();
   const insertResult = await supabase
     .from('products')
     .insert({
       name: `Creation personnalisée - ${formula.name}`,
       slug,
-      brand: 'VIP Parfumerie Bar',
+      brand: siteName,
       description: formula.description,
       price: formula.price,
       stock_quantity: 999,

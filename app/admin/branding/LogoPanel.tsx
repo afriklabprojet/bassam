@@ -225,7 +225,7 @@ function AssetCard({
           borderRadius: 8,
           background: 'rgba(220,38,38,0.1)',
           border: '1px solid rgba(220,38,38,0.3)',
-          color: '#ef4444',
+          color: 'var(--danger)',
           fontSize: '0.8125rem',
         }}>
           ⚠ {state.error}
@@ -237,7 +237,7 @@ function AssetCard({
           borderRadius: 8,
           background: 'rgba(34,197,94,0.1)',
           border: '1px solid rgba(34,197,94,0.3)',
-          color: '#22c55e',
+          color: 'var(--success)',
           fontSize: '0.8125rem',
         }}>
           ✓ {label} mis à jour avec succès

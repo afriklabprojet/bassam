@@ -13,10 +13,10 @@ export default function WhatsAppFAB() {
 
   return (
     <a
-      href={buildWhatsAppHref(settings, 'Bonjour VIP Parfumerie Bar! Je souhaite des informations sur vos parfums.')}
+      href={buildWhatsAppHref(settings, `Bonjour ${settings.site_name}! Je souhaite des informations sur vos parfums.`)}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Contacter VIP Parfumerie Bar sur WhatsApp"
+      aria-label={`Contacter ${settings.site_name} sur WhatsApp`}
       className="hidden md:flex fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 items-center gap-2 px-4 py-3 text-white font-medium shadow-lg transition-opacity hover:opacity-90 active:opacity-80"
       style={{ background: 'linear-gradient(135deg, #25D366, #128C7E)', borderRadius: 'var(--r-md)' }}
     >

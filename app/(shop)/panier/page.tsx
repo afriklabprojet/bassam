@@ -264,7 +264,7 @@ export default function CartPage() {
                     </button>
                   </div>
                 )}
-                {promoError && <p style={{ color: '#c0392b', fontSize: '0.75rem', marginTop: '0.5rem' }}>{promoError}</p>}
+                {promoError && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: '0.5rem' }}>{promoError}</p>}
               </div>
 
               {/* Summary */}

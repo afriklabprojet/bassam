@@ -40,7 +40,7 @@ export default function AdminClients() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>
+        <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>
           {error}
         </div>
       </div>

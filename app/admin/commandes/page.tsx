@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle } from '@/lib/order-status-theme';
 import { formatCFA, formatDateTime as formatDate } from '@/lib/format';
+import { ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 interface OrderItem {
   id: string;
@@ -65,8 +66,8 @@ function CustomerBadge({ phone, orderId }: { phone: string; orderId: string }) {
       <span style={{
         display: 'inline-block', padding: '1px 7px', borderRadius: 99,
         fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
-        background: 'rgba(72,199,142,0.15)', color: '#48c78e',
-        border: '1px solid rgba(72,199,142,0.3)',
+        background: 'rgba(16,185,129,0.15)', color: 'var(--success)',
+        border: '1px solid rgba(16,185,129,0.3)',
       }}>
         NOUVEAU
       </span>
@@ -77,7 +78,7 @@ function CustomerBadge({ phone, orderId }: { phone: string; orderId: string }) {
     <span style={{
       display: 'inline-block', padding: '1px 7px', borderRadius: 99,
       fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.06em',
-      background: 'rgba(197,165,90,0.15)', color: '#C5A55A',
+      background: 'rgba(197,165,90,0.15)', color: 'var(--gold)',
       border: '1px solid rgba(197,165,90,0.3)',
     }}>
       {count} cmd. précédente{count > 1 ? 's' : ''}
@@ -105,7 +106,7 @@ function OrderDetail({ order }: { order: Order }) {
           {order.phone && (
             <div>
               <span style={{ color: '#555', display: 'block', fontSize: '0.7rem', marginBottom: 2 }}>Téléphone</span>
-              <a href={`tel:${order.phone}`} style={{ color: '#C5A55A', fontWeight: 600, textDecoration: 'none' }}>
+              <a href={`tel:${order.phone}`} style={{ color: 'var(--gold)', fontWeight: 600, textDecoration: 'none' }}>
                 {order.phone}
               </a>
             </div>
@@ -113,7 +114,7 @@ function OrderDetail({ order }: { order: Order }) {
           {order.email && (
             <div style={{ gridColumn: '1 / -1' }}>
               <span style={{ color: '#555', display: 'block', fontSize: '0.7rem', marginBottom: 2 }}>Email</span>
-              <a href={`mailto:${order.email}`} style={{ color: '#C5A55A', textDecoration: 'none' }}>{order.email}</a>
+              <a href={`mailto:${order.email}`} style={{ color: 'var(--gold)', textDecoration: 'none' }}>{order.email}</a>
             </div>
           )}
           {order.phone && (
@@ -151,7 +152,7 @@ function OrderDetail({ order }: { order: Order }) {
           </div>
           <div>
             <span style={{ color: '#555', display: 'block', fontSize: '0.7rem', marginBottom: 2 }}>Statut paiement</span>
-            <span style={{ color: order.paymentStatus === 'paid' ? '#48c78e' : '#999' }}>
+            <span style={{ color: order.paymentStatus === 'paid' ? 'var(--success)' : '#999' }}>
               {order.paymentStatus ? (PAYMENT_STATUS_LABELS[order.paymentStatus] ?? order.paymentStatus) : '—'}
             </span>
           </div>
@@ -183,7 +184,7 @@ function OrderDetail({ order }: { order: Order }) {
                   <div style={{ color: '#999', fontSize: '0.75rem' }}>
                     {item.quantity} × {formatCFA(item.unitPrice)}
                   </div>
-                  <div style={{ color: '#C5A55A', fontSize: '0.8125rem', fontWeight: 600 }}>
+                  <div style={{ color: 'var(--gold)', fontSize: '0.8125rem', fontWeight: 600 }}>
                     {formatCFA(item.quantity * item.unitPrice)}
                   </div>
                 </div>
@@ -223,7 +224,7 @@ export default function AdminOrders() {
 
   const load = useCallback(async () => {
     try {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
+      const params = new URLSearchParams({ page: String(page), limit: String(ADMIN_LIMIT_DEFAULT) });
       if (statusFilter) params.set('status', statusFilter);
       const res = await fetch(`/api/admin/orders?${params}`);
       if (!res.ok) { setError(res.status === 403 ? 'Accès refusé' : 'Erreur'); return; }
@@ -255,7 +256,7 @@ export default function AdminOrders() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>
+        <div className="px-6 py-4 rounded-xl" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: 'var(--danger)' }}>
           {error}
         </div>
       </div>
@@ -353,7 +354,7 @@ export default function AdminOrders() {
                             <a
                               href={`tel:${o.phone}`}
                               onClick={e => e.stopPropagation()}
-                              style={{ color: '#C5A55A', fontWeight: 600, fontSize: '0.8125rem', textDecoration: 'none' }}
+                              style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.8125rem', textDecoration: 'none' }}
                             >
                               {o.phone}
                             </a>

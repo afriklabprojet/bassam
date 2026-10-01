@@ -147,7 +147,7 @@ export function PromoCodesTab() {
                     {c.expires_at ? formatDate(c.expires_at) : '—'}
                   </td>
                   <td style={{ padding: '14px 12px' }}>
-                    <span style={{ ...BADGE, background: c.is_active ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)', color: c.is_active ? '#4ade80' : '#f87171' }}>
+                    <span style={{ ...BADGE, background: c.is_active ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: c.is_active ? 'var(--success)' : 'var(--danger)' }}>
                       {c.is_active ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
@@ -155,7 +155,7 @@ export function PromoCodesTab() {
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={() => openEdit(c)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>✏️</button>
                       <button onClick={() => toggleActive(c)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>{c.is_active ? '⏸' : '▶️'}</button>
-                      <button onClick={() => deleteCode(c)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: '#f87171', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>🗑</button>
+                      <button onClick={() => deleteCode(c)} style={{ background: 'rgba(239,68,68,0.1)', border: 'none', color: 'var(--danger)', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}>🗑</button>
                     </div>
                   </td>
                 </tr>
@@ -203,7 +203,7 @@ export function PromoCodesTab() {
               <label htmlFor="promo-description" style={LABEL_STYLE}>Description (interne)</label>
               <input id="promo-description" style={INPUT_STYLE} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Note interne…" />
             </div>
-            {error && <p style={{ color: '#f87171', fontSize: '13px', margin: 0 }}>{error}</p>}
+            {error && <p style={{ color: 'var(--danger)', fontSize: '13px', margin: 0 }}>{error}</p>}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button type="button" onClick={() => setShowForm(false)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer' }}>Annuler</button>
               <button type="submit" disabled={saving} style={{ background: GOLD, color: '#000', border: 'none', borderRadius: '8px', padding: '10px 24px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>

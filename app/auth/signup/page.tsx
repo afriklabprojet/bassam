@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { useSiteSettings } from '@/lib/site-settings-context';
+import { splitBrandWordmark } from '@/lib/brand-name';
 
 // ── Icônes inline ─────────────────────────────────────────────────────────────
 const IconEye = ({ open }: { open: boolean }) => open ? (
@@ -32,6 +34,8 @@ const IconFacebook = () => (
 );
 
 export default function SignupPage() {
+  const settings = useSiteSettings();
+  const wordmark = splitBrandWordmark(settings.site_name);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -165,8 +169,8 @@ export default function SignupPage() {
               <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)', fontSize: 16, fontWeight: 300, letterSpacing: 3 }}>VB</span>
             </div>
             <div>
-              <p style={{ margin: 0, fontFamily: 'var(--font-serif)', color: '#fff', fontSize: '1rem', fontWeight: 500, letterSpacing: '0.06em', lineHeight: 1.1 }}>VIP Parfumerie</p>
-              <p style={{ margin: 0, fontFamily: 'var(--font-sans)', color: 'var(--gold)', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: 2 }}>Bar</p>
+              <p style={{ margin: 0, fontFamily: 'var(--font-serif)', color: '#fff', fontSize: '1rem', fontWeight: 500, letterSpacing: '0.06em', lineHeight: 1.1 }}>{wordmark.primary}</p>
+              <p style={{ margin: 0, fontFamily: 'var(--font-sans)', color: 'var(--gold)', fontSize: '0.5rem', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: 2 }}>{wordmark.accent}</p>
             </div>
           </Link>
         </div>
@@ -201,7 +205,7 @@ export default function SignupPage() {
 
         {/* Footer */}
         <p style={{ position: 'relative', zIndex: 1, fontSize: '0.5625rem', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>
-          © 2026 VIP Parfumerie Bar
+          © 2026 {settings.site_name}
         </p>
       </div>
 
@@ -217,7 +221,7 @@ export default function SignupPage() {
             <div style={{ width: 40, height: 40, background: 'var(--noir)', border: '1px solid rgba(197,165,90,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 3 }}>
               <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--gold)', fontSize: 15, fontWeight: 300, letterSpacing: 3 }}>VB</span>
             </div>
-            <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1rem', letterSpacing: '0.06em' }}>VIP Parfumerie Bar</span>
+            <span style={{ fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', fontSize: '1rem', letterSpacing: '0.06em' }}>{settings.site_name}</span>
           </Link>
         </div>
 
@@ -235,7 +239,7 @@ export default function SignupPage() {
               Créer un compte
             </h1>
             <p style={{ margin: '8px 0 0', fontSize: '0.8125rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Rejoignez VIP Parfumerie Bar et accédez à votre espace privé.
+              Rejoignez {settings.site_name} et accédez à votre espace privé.
             </p>
           </div>
 
@@ -320,7 +324,7 @@ export default function SignupPage() {
                 </button>
               </div>
               {confirmPassword && confirmPassword !== password && (
-                <p style={{ margin: '5px 0 0', fontSize: '0.6875rem', color: '#EF4444' }}>Les mots de passe ne correspondent pas.</p>
+                <p style={{ margin: '5px 0 0', fontSize: '0.6875rem', color: 'var(--danger)' }}>Les mots de passe ne correspondent pas.</p>
               )}
             </div>
 

@@ -71,7 +71,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-center h-[60vh]">
         <div className="flex flex-col items-center gap-5">
           <div className="relative w-12 h-12">
-            <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid rgba(197,165,90,0.1)', borderTopColor: '#C5A55A' }} />
+            <div className="absolute inset-0 rounded-full animate-spin" style={{ border: '2px solid rgba(197,165,90,0.1)', borderTopColor: 'var(--gold)' }} />
             <div className="absolute inset-1.5 rounded-full animate-spin" style={{ border: '2px solid rgba(197,165,90,0.06)', borderBottomColor: 'rgba(197,165,90,0.4)', animationDirection: 'reverse', animationDuration: '1.5s' }} />
           </div>
           <span style={{ color: '#555', fontSize: '0.8125rem', letterSpacing: '0.04em' }}>Chargement…</span>
@@ -83,7 +83,7 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="px-10 py-8 text-center" style={{ ...CARD_BASE, background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', color: '#F87171' }}>
+        <div className="px-10 py-8 text-center" style={{ ...CARD_BASE, background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)', color: 'var(--danger)' }}>
           <svg className="mx-auto mb-4" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
           </svg>
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
         @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .stat-value { animation: countUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .gold-shimmer { background: linear-gradient(90deg, #C5A55A 0%, #E8D5A0 50%, #C5A55A 100%); background-size: 200% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s ease-in-out infinite; }
+        .gold-shimmer { background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%); background-size: 200% 100%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s ease-in-out infinite; }
       `}</style>
 
       <div ref={containerRef} className="space-y-5">

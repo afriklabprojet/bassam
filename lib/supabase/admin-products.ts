@@ -1,9 +1,10 @@
 import { createClient } from './server';
+import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 
 type CollectionJoin = { id: string; name: string } | null;
 
 /** Get all products (admin — with full details) */
-export async function getAdminProducts(page = 1, limit = 20, search?: string) {
+export async function getAdminProducts(page = ADMIN_PAGE_DEFAULT, limit = ADMIN_LIMIT_DEFAULT, search?: string) {
   const supabase = await createClient();
   const from = (page - 1) * limit;
   const to = from + limit - 1;

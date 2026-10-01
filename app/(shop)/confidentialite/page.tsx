@@ -1,12 +1,17 @@
 import type { Metadata } from 'next';
-import { supportConfig } from '@/lib/site-config';
+import { getSiteSettings } from '@/lib/site-settings';
 
-export const metadata: Metadata = {
-  title: 'Politique de confidentialité | VIP Parfumerie Bar',
-  description: 'Consultez la politique de confidentialité de VIP Parfumerie Bar concernant la collecte, l’utilisation et la protection de vos données personnelles.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName } = await getSiteSettings();
 
-export default function ConfidentialitePage() {
+  return {
+    title: `Politique de confidentialité | ${siteName}`,
+    description: `Consultez la politique de confidentialité de ${siteName} concernant la collecte, l’utilisation et la protection de vos données personnelles.`,
+  };
+}
+
+export default async function ConfidentialitePage() {
+  const settings = await getSiteSettings();
   return (
     <main style={{ minHeight: '100vh', background: 'var(--surface)' }}>
       <section style={{ background: 'var(--noir)', padding: '5.5rem 0 3rem' }}>
@@ -53,7 +58,7 @@ export default function ConfidentialitePage() {
                 <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>4. Vos droits</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
                   Vous pouvez demander l’accès, la rectification ou la suppression de vos données personnelles en nous
-                  écrivant à <a href={`mailto:${supportConfig.email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{supportConfig.email}</a>.
+                  écrivant à <a href={`mailto:${settings.support_email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{settings.support_email}</a>.
                 </p>
               </section>
             </div>

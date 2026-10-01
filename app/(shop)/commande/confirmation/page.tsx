@@ -4,7 +4,8 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
-import { buildWhatsAppHref, hasWhatsAppSupport } from '@/lib/site-config';
+import { buildWhatsAppHref, hasWhatsApp } from '@/lib/site-settings';
+import { useSiteSettings } from '@/lib/site-settings-context';
 import { ConfettiParticles } from '../checkout-ui';
 
 type OrderStatusResponse = {
@@ -35,7 +36,8 @@ function ConfirmationBody() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order');
   const { clearCart } = useCart();
-  const hasWhatsappSupport = hasWhatsAppSupport();
+  const siteSettings = useSiteSettings();
+  const hasWhatsappSupport = hasWhatsApp(siteSettings);
 
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [resolvedState, setResolvedState] = useState<ResolvedState>('polling');
@@ -185,7 +187,7 @@ function ConfirmationBody() {
         Notre équipe vous contactera au <strong>{order.phone}</strong> pour confirmer.
       </p>
       {hasWhatsappSupport ? (
-        <a href={buildWhatsAppHref(`Bonjour, j'ai passé la commande ${orderNumber}.`)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}>
+        <a href={buildWhatsAppHref(siteSettings, `Bonjour, j'ai passé la commande ${orderNumber}.`)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.625rem', background: '#25D366', color: '#fff', padding: '0.875rem 1.75rem', borderRadius: 'var(--r-md)', fontWeight: 500, textDecoration: 'none', fontSize: '0.875rem' }}>
           Suivre via WhatsApp
         </a>
       ) : (

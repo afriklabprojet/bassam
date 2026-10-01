@@ -10,11 +10,14 @@ import { CartProvider } from '@/lib/cart-context';
 import { getSiteSettings } from '@/lib/site-settings';
 import { SiteSettingsProvider } from '@/lib/site-settings-context';
 import { getPublicCollections } from '@/lib/supabase/taxonomies';
+import { getAssistantConfig } from '@/lib/ai/assistant-config-store';
+import { toPublicAssistantConfig } from '@/lib/ai/assistant-config';
 
 export default async function ShopLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [siteSettings, navCategories] = await Promise.all([
+  const [siteSettings, navCategories, assistant] = await Promise.all([
     getSiteSettings(),
     getPublicCollections(),
+    getAssistantConfig(),
   ]);
   return (
     <SiteSettingsProvider value={siteSettings}>
@@ -27,7 +30,7 @@ export default async function ShopLayout({ children }: Readonly<{ children: Reac
         <Footer />
         <CartSidebar />
         <WhatsAppFAB />
-        <ChatWidget />
+        {assistant.enabled && <ChatWidget assistant={toPublicAssistantConfig(assistant)} />}
         <BottomNav />
         <PWAInstaller />
       </CartProvider>

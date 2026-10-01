@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger';
 import { getAnthropicClient, getChatConfigDiagnostics, CHAT_MODEL } from '@/lib/ai/anthropic-client';
 import { CHAT_TOOLS, runChatTool } from '@/lib/ai/chat-tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
+import { getAssistantConfig } from '@/lib/ai/assistant-config-store';
 
 const MAX_TOOL_ITERATIONS = 6;
 const MAX_HISTORY_MESSAGES = 40;
@@ -58,6 +59,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const assistantConfig = await getAssistantConfig();
+  if (!assistantConfig.enabled) {
+    return NextResponse.json(
+      { error: "L'assistant n'est pas disponible pour le moment. Contactez-nous par WhatsApp." },
+      { status: 503 },
+    );
+  }
+
   const anthropic = getAnthropicClient();
   // The conversation must open with a user turn (the widget's greeting is an assistant turn).
   const firstUserIndex = parsed.data.messages.findIndex((m) => m.role === 'user');
@@ -68,7 +77,7 @@ export async function POST(request: NextRequest) {
 
   let systemPrompt: string;
   try {
-    systemPrompt = await buildSystemPrompt();
+    systemPrompt = await buildSystemPrompt(assistantConfig);
   } catch (err) {
     logger.error('API /chat', 'Failed to build system prompt', err);
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });

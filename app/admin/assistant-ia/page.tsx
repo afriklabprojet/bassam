@@ -129,12 +129,28 @@ function AvatarUpload({ value, name, onChange, onError }: Readonly<{ value: stri
   );
 }
 
+interface UnansweredQuestion {
+  id: string;
+  question: string;
+  reason: 'fallback' | 'no_results';
+  occurrences: number;
+  last_seen_at: string;
+}
+
+const REASON_LABEL: Record<UnansweredQuestion['reason'], string> = {
+  fallback: 'Réponse introuvable',
+  no_results: 'Aucun produit trouvé',
+};
+
 export default function AssistantIaPage() {
   const [config, setConfig] = useState<AssistantConfig>(DEFAULT_ASSISTANT_CONFIG);
   const [saved, setSaved] = useState<string>(JSON.stringify(DEFAULT_ASSISTANT_CONFIG));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
+  const [questions, setQuestions] = useState<UnansweredQuestion[]>([]);
+  const [setupRequired, setSetupRequired] = useState(false);
+  const knowledgeRef = useRef<HTMLDivElement>(null);
 
   const dirty = JSON.stringify(config) !== saved;
 
@@ -164,6 +180,51 @@ export default function AssistantIaPage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/ai-assistant/questions');
+        const json = (await res.json()) as { questions?: UnansweredQuestion[]; setupRequired?: boolean };
+        if (!cancelled && res.ok) {
+          setQuestions(json.questions ?? []);
+          setSetupRequired(Boolean(json.setupRequired));
+        }
+      } catch {
+        // The journal is optional: the rest of the page works without it.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function resolveQuestion(id: string, method: 'PATCH' | 'DELETE') {
+    const res = await fetch(
+      method === 'DELETE' ? `/api/admin/ai-assistant/questions?id=${id}` : '/api/admin/ai-assistant/questions',
+      method === 'PATCH'
+        ? { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }
+        : { method },
+    );
+    if (!res.ok) {
+      notify('error', 'Action impossible, réessayez.');
+      return false;
+    }
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    return true;
+  }
+
+  async function teachQuestion(q: UnansweredQuestion) {
+    if (config.knowledge.length >= ASSISTANT_LIMITS.knowledgeEntries) {
+      notify('error', "Limite de connaissances atteinte : supprimez-en une d'abord.");
+      return;
+    }
+    if (!(await resolveQuestion(q.id, 'PATCH'))) return;
+    update('knowledge', [...config.knowledge, { id: crypto.randomUUID(), title: q.question.slice(0, ASSISTANT_LIMITS.knowledgeTitle), content: '', active: true }]);
+    knowledgeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    notify('ok', 'Fiche créée : rédigez la réponse puis enregistrez.');
+  }
 
   function update<K extends keyof AssistantConfig>(key: K, value: AssistantConfig[K]) {
     setConfig((prev) => ({ ...prev, [key]: value }));
@@ -313,6 +374,41 @@ export default function AssistantIaPage() {
         </div>
       </Card>
 
+      <Card title="Questions sans réponse" subtitle="Ce que vos clients ont demandé et que l'assistant n'a pas su traiter. Cliquez sur « Enseigner » pour créer une fiche de connaissance à partir d'une question.">
+        {setupRequired ? (
+          <p style={{ color: 'var(--warning)', fontSize: 13, lineHeight: 1.6 }}>
+            Le journal n&apos;est pas encore activé : exécutez le fichier <code>supabase/migrations/20261001000000_assistant_unanswered.sql</code> dans l&apos;éditeur SQL de Supabase, puis rechargez cette page.
+          </p>
+        ) : questions.length === 0 ? (
+          <p style={{ color: '#777', fontSize: 13 }}>Aucune question en attente. Les prochaines questions sans réponse apparaîtront ici.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {questions.map((q) => (
+              <div key={q.id} style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', padding: '12px 14px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ minWidth: 0, flex: '1 1 260px' }}>
+                  <p style={{ color: '#fff', fontSize: 14, marginBottom: 4, overflowWrap: 'anywhere' }}>{q.question}</p>
+                  <p style={hintStyle}>
+                    {REASON_LABEL[q.reason]} · demandée {q.occurrences} fois · dernière : {new Date(q.last_seen_at).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => void teachQuestion(q)} style={{ ...inputStyle, width: 'auto', padding: '7px 14px', cursor: 'pointer', color: GOLD }}>
+                    Enseigner
+                  </button>
+                  <button type="button" onClick={() => void resolveQuestion(q.id, 'DELETE')} style={{ ...inputStyle, width: 'auto', padding: '7px 14px', cursor: 'pointer', color: '#999' }}>
+                    Ignorer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p style={{ ...hintStyle, marginTop: 14 }}>
+          Journal anonyme : aucune adresse IP ni identité n&apos;est enregistrée, les e-mails et numéros sont masqués, et les questions sont supprimées automatiquement après 90 jours.
+        </p>
+      </Card>
+
+      <div ref={knowledgeRef} style={{ scrollMarginTop: 80 }} />
       <Card title="Base de connaissances" subtitle="Nourrissez l'assistant avec ce que lui seul ne peut pas deviner : politique maison, conseils de l'équipe, réponses types, offres du moment…">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 14 }}>
           {config.knowledge.length === 0 && (

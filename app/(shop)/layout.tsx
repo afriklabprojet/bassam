@@ -1,7 +1,6 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartSidebar from '@/components/CartSidebar';
-import WhatsAppFAB from '@/components/WhatsAppFAB';
 import ChatWidget from '@/components/ChatWidget';
 import BottomNav from '@/components/BottomNav';
 import PWAInstaller from '@/components/PWAInstaller';
@@ -29,7 +28,6 @@ export default async function ShopLayout({ children }: Readonly<{ children: Reac
         </main>
         <Footer />
         <CartSidebar />
-        <WhatsAppFAB />
         {assistant.enabled && <ChatWidget assistant={toPublicAssistantConfig(assistant)} />}
         <BottomNav />
         <PWAInstaller />

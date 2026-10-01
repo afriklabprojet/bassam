@@ -55,7 +55,19 @@ export default async function ConfidentialitePage() {
               </section>
 
               <section>
-                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>4. Vos droits</h2>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>4. Assistant IA</h2>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                  Les messages que vous écrivez à notre assistant IA sont traités par un prestataire d’intelligence
+                  artificielle (Anthropic) afin de générer les réponses. Votre conversation est conservée uniquement
+                  dans votre navigateur, que vous pouvez effacer à tout moment avec « Nouvelle conversation ». Lorsque
+                  l’assistant ne sait pas répondre, la question peut être enregistrée de façon anonyme (sans adresse IP,
+                  e-mails et numéros masqués) pour améliorer ses réponses, puis supprimée au bout de 90 jours. Ne
+                  communiquez pas d’informations sensibles dans le chat.
+                </p>
+              </section>
+
+              <section>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '0.75rem' }}>5. Vos droits</h2>
                 <p style={{ color: 'var(--text-secondary)', lineHeight: 1.8 }}>
                   Vous pouvez demander l’accès, la rectification ou la suppression de vos données personnelles en nous
                   écrivant à <a href={`mailto:${settings.support_email}`} style={{ color: 'var(--gold-dark)', textDecoration: 'none' }}>{settings.support_email}</a>.

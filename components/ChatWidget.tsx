@@ -358,6 +358,9 @@ export default function ChatWidget({ assistant }: Readonly<{ assistant: PublicAs
               Envoyer
             </button>
           </form>
+          <p style={{ padding: '0 0.75rem 0.5rem', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))', fontSize: '0.625rem', color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 1.4 }}>
+            Assistant IA : vérifiez les informations importantes. Les questions restées sans réponse sont enregistrées anonymement pour l&apos;améliorer.
+          </p>
         </div>
       )}
 
@@ -367,7 +370,7 @@ export default function ChatWidget({ assistant }: Readonly<{ assistant: PublicAs
         aria-label={isOpen ? 'Fermer le chat' : `Discuter avec ${assistant.name}`}
         aria-expanded={isOpen}
         // Phones: above the bottom navigation bar, hidden while the full-screen panel is open.
-        className={`fixed bottom-20 right-4 z-40 flex items-center justify-center lg:bottom-6 lg:right-[5.5rem] ${isOpen ? 'max-md:hidden' : ''}`}
+        className={`fixed bottom-20 right-4 z-40 flex items-center justify-center lg:bottom-6 lg:right-6 ${isOpen ? 'max-md:hidden' : ''}`}
         style={{
           width: 56,
           height: 56,

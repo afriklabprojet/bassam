@@ -8,6 +8,7 @@ import { getAnthropicClient, getChatConfigDiagnostics, CHAT_MODEL } from '@/lib/
 import { CHAT_TOOLS, runChatTool } from '@/lib/ai/chat-tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 import { getAssistantConfig } from '@/lib/ai/assistant-config-store';
+import { detectUnanswered, logUnansweredQuestion } from '@/lib/ai/unanswered-log';
 
 const MAX_TOOL_ITERATIONS = 6;
 const MAX_HISTORY_MESSAGES = 40;
@@ -30,6 +31,14 @@ const chatSchema = z.object({
     .min(1)
     .max(MAX_HISTORY_MESSAGES),
 });
+
+function isEmptySearch(toolResult: string): boolean {
+  try {
+    return (JSON.parse(toolResult) as { total?: number }).total === 0;
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: NextRequest) {
   const rl = checkRateLimit(request, 'chat', CHAT_RATE_LIMIT);
@@ -83,10 +92,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 
+  const lastUserQuestion = [...parsed.data.messages].reverse().find((m) => m.role === 'user')?.content ?? '';
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      let answer = '';
+      let lastSearchEmpty = false;
       try {
         for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
           const msgStream = anthropic.messages.stream({
@@ -98,6 +110,7 @@ export async function POST(request: NextRequest) {
           });
 
           msgStream.on('text', (textDelta) => {
+            answer += textDelta;
             controller.enqueue(encoder.encode(textDelta));
           });
 
@@ -110,11 +123,14 @@ export async function POST(request: NextRequest) {
           for (const block of final.content) {
             if (block.type === 'tool_use') {
               const result = await runChatTool(block.name, block.input);
+              if (block.name === 'search_products') lastSearchEmpty = isEmptySearch(result);
               toolResults.push({ type: 'tool_result', tool_use_id: block.id, content: result });
             }
           }
           messages.push({ role: 'user', content: toolResults });
         }
+        const reason = detectUnanswered(answer, lastSearchEmpty);
+        if (reason) await logUnansweredQuestion(lastUserQuestion, reason);
       } catch (err) {
         logger.error('API /chat', 'Streaming error', err);
         controller.enqueue(

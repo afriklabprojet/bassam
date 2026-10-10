@@ -44,11 +44,12 @@ function ConfirmationBody() {
   const [order, setOrder] = useState<OrderStatusResponse | null>(null);
   const clearedRef = useRef(false);
 
+  // Sans identifiant de commande dans l'URL il n'y a rien à interroger : l'état est dérivé au rendu
+  // (et non fixé par un setState synchrone dans l'effet, ce qui provoquait un rendu supplémentaire).
+  const effectiveLoadState: LoadState = orderId ? loadState : 'not-found';
+
   useEffect(() => {
-    if (!orderId) {
-      setLoadState('not-found');
-      return;
-    }
+    if (!orderId) return;
 
     let cancelled = false;
     let attempts = 0;
@@ -101,7 +102,7 @@ function ConfirmationBody() {
     };
   }, [orderId, clearCart]);
 
-  if (loadState === 'not-found') {
+  if (effectiveLoadState === 'not-found') {
     return (
       <Wrapper>
         <h1 className="heading-lg" style={{ marginBottom: '0.75rem' }}>Commande introuvable</h1>
@@ -113,7 +114,7 @@ function ConfirmationBody() {
     );
   }
 
-  if (loadState === 'error' && !order) {
+  if (effectiveLoadState === 'error' && !order) {
     return (
       <Wrapper>
         <h1 className="heading-lg" style={{ marginBottom: '0.75rem' }}>Impossible de vérifier votre commande</h1>

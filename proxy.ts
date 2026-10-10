@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { parseBearer } from '@/lib/supabase/bearer'
 
 // ─── CSP (nonce-based, set per request) ──────────────────────────────────────
 
@@ -214,11 +215,22 @@ export async function proxy(request: NextRequest) {
   }
 
   let user: AuthUser = null
-  const { data, error: authError } = await supabase.auth.getUser()
-  if (!authError) {
-    user = data.user as AuthUser
+  // L'application mobile s'authentifie par `Authorization: Bearer <jwt>` sur /api/admin/*.
+  // Un Bearer invalide ne retombe jamais sur les cookies : utilisateur non authentifié (401).
+  const bearer = pathname.startsWith('/api/admin')
+    ? parseBearer(request.headers.get('authorization'))
+    : ({ kind: 'none' } as const)
+
+  if (bearer.kind !== 'invalid') {
+    const { data, error: authError } =
+      bearer.kind === 'token'
+        ? await supabase.auth.getUser(bearer.token)
+        : await supabase.auth.getUser()
+    if (!authError) {
+      user = data.user as AuthUser
+    }
+    // authError is expected when refresh token is expired/reused — treat as unauthenticated
   }
-  // authError is expected when refresh token is expired/reused — treat as unauthenticated
 
   const adminResponse = handleAdminRoute(pathname, user, request, response)
   if (adminResponse) {

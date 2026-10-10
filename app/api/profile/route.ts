@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getProfile, updateProfile } from '@/lib/supabase/profile';
 import { logger } from '@/lib/logger';
+import { mergePreferencesPreservingPrivileges } from '@/lib/profile-preferences';
 
 const updateProfileSchema = z.object({
   fullName: z.string().min(1).optional(),
@@ -65,7 +66,19 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const { profile, error } = await updateProfile(user.id, parsed.data);
+    // Défense en profondeur (F1) : `preferences.role` et `preferences.admin_level` ouvrent l'accès d'administration dans plusieurs
+    // politiques RLS ; ils ne doivent jamais venir du client. On relit les préférences enregistrées et on ne fusionne que le reste.
+    // Échec fermé : si le profil est illisible, on n'écrit rien (un remplacement complet pourrait effacer un rôle existant).
+    let input = parsed.data;
+    if (input.preferences) {
+      const current = await getProfile(user.id);
+      if (!current) {
+        return NextResponse.json({ error: 'Profil introuvable' }, { status: 404 });
+      }
+      input = { ...input, preferences: mergePreferencesPreservingPrivileges(current.preferences, input.preferences) };
+    }
+
+    const { profile, error } = await updateProfile(user.id, input);
 
     if (error || !profile) {
       return NextResponse.json(

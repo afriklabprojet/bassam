@@ -13,6 +13,18 @@
 
 set -e
 
+# ═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+# SCRIPT DÉSACTIVÉ (2026-10-10) — il écrivait directement dans la base de PRODUCTION (référence de projet et pooler en dur)
+# avec psql, sans simulation ni confirmation de la cible, puis lançait le jeu de données de démonstration.
+# Remplacement sûr : `npm run apply-migration -- <fichier.sql> --target test|production --confirm-host <hôte> [--apply]`
+# (scripts/apply-migration.ts : simulation par défaut, cible vérifiée, registre de production, voir scripts/lib/target-guard.ts).
+# Le reste du fichier est conservé pour mémoire et n'est plus atteignable ; le réactiver est une décision à prendre
+# consciemment (retirer ce bloc), jamais par un simple argument ou une variable d'environnement.
+# ═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+echo "❌ scripts/apply-schema.sh est DÉSACTIVÉ : il écrivait dans la base de production sans garde-fou." >&2
+echo "   Utilisez : npm run apply-migration -- <fichier.sql> --target <test|production> --confirm-host <hôte> [--apply]" >&2
+exit 1
+
 PROJECT_REF="olpttunchyheradgukdc"
 DB_HOST="aws-0-eu-central-1.pooler.supabase.com"
 DB_PORT="6543"

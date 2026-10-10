@@ -27,6 +27,7 @@ if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; th
 fi
 
 echo -e "${GREEN}✓ Variables d'environnement chargées${NC}"
+echo "  Les options de garde-fou (--target, --confirm-host, --apply, …) doivent être passées à CE script : elles sont transmises à create-admin-prod.ts."
 echo "  URL: $NEXT_PUBLIC_SUPABASE_URL"
 echo ""
 
@@ -41,11 +42,11 @@ read -p "Choix (1-3): " choice
 case $choice in
   1)
     read -p "Email de l'admin: " email
-    pnpm tsx scripts/create-admin-prod.ts "$email" admin
+    pnpm tsx scripts/create-admin-prod.ts "$email" admin "$@"
     ;;
   2)
     read -p "Email du super admin: " email
-    pnpm tsx scripts/create-admin-prod.ts "$email" super_admin
+    pnpm tsx scripts/create-admin-prod.ts "$email" super_admin "$@"
     ;;
   3)
     echo ""
@@ -64,7 +65,7 @@ case $choice in
     for email in "${emails[@]}"; do
       echo ""
       echo -e "${BLUE}→ $email${NC}"
-      pnpm tsx scripts/create-admin-prod.ts "$email" "$level"
+      pnpm tsx scripts/create-admin-prod.ts "$email" "$level" "$@"
     done
     ;;
   *)

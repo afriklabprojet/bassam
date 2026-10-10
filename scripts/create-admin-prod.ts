@@ -1,161 +1,123 @@
 #!/usr/bin/env tsx
 /**
- * Script pour créer des comptes admin en production
+ * Crée (ou met à jour) un compte administrateur Supabase.
  *
- * Usage:
- *   npm run create-admin -- email@example.com [super_admin|admin]
+ * SÉCURITÉ — voir scripts/lib/target-guard.ts :
+ *  - SIMULATION par défaut : sans --apply, aucune requête n'est envoyée.
+ *  - La cible est déclarée (--target test|production), confirmée en retapant l'hôte (--confirm-host) et comparée au registre
+ *    de production du dépôt. En production, l'écriture exige en plus --confirm-ref, la variable BASSAM_PRODUCTION_CONFIRM
+ *    (= hôte) et la vérification distante de la clé de service.
+ *  - .env.local n'est JAMAIS chargé implicitement : variables du processus, ou --env-file explicite.
  *
- * Exemple:
- *   npm run create-admin -- nouveau.admin@exemple.com admin
- *   npm run create-admin -- boss@exemple.com super_admin
+ * Variables : NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (jamais en argument).
+ *
+ * Usage :
+ *   npm run create-admin -- <email> [admin|super_admin] --target <test|production> --confirm-host <hôte> [--apply] [--env-file <fichier>]
  */
-
 import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-import { resolve } from 'path';
+import {
+  describePlan,
+  formatRefusal,
+  planTarget,
+  safeErrorMessage,
+  verifyRemoteIdentity,
+} from './lib/target-guard';
 
-// Charge .env.local (ignoré par git) ; les variables déjà définies dans le shell restent prioritaires.
-dotenv.config({ path: resolve(process.cwd(), '.env.local') });
+/** Valeurs à masquer dans tout message d'erreur (renseignées après l'analyse de la cible). */
+const masked: Array<string | undefined> = [];
 
-// Vérifier les variables d'environnement
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Variables d\'environnement manquantes:');
-  console.error('   NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✓' : '✗');
-  console.error('   SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? '✓' : '✗');
-  process.exit(1);
-}
-
-// Parse des arguments
-const email = process.argv[2];
-const adminLevel = (process.argv[3] || 'admin') as 'admin' | 'super_admin';
-
-if (!email) {
-  console.error('❌ Usage: npm run create-admin -- <email> [admin|super_admin]');
-  process.exit(1);
-}
-
-if (!['admin', 'super_admin'].includes(adminLevel)) {
-  console.error('❌ Le niveau admin doit être "admin" ou "super_admin"');
-  process.exit(1);
-}
-
-// Validation email basique
-if (!email.includes('@') || !email.includes('.')) {
-  console.error('❌ Email invalide:', email);
-  process.exit(1);
-}
-
-console.log('🚀 Création d\'un compte admin en production...');
-console.log('   Email:', email);
-console.log('   Niveau:', adminLevel);
-console.log('   URL Supabase:', supabaseUrl);
-console.log('');
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+async function main(): Promise<number> {
+  const plan = planTarget({ operation: 'create-admin', argv: process.argv.slice(2), processEnv: process.env });
+  if (!plan.ok) {
+    console.error(formatRefusal(plan));
+    return 1;
   }
-});
+  masked.push(plan.secrets.accessToken, plan.secrets.serviceKey);
 
-async function createAdminUser() {
-  try {
-    // 1. Créer l'utilisateur
-    console.log('📝 Création de l\'utilisateur...');
-    const { data: user, error: createError } = await supabase.auth.admin.createUser({
-      email,
+  const email = plan.positional[0];
+  const adminLevel = (plan.positional[1] || 'admin') as 'admin' | 'super_admin';
+  if (!email) {
+    console.error('❌ Usage: npm run create-admin -- <email> [admin|super_admin] --target <test|production> --confirm-host <hôte> [--apply]');
+    return 1;
+  }
+  if (!['admin', 'super_admin'].includes(adminLevel)) {
+    console.error('❌ Le niveau admin doit être "admin" ou "super_admin"');
+    return 1;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    console.error('❌ Email invalide');
+    return 1;
+  }
+
+  console.log(describePlan(plan).join('\n'));
+  console.log(`compte : ${email} (niveau ${adminLevel})`);
+
+  if (plan.simulate) {
+    console.log('\nSIMULATION : aucune requête n\'a été envoyée. Ajoutez --apply (et les confirmations requises) pour écrire.');
+    return 0;
+  }
+
+  const identity = await verifyRemoteIdentity(plan);
+  if (!identity.ok) {
+    console.error(formatRefusal(identity));
+    return 1;
+  }
+  console.log('identité de la cible vérifiée (lecture seule). Création du compte…');
+
+  const supabase = createClient(plan.origin, plan.secrets.serviceKey as string, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  // 1. Créer l'utilisateur (ou mettre à jour l'existant)
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    app_metadata: { role: 'admin', admin_level: adminLevel },
+  });
+
+  let adminUser = created.user;
+  if (createError) {
+    if (!createError.message.includes('already registered')) throw createError;
+    console.log('⚠️  L\'utilisateur existe déjà, mise à jour…');
+    const { data: existingUser, error: getUserError } = await supabase.auth.admin.listUsers();
+    if (getUserError) throw getUserError;
+    const foundUser = existingUser.users.find((u) => u.email === email);
+    if (!foundUser) throw new Error('Utilisateur non trouvé');
+    const { error: updateError } = await supabase.auth.admin.updateUserById(foundUser.id, {
       email_confirm: true,
-      app_metadata: {
-        role: 'admin',
-        admin_level: adminLevel
-      }
+      app_metadata: { role: 'admin', admin_level: adminLevel },
     });
-
-    if (createError) {
-      if (createError.message.includes('already registered')) {
-        console.log('⚠️  L\'utilisateur existe déjà, mise à jour...');
-
-        // Récupérer l'utilisateur existant
-        const { data: existingUser, error: getUserError } = await supabase.auth.admin.listUsers();
-        if (getUserError) throw getUserError;
-
-        const foundUser = existingUser.users.find(u => u.email === email);
-        if (!foundUser) throw new Error('Utilisateur non trouvé');
-
-        // Mettre à jour les métadonnées
-        const { error: updateError } = await supabase.auth.admin.updateUserById(
-          foundUser.id,
-          {
-            email_confirm: true,
-            app_metadata: {
-              role: 'admin',
-              admin_level: adminLevel
-            }
-          }
-        );
-
-        if (updateError) throw updateError;
-        console.log('✅ Utilisateur mis à jour:', foundUser.id);
-
-        // Utiliser l'utilisateur existant
-        user.user = foundUser;
-      } else {
-        throw createError;
-      }
-    } else {
-      console.log('✅ Utilisateur créé:', user.user?.id);
-    }
-
-    const userId = user.user?.id;
-    if (!userId) throw new Error('ID utilisateur manquant');
-
-    // 2. Créer ou mettre à jour le profil
-    console.log('📝 Configuration du profil...');
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        email,
-        preferences: {
-          role: 'admin',
-          admin_level: adminLevel,
-          created_at: new Date().toISOString(),
-          created_by: 'admin-script'
-        }
-      }, {
-        onConflict: 'id'
-      });
-
-    if (profileError) throw profileError;
-    console.log('✅ Profil configuré');
-
-    // 3. Aucun mot de passe n'est défini ici : la personne le choisit elle-même.
-    //    (Le lien de récupération n'est volontairement ni affiché ni envoyé par ce script.)
-
-    // 4. Résumé
-    console.log('');
-    console.log('✨ Compte admin créé avec succès!');
-    console.log('');
-    console.log('📋 Résumé:');
-    console.log('   ID:', userId);
-    console.log('   Email:', email);
-    console.log('   Rôle:', 'admin');
-    console.log('   Niveau:', adminLevel);
-    console.log('   Email confirmé:', '✓');
-    console.log('');
-    console.log('🔐 L\'utilisateur doit:');
-    console.log('   1. Ouvrir /admin/login sur le site');
-    console.log('   2. Cliquer sur « Mot de passe oublié » et suivre l\'email reçu');
-    console.log('   3. Choisir son mot de passe puis se connecter');
-    console.log('');
-
-  } catch (error) {
-    console.error('❌ Erreur:', error);
-    process.exit(1);
+    if (updateError) throw updateError;
+    console.log('✅ Utilisateur mis à jour');
+    adminUser = foundUser;
+  } else {
+    console.log('✅ Utilisateur créé');
   }
+
+  const userId = adminUser?.id;
+  if (!userId) throw new Error('ID utilisateur manquant');
+
+  // 2. Créer ou mettre à jour le profil
+  const { error: profileError } = await supabase.from('profiles').upsert(
+    {
+      id: userId,
+      email,
+      preferences: { role: 'admin', admin_level: adminLevel, created_at: new Date().toISOString(), created_by: 'admin-script' },
+    },
+    { onConflict: 'id' },
+  );
+  if (profileError) throw profileError;
+  console.log('✅ Profil configuré');
+
+  // 3. Aucun mot de passe n'est défini ici : la personne le choisit elle-même.
+  //    (Le lien de récupération n'est volontairement ni affiché ni envoyé par ce script.)
+  console.log('\n🔐 L\'utilisateur doit : ouvrir /admin/login, cliquer sur « Mot de passe oublié », suivre l\'e-mail reçu, choisir son mot de passe.');
+  return 0;
 }
 
-createAdminUser().catch(console.error);
+main()
+  .then((code) => process.exit(code))
+  .catch((err) => {
+    console.error('❌ Erreur :', safeErrorMessage(err, [...masked, process.env.SUPABASE_SERVICE_ROLE_KEY]));
+    process.exit(1);
+  });

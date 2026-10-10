@@ -1,53 +1,34 @@
 #!/usr/bin/env npx tsx
 /**
- * Applique le schéma + migration + seed de données démo dans Supabase.
+ * Applique le jeu de données de DÉMONSTRATION (catégories, collections, produits) dans une base Supabase de TEST.
  *
- * Usage : npx tsx scripts/setup-database.ts
+ * SÉCURITÉ — voir scripts/lib/target-guard.ts :
+ *  - Réservé aux cibles de TEST : refusé sur la production (les produits démo écraseraient des lignes réelles de même slug).
+ *  - SIMULATION par défaut : sans --apply, aucune requête n'est envoyée.
+ *  - Cible déclarée (--target test) et confirmée en retapant l'hôte (--confirm-host) ; comparée au registre de production du dépôt ;
+ *    avant d'écrire, la base doit prouver (lecture seule) qu'elle ne contient que des comptes fictifs (@example.com/org/net).
+ *  - .env.local n'est JAMAIS chargé : variables du processus, ou --env-file .env.test*.
+ *
+ * Le schéma DDL doit être appliqué séparément (SQL Editor du projet de test, ou scripts/apply-migration.ts).
+ *
+ * Usage :
+ *   npx tsx scripts/setup-database.ts --target test --confirm-host <ref>.supabase.co --env-file .env.test          (simulation)
+ *   npx tsx scripts/setup-database.ts --target test --confirm-host <ref>.supabase.co --env-file .env.test --apply
  */
 
-import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  describePlan,
+  formatRefusal,
+  planTarget,
+  safeErrorMessage,
+  verifyRemoteIdentity,
+  type GuardPlan,
+} from './lib/target-guard';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-dotenv.config({ path: resolve(__dirname, '..', '.env.local') });
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  console.error('❌ Variables manquantes (NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)');
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-async function _runSQL(sql: string, label: string) {
-  const { error } = await supabase.rpc('exec_sql', { sql_query: sql }).maybeSingle();
-  if (error) {
-    // Try via REST pg_query fallback — use fetch directly
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({ sql_query: sql }),
-    });
-    if (!res.ok) {
-      console.warn(`⚠️  ${label}: RPC non disponible, utilisation directe`);
-      return false;
-    }
-  }
-  return true;
-}
+let SUPABASE_URL = '';
+let SERVICE_ROLE_KEY = '';
+let supabase: SupabaseClient;
 
 // Produits démo parfumerie de luxe
 const DEMO_PRODUCTS = [
@@ -250,23 +231,6 @@ async function main() {
 
   // ── 1. Appliquer le schéma ──
   console.log('📋 1/4 — Application du schéma principal…');
-  const _schemaSQL = readFileSync(resolve(__dirname, '..', 'supabase', 'schema.sql'), 'utf-8');
-  
-  // Split by statements and execute via supabase client
-  // We'll use the raw REST endpoint for SQL execution
-  const _execSQL = async (_sql: string) => {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
-        'apikey': SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({}),
-    });
-    return res.ok;
-  };
-
   // Use the Supabase Management API or direct pg for DDL
   // Since we can't run raw DDL through PostgREST, we'll insert data via the client
   // The schema must be applied via the Supabase SQL Editor
@@ -360,4 +324,35 @@ async function main() {
   console.log('└──────────────────────────────────────────┘');
 }
 
-main().catch(console.error);
+async function run(): Promise<number> {
+  const plan = planTarget({ operation: 'setup-database', argv: process.argv.slice(2), processEnv: process.env });
+  if (!plan.ok) {
+    console.error(formatRefusal(plan));
+    return 1;
+  }
+  const checked: GuardPlan = plan;
+  console.log(describePlan(checked).join('\n'));
+  console.log(`jeu de démonstration : ${DEMO_PRODUCTS.length} produits, catégories et collections (upsert par slug)`);
+  if (checked.simulate) {
+    console.log("\nSIMULATION : aucune requête n'a été envoyée. Ajoutez --apply pour écrire dans cette base de TEST.");
+    return 0;
+  }
+  SUPABASE_URL = checked.origin;
+  SERVICE_ROLE_KEY = checked.secrets.serviceKey as string;
+  try {
+    const identity = await verifyRemoteIdentity(checked);
+    if (!identity.ok) {
+      console.error(formatRefusal(identity));
+      return 1;
+    }
+    console.log("identité de la cible vérifiée (lecture seule) : base de test avec comptes fictifs uniquement.");
+    supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+    await main();
+    return 0;
+  } catch (err) {
+    console.error('❌ Erreur :', safeErrorMessage(err, [SERVICE_ROLE_KEY]));
+    return 1;
+  }
+}
+
+run().then((code) => process.exit(code));

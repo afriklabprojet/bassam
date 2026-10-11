@@ -62,6 +62,9 @@ Tester au minimum `/api/admin/stats`, une route liée à la RLS comme
 - La validation finale doit être répétée dans le projet Vercel de test et le
   journal doit confirmer Node.js 24.x, l'installation depuis le lockfile et
   l'absence de variables de production.
+- Pour le projet Vercel de production, relever sans modifier la configuration :
+  la version Node.js configurée, la date du dernier déploiement réussi et la
+  version Node.js affichée dans les journaux de ce déploiement.
 - Un build local ne valide pas les protections Preview, l'Ignored Build Step,
   les régions, les variables distantes ni les intégrations Vercel.
 
@@ -95,6 +98,11 @@ Les quatre avertissements ESLint concernent `AdminShell.tsx`, les pages
 `paiements` et `remboursements`, ainsi que `Header.tsx`. Ils sont antérieurs à
 ce lot. La correction forcée proposée par `npm audit` installerait une version
 majeure incompatible de `eslint-config-next` et ne doit pas être appliquée.
+Le registre npm consulté le 11 octobre 2026 publie toujours `braces@3.0.3` et
+`micromatch@4.0.8` comme dernières versions. Réexaminer l'alerte uniquement
+lorsqu'une nouvelle version de `braces`, `micromatch` ou de la chaîne
+`eslint-config-next` pour Next.js 16 supprime la version vulnérable sans
+downgrade majeur.
 
 ## 7. Rotation des secrets et compte administrateur
 
@@ -103,7 +111,8 @@ majeure incompatible de `eslint-config-next` et ne doit pas être appliquée.
 2. Retirer d'abord les secrets de production des portées Preview et Development.
 3. Vérifier le compte administrateur potentiellement exposé : identité,
    `app_metadata.role`, dernière connexion, sessions actives et changement de
-   mot de passe effectué par le propriétaire du compte.
+   mot de passe effectué par le propriétaire du compte. Invalider les sessions
+   qui ne sont pas reconnues ou qui précèdent le changement validé.
 4. Créer les nouvelles clés côté fournisseur, les installer sur la pile de
    test, vérifier chaque flux, puis préparer une fenêtre de bascule production.
 5. Pour Supabase, conserver les clés JWT legacy tant que le site, les fonctions,
@@ -111,7 +120,26 @@ majeure incompatible de `eslint-config-next` et ne doit pas être appliquée.
 6. Révoquer une ancienne clé seulement après validation, surveillance et plan
    de retour arrière documenté. Ne jamais journaliser une valeur de clé.
 
-## 8. Risques encore ouverts
+## 8. Checklist opérationnelle de la pile TEST
+
+| # | Action | Preuve de réussite | Arrêt immédiat si |
+|---|---|---|---|
+| 1 | Identifier le projet Supabase TEST | Nom contenant `TEST`, référence et hôte retapés | La cible correspond au registre de production ou reste ambiguë |
+| 2 | Identifier le projet Vercel TEST | Projet distinct, sans domaine ni alias de production | Le projet ou son alias dessert la production |
+| 3 | Contrôler les portées Preview/Development | Aucune variable n'utilise une valeur de production | Une valeur de production est détectée |
+| 4 | Préparer données, comptes et clés fictifs | Tous les comptes utilisent les domaines `example.*` | Un compte ou un jeu de données réel apparaît |
+| 5 | Appliquer F1 sur TEST | Migration réussie et diagnostic des politiques conservé | Le schéma diffère des prérequis ou la migration échoue |
+| 6 | Valider les rôles administrateurs | `app_metadata.role = admin`, nouveau JWT émis | Le rôle dépend de `preferences` ou l'ancien JWT reste utilisé |
+| 7 | Tester l'authentification API admin | Admin 200, client 403, jeton invalide/expiré 401 | Un statut attendu diffère |
+| 8 | Tester l'absence de repli cookie | Bearer invalide + cookie admin valide donne 401 | La requête est autorisée par le cookie |
+| 9 | Appliquer et tester F2 | Lecture publique conservée, écritures client refusées, admin/service autorisés | Une écriture client passe ou une lecture publique régresse |
+| 10 | Appliquer et tester F3 | INSERT REST refusé et checkout complet réussi | Le checkout échoue ou un INSERT client passe |
+| 11 | Déployer la route F4 puis appliquer F4 | Validation exacte réussie avant et après migration, énumération REST vide | La route serveur n'est pas déployée ou un code valide devient inutilisable |
+| 12 | Appliquer et tester F5 | Soumission non approuvée acceptée, auto-approbation refusée, modération admin réussie | Une soumission légitime régresse ou un client peut modérer |
+| 13 | Examiner les journaux TEST | Aucun secret, jeton ou donnée sensible dans les journaux | Une fuite ou une erreur non expliquée apparaît |
+| 14 | Exécuter le contrôle final TEST | Tests, build et déploiement TEST réussis avec Node.js 24.x | Un contrôle échoue ou la version Node.js diffère |
+
+## 9. Risques encore ouverts
 
 - F1 à F5 ne sont appliquées sur aucune pile Supabase réelle.
 - Les administrateurs légitimes et le renouvellement de leurs jetons restent à
@@ -125,7 +153,7 @@ majeure incompatible de `eslint-config-next` et ne doit pas être appliquée.
 - Les cinq alertes npm HIGH de développement restent ouvertes faute de correctif
   compatible démontré.
 
-## 9. Conditions d'arrêt
+## 10. Conditions d'arrêt
 
 Arrêter sans appliquer si l'identité de la cible n'est pas prouvée, si un compte
 non fictif apparaît, si une politique diffère du diagnostic attendu, si un test

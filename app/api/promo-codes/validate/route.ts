@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/service';
 import { logger } from '@/lib/logger';
 import { formatPrice } from '@/lib/format';
 import { validatePromoCode } from '@/lib/promo';
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Code requis' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const result = await validatePromoCode(supabase, code, Number(orderAmount) || 0);
 
     if (!result.ok) {

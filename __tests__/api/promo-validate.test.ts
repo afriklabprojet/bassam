@@ -6,8 +6,15 @@ const mockEq = vi.fn(() => ({ single: mockSingle }));
 const mockSelect = vi.fn(() => ({ eq: mockEq }));
 const mockFrom = vi.fn(() => ({ select: mockSelect }));
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(() => Promise.resolve({ from: mockFrom })),
+const mockCreateServiceClient = vi.fn(() => ({ from: mockFrom }));
+
+vi.mock('@/lib/supabase/service', () => ({
+  createServiceClient: () => mockCreateServiceClient(),
+}));
+
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn(() => ({ allowed: true, remaining: 10, resetAt: Date.now() + 60_000 })),
+  rateLimitResponse: vi.fn(),
 }));
 
 import { POST } from '@/app/api/promo-codes/validate/route';
@@ -63,6 +70,12 @@ describe('POST /api/promo-codes/validate', () => {
     mockSingle.mockResolvedValue({ data: BASE_CODE, error: null });
     await POST(makeRequest({ code: 'vip10', orderAmount: 50000 }));
     expect(mockEq).toHaveBeenCalledWith('code', 'VIP10');
+  });
+
+  it('valide le code côté serveur avec le client service', async () => {
+    mockSingle.mockResolvedValue({ data: BASE_CODE, error: null });
+    await POST(makeRequest({ code: 'VIP10', orderAmount: 50000 }));
+    expect(mockCreateServiceClient).toHaveBeenCalledOnce();
   });
 
   it('retourne valid:false pour un code désactivé', async () => {

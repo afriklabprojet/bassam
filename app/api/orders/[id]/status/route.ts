@@ -11,8 +11,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 // via the service client because guest orders have `user_id = null`, and the
 // "Users can view their own orders" policy (auth.uid() = user_id) can never
 // match NULL — meaning a guest could otherwise never check their own order,
-// even right after paying for it. The order id is an unguessable UUID, and
-// only non-sensitive status fields are returned (no address, no full phone).
+// even right after paying for it. The order UUID is the only access capability:
+// anyone who obtains the confirmation URL can read the returned status, payment
+// status, amount, first name, full phone number and creation date. The shipping
+// address is never returned. Masking the phone is a pending product decision
+// (see security/DECISION-PRODUIT-TELEPHONE-STATUT-COMMANDE.md).
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

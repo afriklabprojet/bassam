@@ -3,11 +3,11 @@
  *
  * Plusieurs politiques RLS (inventaire, paiements, remboursements, codes-barres, maintenance, alertes de stock, marketing…)
  * accordent l'accès d'administration quand `profiles.preferences->>'role' = 'admin'`. Or `PATCH /api/profile` écrit
- * `preferences` avec le jeton de l'utilisateur : sans filtre, n'importe quel client connecté pourrait s'attribuer ce rôle
- * (constat F1 de security/SECURITY-AUDIT.md). Ces clés ne doivent donc JAMAIS provenir d'une requête cliente.
+ * `preferences` avec le jeton de l'utilisateur : sans filtre, n'importe quel client connecté pourrait s'attribuer ce rôle.
+ * Ces clés ne doivent donc JAMAIS provenir d'une requête cliente.
  *
- * Ce filtre est une défense en profondeur côté application ; le garde-fou définitif est en base
- * (security/rls/01_proposed_migration_use_is_admin.sql, non appliquée en production à ce jour).
+ * Ce filtre est une défense en profondeur côté application ; le garde-fou définitif est la migration
+ * `20261011000000_rls_use_is_admin.sql`, qui doit être validée sur une pile de test avant toute application.
  */
 export const PROTECTED_PREFERENCE_KEYS = ['role', 'admin_level'] as const;
 

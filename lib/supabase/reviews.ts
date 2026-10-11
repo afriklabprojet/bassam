@@ -64,44 +64,30 @@ export async function submitReview(payload: ReviewInsert): Promise<{ ok: boolean
 
 /** Admin — tous les avis (approuvés + en attente) */
 export async function getAllReviews(): Promise<Review[]> {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data ?? [];
-  } catch {
-    return [];
-  }
+  if (error) throw error;
+  return data ?? [];
 }
 
 /** Admin — approuver ou rejeter un avis */
-export async function setReviewApproval(id: string, approved: boolean): Promise<boolean> {
-  try {
-    const supabase = await createClient();
-    const { error } = await supabase
-      .from('reviews')
-      .update({ is_approved: approved })
-      .eq('id', id);
+export async function setReviewApproval(id: string, approved: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('reviews')
+    .update({ is_approved: approved })
+    .eq('id', id);
 
-    if (error) throw error;
-    return true;
-  } catch {
-    return false;
-  }
+  if (error) throw error;
 }
 
 /** Admin — supprimer un avis */
-export async function deleteReview(id: string): Promise<boolean> {
-  try {
-    const supabase = await createClient();
-    const { error } = await supabase.from('reviews').delete().eq('id', id);
-    if (error) throw error;
-    return true;
-  } catch {
-    return false;
-  }
+export async function deleteReview(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from('reviews').delete().eq('id', id);
+  if (error) throw error;
 }

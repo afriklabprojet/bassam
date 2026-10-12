@@ -8,6 +8,7 @@ import { initiatePayment, JekoApiError, mapProvider, JEKO_CURRENCY, getJekoConfi
 import { checkRateLimit, rateLimitResponse } from '@/lib/rate-limit';
 import { PAYMENT_INITIATE_RATE_LIMIT as PAYMENT_RATE_LIMIT } from '@/lib/rate-limit-config';
 import { logger } from '@/lib/logger';
+import { maskPhone } from '@/lib/privacy';
 import { isPaymentMethodId, type PaymentMethodId } from '@/lib/payment/methods';
 const PAYMENT_LOG_CONTEXT = 'API /payment/initiate';
 
@@ -73,12 +74,6 @@ function getJekoErrorStatus(error: JekoApiError) {
   return 502;
 }
 
-function getMaskedPhone(phone: string) {
-  const digits = phone.replace(/\D/g, '');
-  if (!digits) return '[redacted-phone]';
-  return `***${digits.slice(-4)}`;
-}
-
 function getInitiationLogContext(appUrlSource: 'env' | 'request-origin') {
   return {
     appUrlConfigured: Boolean(process.env.NEXT_PUBLIC_APP_URL),
@@ -126,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     const d = validated.data;
     paymentMethod = d.paymentMethod;
-    maskedPhone = getMaskedPhone(d.phone);
+    maskedPhone = maskPhone(d.phone);
 
     logger.info(PAYMENT_LOG_CONTEXT, 'Payment initiation request received', {
       correlationId: getPaymentCorrelationId(requestCorrelationId, orderId, transactionId),

@@ -73,18 +73,20 @@ describe('Page de confirmation de commande', () => {
 
   it('paiement confirmé : commande confirmée et panier vidé une seule fois', async () => {
     mockSearch = new URLSearchParams({ order: ORDER_ID });
-    mockStatus(200, { orderId: ORDER_ID, status: 'confirmed', paymentStatus: 'paid', firstName: 'Awa', phone: '0700000000' });
+    mockStatus(200, { orderId: ORDER_ID, status: 'confirmed', paymentStatus: 'paid', firstName: 'Awa', phone: '***0000' });
 
     render(<ConfirmationPage />);
 
     expect(await screen.findByRole('heading', { name: 'Commande confirmée !' })).toBeTruthy();
     await waitFor(() => expect(mockClearCart).toHaveBeenCalledTimes(1));
     expect(screen.getByText('VIP-ABCDEF12')).toBeTruthy();
+    expect(screen.getByText('***0000')).toBeTruthy();
+    expect(screen.queryByText('0700000000')).toBeNull();
   });
 
   it('paiement échoué : message d\'échec, panier conservé', async () => {
     mockSearch = new URLSearchParams({ order: ORDER_ID });
-    mockStatus(200, { orderId: ORDER_ID, status: 'pending', paymentStatus: 'failed', firstName: null, phone: '0700000000' });
+    mockStatus(200, { orderId: ORDER_ID, status: 'pending', paymentStatus: 'failed', firstName: null, phone: '***0000' });
 
     render(<ConfirmationPage />);
 

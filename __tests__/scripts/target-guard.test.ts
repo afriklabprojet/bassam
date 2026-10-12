@@ -24,13 +24,19 @@ const TEST_REF = 'a'.repeat(20);
 const TEST_HOST = `${TEST_REF}.supabase.co`;
 const PROD_REF = 'p'.repeat(20);
 const PROD_HOST = `${PROD_REF}.supabase.co`;
-const FAKE_PROD_HASHES = new Set([sha256(PROD_HOST), sha256(PROD_REF)]);
+const PROD_APP_HOST = 'production.example.com';
+const FAKE_PROD_HASHES = new Set([
+  sha256(PROD_HOST),
+  sha256(PROD_REF),
+  sha256(PROD_APP_HOST),
+]);
 
 const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const jwt = (claims: Record<string, unknown>) => `${b64({ alg: 'HS256' })}.${b64(claims)}.${b64('signature-fictive')}`;
 const SERVICE_TEST = jwt({ role: 'service_role', ref: TEST_REF });
 const SERVICE_PROD = jwt({ role: 'service_role', ref: PROD_REF });
-const SECRETS = [SERVICE_TEST, SERVICE_PROD, 'sbp_FAKE_ACCESS_TOKEN_0123456789'];
+const MODERN_SERVICE = `sb_secret_${'M'.repeat(32)}`;
+const SECRETS = [SERVICE_TEST, SERVICE_PROD, MODERN_SERVICE, 'sbp_FAKE_ACCESS_TOKEN_0123456789'];
 const TOKEN = 'sbp_FAKE_ACCESS_TOKEN_0123456789';
 
 const testEnv = (extra: Record<string, string | undefined> = {}) => ({
@@ -59,6 +65,8 @@ const accepted = (r: GuardPlan | GuardRefusal): GuardPlan => {
 };
 const text = (r: GuardRefusal) => r.reasons.join('\n');
 const TEST_ARGS = ['--target', 'test', '--confirm-host', TEST_HOST];
+const validationEnv = (extra: Record<string, string | undefined> = {}) =>
+  testEnv({ NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-key-fictive', ...extra });
 
 // ── 1. Analyse des arguments ─────────────────────────────────────────────────────────────────────────────────────────
 describe('analyse des arguments', () => {
@@ -101,6 +109,54 @@ describe('confirmation de la cible', () => {
   it('--confirm-host seul ne suffit pas : une cible de test qui est la production est refusée', () => {
     const r = refused(plan('create-admin', ['--target', 'test', '--confirm-host', PROD_HOST, '--apply'], prodEnv()));
     expect(text(r)).toMatch(/PRODUCTION/);
+  });
+  it('la validation distante est limitée aux cibles de test et exige la clé anonyme', () => {
+    expect(
+      text(
+        refused(
+          plan('validate-supabase-test', ['--target', 'production', '--confirm-host', TEST_HOST], validationEnv()),
+        ),
+      ),
+    ).toMatch(/interdite/);
+    expect(
+      text(refused(plan('validate-supabase-test', TEST_ARGS, testEnv()))),
+    ).toMatch(/NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+    expect(accepted(plan('validate-supabase-test', TEST_ARGS, validationEnv())).simulate).toBe(true);
+  });
+  it('confirme séparément le backend de test et refuse le domaine applicatif de production', () => {
+    const testAppHost = 'backend-test.example.com';
+    expect(
+      text(
+        refused(
+          plan(
+            'validate-supabase-test',
+            TEST_ARGS,
+            validationEnv({ APP_BASE_URL: `https://${testAppHost}` }),
+          ),
+        ),
+      ),
+    ).toMatch(/--confirm-app-host/);
+
+    const valid = accepted(
+      plan(
+        'validate-supabase-test',
+        [...TEST_ARGS, '--confirm-app-host', testAppHost],
+        validationEnv({ APP_BASE_URL: `https://${testAppHost}` }),
+      ),
+    );
+    expect(valid.appOrigin).toBe(`https://${testAppHost}`);
+
+    expect(
+      text(
+        refused(
+          plan(
+            'validate-supabase-test',
+            [...TEST_ARGS, '--confirm-app-host', PROD_APP_HOST],
+            validationEnv({ APP_BASE_URL: `https://${PROD_APP_HOST}` }),
+          ),
+        ),
+      ),
+    ).toMatch(/APP_BASE_URL correspond à la PRODUCTION/);
   });
 });
 
@@ -201,10 +257,41 @@ describe('origine de l\'environnement (aucun chargement implicite de .env.local)
 // ── 6. Clé de service ───────────────────────────────────────────────────────────────────────────────────────────────
 describe('identité de la clé de service', () => {
   it('refuse une clé illisible, sans rôle service_role, sans référence ou d\'un autre projet', () => {
-    expect(text(refused(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: 'pas-un-jwt' }))))).toMatch(/non vérifiable/);
+    expect(text(refused(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: 'pas-un-jwt' }))))).toMatch(/ni un JWT legacy.*ni une clé moderne/);
     expect(text(refused(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: jwt({ role: 'anon', ref: TEST_REF }) }))))).toMatch(/service_role/);
     expect(text(refused(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: jwt({ role: 'service_role' }) }))))).toMatch(/référence/);
     expect(text(refused(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: jwt({ role: 'service_role', ref: 'b'.repeat(20) }) }))))).toMatch(/autre projet/);
+  });
+  it('accepte une clé moderne uniquement pour un projet hébergé dont la cible reste contrôlée par le registre', () => {
+    expect(accepted(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: MODERN_SERVICE }))).secrets.serviceKey).toBe(MODERN_SERVICE);
+    expect(
+      accepted(
+        plan(
+          'create-admin',
+          ['--target', 'production', '--confirm-host', PROD_HOST],
+          prodEnv({ SUPABASE_SERVICE_ROLE_KEY: MODERN_SERVICE }),
+        ),
+      ).kind,
+    ).toBe('production');
+    expect(
+      text(
+        refused(
+          plan(
+            'create-admin',
+            ['--target', 'test', '--confirm-host', '127.0.0.1'],
+            {
+              NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
+              SUPABASE_SERVICE_ROLE_KEY: MODERN_SERVICE,
+            },
+          ),
+        ),
+      ),
+    ).toMatch(/projet Supabase hébergé/);
+  });
+  it('refuse les imitations ou clés modernes tronquées', () => {
+    for (const invalid of ['sb_secret_court', `xx_secret_${'x'.repeat(32)}`, `sb_secret_${'!'.repeat(32)}`]) {
+      expect(text(refused(plan('create-admin', TEST_ARGS, testEnv({ SUPABASE_SERVICE_ROLE_KEY: invalid }))))).toMatch(/clé moderne Supabase valide/);
+    }
   });
 });
 
@@ -224,6 +311,19 @@ const adminPlan = (kind: 'test' | 'production' = 'test') =>
   kind === 'test'
     ? accepted(plan('create-admin', [...TEST_ARGS, '--apply'], testEnv()))
     : accepted(plan('create-admin', ['--target', 'production', '--confirm-host', PROD_HOST, '--apply', '--confirm-ref', PROD_REF], prodEnv({ BASSAM_PRODUCTION_CONFIRM: PROD_HOST })));
+const modernAdminPlan = (kind: 'test' | 'production' = 'test') =>
+  kind === 'test'
+    ? accepted(plan('create-admin', [...TEST_ARGS, '--apply'], testEnv({ SUPABASE_SERVICE_ROLE_KEY: MODERN_SERVICE })))
+    : accepted(
+        plan(
+          'create-admin',
+          ['--target', 'production', '--confirm-host', PROD_HOST, '--apply', '--confirm-ref', PROD_REF],
+          prodEnv({
+            BASSAM_PRODUCTION_CONFIRM: PROD_HOST,
+            SUPABASE_SERVICE_ROLE_KEY: MODERN_SERVICE,
+          }),
+        ),
+      );
 const migrationPlan = (kind: 'test' | 'production' = 'test') =>
   kind === 'test'
     ? accepted(plan('apply-migration', [...TEST_ARGS, '--apply'], testEnv()))
@@ -257,6 +357,12 @@ describe('preuve d\'identité distante avant écriture', () => {
   it('production : la clé doit être acceptée par l\'hôte (aucun contrôle de contenu)', async () => {
     expect(await verifyRemoteIdentity(adminPlan('production'), fakeFetch(() => ({ body: { users: [{ email: 'client@gmail.com' }] } })).impl)).toEqual({ ok: true });
     expect(text(refused((await verifyRemoteIdentity(adminPlan('production'), fakeFetch(() => ({ status: 403 })).impl)) as GuardRefusal))).toMatch(/n'est pas acceptée/);
+  });
+  it('clé moderne : exige la même preuve distante avant écriture en test et en production', async () => {
+    expect(await verifyRemoteIdentity(modernAdminPlan(), fakeFetch(() => ({ body: { users: [] } })).impl)).toEqual({ ok: true });
+    expect(await verifyRemoteIdentity(modernAdminPlan('production'), fakeFetch(() => ({ body: { users: [] } })).impl)).toEqual({ ok: true });
+    const denied = await verifyRemoteIdentity(modernAdminPlan('production'), fakeFetch(() => ({ status: 401 })).impl);
+    expect(text(refused(denied as GuardRefusal))).toMatch(/n'est pas acceptée/);
   });
   it('migration : le projet est retrouvé par la Management API (GET), la référence doit correspondre', async () => {
     const f = fakeFetch(() => ({ body: { id: TEST_REF, name: 'Parfumerie TEST' } }));
@@ -402,6 +508,22 @@ describe('scripts en ligne de commande (aucun réseau, aucune base)', () => {
     expect(ok.stdout).toMatch(/SIMULATION/);
     expect(ok.stderr).not.toMatch(/NETWORK_ATTEMPT/);
   }, 120_000);
+
+  it('validate-supabase-test : simulation valide = aucune écriture et aucun réseau', () => {
+    const r = run(
+      'validate-supabase-test.mjs',
+      TEST_ARGS,
+      {
+        NEXT_PUBLIC_SUPABASE_URL: `https://${TEST_HOST}`,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-key-fictive',
+        SUPABASE_SERVICE_ROLE_KEY: SERVICE_TEST,
+      },
+    );
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/SIMULATION/);
+    expect(r.stderr).not.toMatch(/NETWORK_ATTEMPT/);
+    for (const s of SECRETS) expect(r.stdout + r.stderr).not.toContain(s);
+  }, 90_000);
 });
 
 // ── 10. Scripts shell qui agissaient sur la base ────────────────────────────────────────────────────────────────────
@@ -438,13 +560,17 @@ describe('scripts shell (apply-schema.sh, create-admins-prod.sh)', () => {
 // ── 11. Garde-fou contre les régressions : tout nouveau script qui touche aux secrets Supabase doit passer par le garde-fou ──
 describe('politique : les scripts qui écrivent dans Supabase passent par target-guard', () => {
   const dir = path.join(process.cwd(), 'scripts');
-  const scripts = readdirSync(dir).filter((f) => f.endsWith('.ts'));
+  const scripts = readdirSync(dir).filter((f) => /\.(?:mjs|ts)$/.test(f));
   const source = (f: string) => readFileSync(path.join(dir, f), 'utf8');
 
-  it('chaque script .ts qui référence la clé de service, le jeton d\'accès ou l\'API de gestion importe ./lib/target-guard', () => {
+  it('chaque script JS/TS qui référence Supabase sensible importe le garde-fou', () => {
     const sensitive = scripts.filter((f) => /SUPABASE_SERVICE_ROLE_KEY|SUPABASE_ACCESS_TOKEN|api\.supabase\.com|\.auth\.admin\.|@supabase\/supabase-js/.test(source(f)));
     expect(sensitive.length).toBeGreaterThanOrEqual(3);
-    for (const f of sensitive) expect(source(f), `${f} doit importer le garde-fou`).toMatch(/from '\.\/lib\/target-guard'/);
+    for (const f of sensitive) {
+      expect(source(f), `${f} doit importer le garde-fou`).toMatch(
+        /from '\.\/lib\/target-guard(?:\.ts)?'/,
+      );
+    }
   });
 
   it('aucun script gardé ne charge .env.local (ni via dotenv, ni par chemin en dur)', () => {

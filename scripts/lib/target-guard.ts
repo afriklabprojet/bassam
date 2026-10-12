@@ -24,7 +24,11 @@ import { basename, relative, resolve, sep } from 'node:path';
 import { parse as parseDotenv } from 'dotenv';
 import { PRODUCTION_TARGET_HASHES } from './production-targets';
 
-export type Operation = 'apply-migration' | 'setup-database' | 'create-admin';
+export type Operation =
+  | 'apply-migration'
+  | 'setup-database'
+  | 'create-admin'
+  | 'validate-supabase-test';
 export type TargetKind = 'test' | 'production';
 
 /** Types de cible permis par opération (le jeu de démonstration n'a aucune raison d'exister en production). */
@@ -32,16 +36,27 @@ export const OPERATION_KINDS: Record<Operation, readonly TargetKind[]> = {
   'apply-migration': ['test', 'production'],
   'setup-database': ['test'],
   'create-admin': ['test', 'production'],
+  'validate-supabase-test': ['test'],
 };
 
 export const URL_KEY = 'NEXT_PUBLIC_SUPABASE_URL';
+export const ANON_KEY = 'NEXT_PUBLIC_SUPABASE_ANON_KEY';
+export const APP_URL_KEY = 'APP_BASE_URL';
 export const SERVICE_KEY = 'SUPABASE_SERVICE_ROLE_KEY';
 export const TOKEN_KEY = 'SUPABASE_ACCESS_TOKEN';
 export const PRODUCTION_CONFIRM_ENV = 'BASSAM_PRODUCTION_CONFIRM';
 
-const VALUE_FLAGS = new Set(['target', 'confirm-host', 'confirm-ref', 'confirm-name', 'env-file']);
+const VALUE_FLAGS = new Set([
+  'target',
+  'confirm-host',
+  'confirm-app-host',
+  'confirm-ref',
+  'confirm-name',
+  'env-file',
+]);
 const BOOLEAN_FLAGS = new Set(['apply']);
 const HOSTED = /^([a-z0-9]{20})\.supabase\.co$/;
+const MODERN_SECRET_KEY = /^sb_secret_[A-Za-z0-9_-]{20,}$/;
 const LOOPBACK = new Set(['localhost', '127.0.0.1', '[::1]']);
 /** Comptes considérés comme fictifs dans une base de test. */
 export const FICTITIOUS_EMAIL = /@example\.(com|org|net)$/i;
@@ -116,11 +131,12 @@ export interface GuardPlan {
   ref: string | null;
   local: boolean;
   origin: string;
+  appOrigin: string | null;
   envSource: string;
   positional: string[];
   confirmName: string | null;
   /** Contient des secrets : ne jamais l'afficher. */
-  secrets: { serviceKey?: string; accessToken?: string };
+  secrets: { anonKey?: string; serviceKey?: string; accessToken?: string };
   warnings: string[];
 }
 
@@ -174,12 +190,16 @@ export function planTarget(input: GuardInput): GuardPlan | GuardRefusal {
     return a ?? b;
   };
   const url = pick(URL_KEY);
+  const anonKey = pick(ANON_KEY);
+  const appUrl = pick(APP_URL_KEY);
   const serviceKey = pick(SERVICE_KEY);
   const accessToken = pick(TOKEN_KEY);
 
   if (!url) reasons.push(`${URL_KEY} absente (rien n'est chargé implicitement depuis .env.local)`);
   const needsService = input.operation !== 'apply-migration';
+  const needsAnon = input.operation === 'validate-supabase-test';
   if (needsService && !serviceKey) reasons.push(`${SERVICE_KEY} absente`);
+  if (needsAnon && !anonKey) reasons.push(`${ANON_KEY} absente`);
   if (!needsService && !accessToken) reasons.push(`${TOKEN_KEY} absente`);
 
   // 3. Hôte : analyse stricte, jamais de confiance dans une valeur brute
@@ -221,23 +241,69 @@ export function planTarget(input: GuardInput): GuardPlan | GuardRefusal {
 
   // 5. Détection de la production par le registre du dépôt (hôte, référence, référence portée par la clé)
   const claims = decodeJwtClaims(serviceKey);
+  const modernSecretKey = typeof serviceKey === 'string' && MODERN_SECRET_KEY.test(serviceKey);
   let isProduction = false;
   if (host && hashes.has(sha256(host))) isProduction = true;
   if (ref && hashes.has(sha256(ref))) isProduction = true;
   if (claims?.ref && hashes.has(sha256(claims.ref.toLowerCase()))) isProduction = true;
   if (needsService && serviceKey) {
-    if (!claims) reasons.push(`${SERVICE_KEY} n'est pas un JWT lisible : identité de la clé non vérifiable`);
-    else {
+    if (modernSecretKey) {
+      if (!ref || local) {
+        reasons.push(`${SERVICE_KEY} moderne uniquement acceptée pour un projet Supabase hébergé identifiable`);
+      }
+    } else if (claims) {
       if (claims.role !== 'service_role') reasons.push(`${SERVICE_KEY} ne porte pas le rôle service_role`);
       if (ref && claims.ref && claims.ref.toLowerCase() !== ref) reasons.push('la clé de service appartient à un autre projet que l\'hôte indiqué');
       if (ref && !claims.ref) reasons.push('la clé de service ne porte pas de référence de projet : identité non vérifiable');
+    } else {
+      reasons.push(`${SERVICE_KEY} n'est ni un JWT legacy lisible ni une clé moderne Supabase valide`);
     }
   }
   if (kind === 'test' && isProduction) reasons.push('la cible correspond à la PRODUCTION (registre du dépôt) : refus pour une cible de test');
   if (kind === 'production' && host && !isProduction) reasons.push('la cible déclarée « production » est absente du registre de production du dépôt : refus (mettre le registre à jour si le projet a changé)');
   if (kind === 'test' && input.processEnv.VERCEL_ENV === 'production') reasons.push('environnement d\'exécution de production détecté (VERCEL_ENV) : refus pour une cible de test');
 
-  // 6. Écriture et confirmations supplémentaires pour la production
+  // 6. Backend applicatif facultatif pour le validateur distant
+  let appOrigin: string | null = null;
+  const confirmAppHost = flags.get('confirm-app-host');
+  if (input.operation !== 'validate-supabase-test' && confirmAppHost !== undefined) {
+    reasons.push('--confirm-app-host est réservé à validate-supabase-test');
+  }
+  if (input.operation === 'validate-supabase-test') {
+    if (!appUrl) {
+      if (confirmAppHost !== undefined) reasons.push('--confirm-app-host est inutile sans APP_BASE_URL');
+      warnings.push('APP_BASE_URL absente : les routes HTTP du déploiement ne seront pas testées');
+    } else {
+      try {
+        const parsed = new URL(appUrl);
+        const appHost = parsed.hostname.toLowerCase();
+        const appIsLocal = LOOPBACK.has(appHost);
+        if (parsed.username || parsed.password) reasons.push(`${APP_URL_KEY} contient des identifiants : refus`);
+        if (parsed.search || parsed.hash || (parsed.pathname !== '/' && parsed.pathname !== '')) {
+          reasons.push(`${APP_URL_KEY} doit être une URL de base (sans chemin ni paramètres)`);
+        }
+        if (appIsLocal) {
+          appOrigin = `${parsed.protocol}//${parsed.host}`;
+        } else {
+          if (parsed.protocol !== 'https:') reasons.push(`${APP_URL_KEY} distante doit utiliser https`);
+          if (parsed.port) reasons.push(`${APP_URL_KEY} distante ne doit pas préciser de port`);
+          appOrigin = `https://${appHost}`;
+        }
+        if (typeof confirmAppHost !== 'string') {
+          reasons.push('--confirm-app-host <hôte> est obligatoire quand APP_BASE_URL est définie');
+        } else if (confirmAppHost.toLowerCase() !== appHost) {
+          reasons.push('--confirm-app-host ne correspond pas exactement à l\'hôte applicatif');
+        }
+        if (hashes.has(sha256(appHost))) {
+          reasons.push('APP_BASE_URL correspond à la PRODUCTION (registre du dépôt) : refus');
+        }
+      } catch {
+        reasons.push(`${APP_URL_KEY} n'est pas une URL valide`);
+      }
+    }
+  }
+
+  // 7. Écriture et confirmations supplémentaires pour la production
   const simulate = flags.get('apply') !== true;
   const confirmName = typeof flags.get('confirm-name') === 'string' ? (flags.get('confirm-name') as string) : null;
   if (kind === 'production' && !simulate) {
@@ -257,10 +323,11 @@ export function planTarget(input: GuardInput): GuardPlan | GuardRefusal {
     ref,
     local,
     origin,
+    appOrigin,
     envSource,
     positional,
     confirmName,
-    secrets: { serviceKey, accessToken },
+    secrets: { anonKey, serviceKey, accessToken },
     warnings,
   };
 }

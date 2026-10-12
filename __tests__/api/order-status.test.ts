@@ -51,13 +51,13 @@ describe('GET /api/orders/[id]/status — route publique par UUID (client de ser
     expect(Object.keys(body).sort()).toEqual(['createdAt', 'firstName', 'orderId', 'paymentStatus', 'phone', 'status', 'totalAmount']);
   });
 
-  it('CARACTÉRISATION — renvoie le numéro de téléphone EN ENTIER (la page de confirmation l\'affiche) ; masquage = décision produit en attente', async () => {
+  it('ne renvoie que les quatre derniers chiffres du téléphone', async () => {
     mockSingle.mockResolvedValue({
       data: { id: ID, status: 'pending', payment_status: 'pending', total_amount: 1, shipping_address: null, phone: '0700000000', created_at: 'x' },
       error: null,
     });
     const body = await (await call(ID)).json();
-    // Si le produit décide de masquer le numéro, mettre à jour ensemble la route, la page de confirmation et ce test.
-    expect(body.phone).toBe('0700000000');
+    expect(body.phone).toBe('***0000');
+    expect(JSON.stringify(body)).not.toContain('0700000000');
   });
 });

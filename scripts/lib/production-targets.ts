@@ -18,4 +18,12 @@ export const PRODUCTION_REF_SHA256: readonly string[] = [
   '1554512ff5ebfeb1ad3afe02220c38c361ac66845d447391ab1ac4b66a59a6ea',
 ];
 
-export const PRODUCTION_TARGET_HASHES: ReadonlySet<string> = new Set([...PRODUCTION_HOST_SHA256, ...PRODUCTION_REF_SHA256]);
+export const PRODUCTION_APP_HOST_SHA256: readonly string[] = [
+  '49960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d9763',
+];
+
+export const PRODUCTION_TARGET_HASHES: ReadonlySet<string> = new Set([
+  ...PRODUCTION_HOST_SHA256,
+  ...PRODUCTION_REF_SHA256,
+  ...PRODUCTION_APP_HOST_SHA256,
+]);

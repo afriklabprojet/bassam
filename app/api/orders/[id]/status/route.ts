@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { logger } from '@/lib/logger';
+import { maskPhone } from '@/lib/privacy';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -13,9 +14,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 // match NULL — meaning a guest could otherwise never check their own order,
 // even right after paying for it. The order UUID is the only access capability:
 // anyone who obtains the confirmation URL can read the returned status, payment
-// status, amount, first name, full phone number and creation date. The shipping
-// address is never returned. Masking the phone is a pending product decision
-// (see security/DECISION-PRODUIT-TELEPHONE-STATUT-COMMANDE.md).
+// status, amount, first name, masked phone number and creation date. The
+// shipping address and full phone number are never returned.
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -45,7 +45,7 @@ export async function GET(
       paymentStatus: data.payment_status,
       totalAmount: Number(data.total_amount),
       firstName: shippingAddress?.firstName ?? null,
-      phone: data.phone,
+      phone: maskPhone(data.phone),
       createdAt: data.created_at,
     });
   } catch (error) {

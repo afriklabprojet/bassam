@@ -1,3 +1,5 @@
+import { maskPhone } from '@/lib/privacy';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
 const MAX_LOG_DEPTH = 3;
 const MAX_LOG_ARRAY_ITEMS = 10;
@@ -20,12 +22,6 @@ function maskEmail(value: string): string {
 
   const visibleLocal = localPart.length <= 2 ? localPart.slice(0, 1) : localPart.slice(0, 2);
   return `${visibleLocal}***@${domainPart}`;
-}
-
-function maskPhone(value: string): string {
-  const digits = value.replace(/\D/g, '');
-  if (!digits) return '[redacted-phone]';
-  return `***${digits.slice(-4)}`;
 }
 
 function sanitizeError(error: Error) {

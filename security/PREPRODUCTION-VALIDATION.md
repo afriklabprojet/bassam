@@ -1,8 +1,9 @@
 # Validation préproduction Bassam
 
 Ce plan ne constitue ni une autorisation de déploiement, ni une validation de
-la production. F1 à F5 restent non appliquées tant que les étapes ci-dessous
-n'ont pas été réalisées sur une pile distincte.
+la production. Les huit migrations sont validées sur la pile Supabase TEST,
+avec deux cycles distants complets et nettoyés. Un audit production en lecture
+seule confirme qu'elles y restent nécessaires ; aucune n'y a été appliquée.
 
 ## 1. Identification obligatoire de la pile de test
 
@@ -104,23 +105,163 @@ lorsqu'une nouvelle version de `braces`, `micromatch` ou de la chaîne
 `eslint-config-next` pour Next.js 16 supprime la version vulnérable sans
 downgrade majeur.
 
+### 6.1 Diagnostic distant en lecture seule du 12 octobre 2026
+
+Projet Supabase observé dans le Dashboard : nom `test`, référence
+`zcflovndysgcvsdyyuxg`. Aucune requête d'écriture n'a été exécutée pendant ce
+diagnostic.
+
+| Contrôle distant | Résultat observé |
+|---|---|
+| Utilisateurs Auth | 0 au total, donc 0 compte non fictif |
+| Migrations de préproduction | `20261011000000` à `20261011070000` présentes |
+| F1 | `is_admin()` et `protect_profile_privileges()` présents ; 0 politique admin basée sur `preferences` ; 10 politiques admin utilisent `is_admin()` |
+| F2 | bucket `product-images` public, limite 5 MiB, 6 types MIME ; 2 politiques d'écriture admin |
+| F3 | 0 politique `INSERT` sur `orders` et `order_items` |
+| F4 | 0 politique publique/anon de lecture de `promo_codes` |
+| F5 | soumission publique non approuvée et modération admin présentes |
+| Fonctions signalées | 6 fonctions avec `search_path` durci ; `handle_new_user()` non exécutable par `anon` ou `authenticated` |
+| `rls_auto_enable()` | présente, mais non exécutable par `anon` ou `authenticated` |
+| Security Advisor | 0 erreur, 2 avertissements |
+
+Les deux avertissements restants correspondent à des comportements publics
+actuellement intentionnels :
+
+- `newsletter_subscriptions` autorise l'inscription publique par une politique
+  `INSERT WITH CHECK (true)` ; les politiques de lecture et suppression
+  utilisent `is_admin()`.
+- le bucket public `product-images` autorise la lecture et donc le listing des
+  objets ; upload et suppression restent limités aux administrateurs vérifiés.
+
+Ces deux choix doivent être acceptés explicitement ou durcis séparément avant
+la production. Ils ne remettent pas en cause les contrôles F1 à F5 ci-dessus.
+
+### 6.2 Diagnostic Vercel et préparation de la pile TEST du 12 octobre 2026
+
+L'inspection initiale ne montrait que le projet `bassam`, relié aux domaines de
+production `vipparfumeriebar.com` et `www.vipparfumeriebar.com`. Un projet
+isolé `bassam-test` a ensuite été créé sans connexion Git, domaine personnalisé
+ni accès à la production, puis déployé depuis la branche locale courante.
+
+| Contrôle distant | Résultat observé |
+|---|---|
+| Dernier déploiement Production | `Ready`, branche `main`, commit `41f5b4d`, créé le 1er octobre 2026, durée affichée 36 s |
+| Runtime configuré | Node.js `24.x` |
+| Preview active | branche `fix/header-auth-ui`, dans le même projet `bassam` |
+| `NEXT_PUBLIC_SUPABASE_URL` | portée `All Environments` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | portée `All Environments` |
+| `SUPABASE_SERVICE_ROLE_KEY` | portée `All Environments`, type `Config`, état `Needs Attention` |
+| Projet Vercel TEST | `bassam-test`, ID `prj_n4sdnm1z8Y9RCtQlwHwMTdU10Vy2`, sans connexion Git ni domaine personnalisé |
+| Variables du projet TEST | cinq variables limitées à l'environnement `Production` du projet isolé ; clé service-role de type `Secret` |
+| Déploiement TEST final | `Ready`, ID `dpl_5RuEP6MXQfPDqaBKbU9nF89uxPPd`, URL stable `https://project-w2myn.vercel.app` |
+| Protection du déploiement TEST | désactivée ; `/api/health` est accessible sans session Vercel |
+| Contrôles HTTP sans écriture | `/`, `/api/products` et `/api/health` : 200 ; `/api/admin/stats` sans jeton ou avec jeton invalide : 401 |
+| Runner distant authentifié | deux exécutions `--apply` réussies, 33/33 contrôles chacune : admin 200, client 403, autorisation invalide 401 sans repli sur un cookie admin, F1 à F5 et Storage |
+| Nettoyage après chaque runner | réussi ; le contrôle indépendant final compte 0 utilisateur fictif, 0 commande, 0 code promo, 0 avis et 0 objet Storage temporaire |
+| Journaux Vercel TEST | aucune entrée de niveau `error` pendant la fenêtre du second runner |
+
+Aucune valeur de variable n'a été révélée. La portée `All Environments`
+confirme cependant que les déploiements Preview et Development du projet de
+production reçoivent les mêmes variables Supabase. Le projet TEST séparé est
+maintenant déployé. Le fichier `vercel.json` du dépôt impose les deux alias de
+production ; une première promotion TEST les a donc demandés et Vercel les a
+refusés parce qu'ils appartiennent déjà à `bassam`. Le domaine de production
+est resté sur le déploiement historique `dpl_CS8D2AaTds6V8e1Y45GbHGTRKhsL`.
+Les déploiements TEST suivants utilisent la configuration locale ignorée
+`.vercel/vercel.test.json`, identique sans le champ `alias`.
+
+Les quatre variables Supabase/Resend sensibles ont ensuite été retirées des
+portées Preview et Development du projet `bassam`. Les variables Supabase et
+`RESEND_API_KEY` ciblent uniquement Production ; `SUPABASE_SERVICE_ROLE_KEY`
+est de type Secret. Une nouvelle clé serveur moderne dédiée à Vercel
+production a été installée sans afficher sa valeur. La clé moderne `default`,
+exposée pendant l'audit, a été révoquée et la clé dédiée a été conservée.
+Aucun déploiement n'a consommé ces changements.
+
+Les clés TEST ont été transférées sans être consignées dans ce document. Le
+runner a d'abord réussi en simulation avec `.env.test.local` et l'hôte
+`project-w2myn.vercel.app` : cible Supabase et hôte applicatif confirmés,
+aucune requête distante et aucune donnée créée. Après autorisation explicite,
+deux exécutions en écriture ont créé trois identités fictives, émis leurs
+sessions réelles, validé les 33 contrôles puis supprimé toutes les données.
+Un audit distinct en lecture seule a confirmé le nettoyage après le second
+cycle.
+
+### 6.3 Audit production en lecture seule du 12 octobre 2026
+
+L'audit a été exécuté par la Management API Supabase authentifiée et n'a
+retourné que des agrégats, sans adresse, téléphone, jeton ni valeur de clé.
+
+| Contrôle production | Résultat |
+|---|---|
+| Administrateurs `app_metadata.role = admin` | 3 |
+| Sessions / refresh tokens administrateur | 0 / 0 |
+| Politiques fondées sur `preferences` | 10 |
+| Trigger `protect_profile_privileges` | absent |
+| Politiques INSERT client sur `orders` / `order_items` | 2 |
+| Politiques SELECT publiques sur `promo_codes` | 1 |
+| Soumission publique d'avis | 1 politique, à remplacer par F5 |
+| Bucket `product-images` | présent et public ; 2 politiques d'écriture |
+| Fonctions applicatives ciblées | 6 présentes, 0 avec `search_path` durci |
+| `handle_new_user()` | exécutable par `public` |
+| `rls_auto_enable()` | présente et exécutable par `public` |
+| Migrations `20261011000000` à `20261011070000` | 0/8 enregistrée |
+
+Les huit fichiers ont ensuite réussi leur simulation locale ordonnée contre
+l'identité production enregistrée : 8/8, zéro requête distante et zéro
+écriture. La simulation utilisait un jeton factice explicitement limité à ce
+contrôle hors ligne ; l'application réelle exigera un jeton Management valide,
+`--apply`, `--confirm-ref`, `--confirm-name` et la seconde confirmation
+`BASSAM_PRODUCTION_CONFIRM`.
+
+Ordre de la fenêtre de production, après validation téléphone et autorisation
+de déploiement :
+
+1. déployer le backend contenant les routes serveur checkout et validation de
+   code promo, puis vérifier health, authentification admin et paiement ;
+2. appliquer strictement `20261011000000` à `20261011070000`, un fichier à la
+   fois, sans rétablir de politique vulnérable en rollback ;
+3. après chaque fichier, exécuter son diagnostic SQL et arrêter au premier
+   écart ;
+4. refaire les contrôles admin 200, client 403, jeton invalide 401, checkout,
+   code promo, avis et Storage ;
+5. surveiller les journaux avant toute révocation de clé legacy.
+
 ## 7. Rotation des secrets et compte administrateur
 
-1. Inventorier les noms de variables et leurs consommateurs sans copier leurs
-   valeurs : Supabase public/service, paiement, webhook, e-mail, IA et WhatsApp.
-2. Retirer d'abord les secrets de production des portées Preview et Development.
-3. Vérifier le compte administrateur potentiellement exposé : identité,
-   `app_metadata.role`, dernière connexion, sessions actives et changement de
-   mot de passe effectué par le propriétaire du compte. Invalider les sessions
-   qui ne sont pas reconnues ou qui précèdent le changement validé.
-4. Créer les nouvelles clés côté fournisseur, les installer sur la pile de
-   test, vérifier chaque flux, puis préparer une fenêtre de bascule production.
-5. Pour Supabase, conserver les clés JWT legacy tant que le site, les fonctions,
-   les scripts et les APK installés n'ont pas tous été migrés et validés.
-6. Révoquer une ancienne clé seulement après validation, surveillance et plan
-   de retour arrière documenté. Ne jamais journaliser une valeur de clé.
+1. L'inventaire des consommateurs et la restriction des portées Vercel sont
+   terminés.
+2. Le mot de passe du compte administrateur exposé a été remplacé par une
+   valeur forte, la connexion et le rôle ont été vérifiés, puis toutes les
+   sessions et tous les refresh tokens administrateur ont été révoqués.
+3. Le secret temporaire doit être importé par le propriétaire dans son
+   gestionnaire de mots de passe, puis supprimé du poste.
+4. Vercel production utilise une clé serveur moderne dédiée. La clé moderne
+   exposée a été révoquée.
+5. Conserver provisoirement la clé JWT legacy tant que les fonctions, scripts
+   locaux et consommateurs non-Vercel n'ont pas tous été migrés et validés.
+6. Ne révoquer la legacy qu'après déploiement, surveillance et preuve qu'aucun
+   consommateur ne l'utilise. Ne jamais journaliser une valeur de clé.
 
 ## 8. Checklist opérationnelle de la pile TEST
+
+Après application des migrations et déploiement du backend de test, exécuter
+d'abord le validateur en simulation :
+
+```powershell
+npm run test:supabase:test -- --target test --confirm-host <ref-test>.supabase.co --confirm-app-host <backend-test>
+```
+
+Le runner ne charge jamais `.env.local`. Il lit uniquement les variables du
+processus (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY` et, facultativement, `APP_BASE_URL`). La simulation
+n'envoie aucune requête et ne crée aucune donnée. Après vérification manuelle
+des deux hôtes, ajouter `--apply`. Avant la création de comptes fictifs et de
+données temporaires, le runner vérifie que la cible Supabase n'est pas connue
+comme production et qu'elle ne contient que des comptes `@example.com`,
+`@example.org` ou `@example.net`. Si `APP_BASE_URL` est définie, son hôte doit
+être retapé avec `--confirm-app-host` et ne doit pas correspondre au registre
+de production. Toute vérification incertaine échoue fermée.
 
 | # | Action | Preuve de réussite | Arrêt immédiat si |
 |---|---|---|---|
@@ -141,15 +282,28 @@ downgrade majeur.
 
 ## 9. Risques encore ouverts
 
-- F1 à F5 ne sont appliquées sur aucune pile Supabase réelle.
-- Les administrateurs légitimes et le renouvellement de leurs jetons restent à
-  vérifier sur la pile TEST avant F1.
-- Les réponses 200/401/403 et l'absence de repli cookie après un Bearer invalide
-  restent à valider sur le déploiement TEST.
-- Les secrets de production doivent être retirés des portées Preview et
-  Development avant toute validation distante.
-- Le téléphone complet reste renvoyé par la route publique de suivi de commande
-  tant qu'aucune décision produit distincte n'est prise.
+- Les huit migrations sont validées sur TEST et simulées hors ligne pour la
+  cible production, mais restent volontairement non appliquées. L'audit
+  production confirme 10 politiques `preferences`, 2 INSERT commandes,
+  1 lecture publique promo et les fonctions non durcies.
+- Les identités fictives et leurs sessions ont été validées pendant deux cycles
+  temporaires, puis supprimées. Aucun compte persistant n'est conservé : les
+  comptes destinés au téléphone devront être créés juste avant les essais et
+  supprimés ensuite.
+- Les réponses admin 200, client 403 et autorisation invalide 401 sans repli
+  sur un cookie admin sont validées sur le déploiement TEST. L'expiration
+  naturelle suivie du renouvellement de session reste à vérifier sur Android.
+- Le projet Vercel TEST `bassam-test` reste accessible sans protection Vercel ;
+  il ne contient que les variables TEST minimales.
+- Les avertissements Advisor sur l'inscription newsletter publique et le
+  listing du bucket public doivent être acceptés ou durcis explicitement.
+- Le backend corrigé n'est ni committé ni déployé. La route publique de suivi
+  masque maintenant le téléphone côté serveur, mais la production historique
+  ne recevra ce correctif qu'après le déploiement autorisé.
+- La clé JWT legacy reste active pour compatibilité jusqu'à la validation de
+  tous ses consommateurs après déploiement.
+- Les scénarios S00 à S05 restent bloqués tant qu'aucun téléphone Android n'est
+  connecté.
 - Les cinq alertes npm HIGH de développement restent ouvertes faute de correctif
   compatible démontré.
 

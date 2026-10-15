@@ -25,5 +25,11 @@ export function createClient() {
     throw new Error(MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE)
   }
 
-  return createBrowserClient(url, anonKey)
+  return createBrowserClient(url, anonKey, {
+    auth: {
+      experimental: {
+        appendPkceFlowIdToRedirects: true,
+      },
+    },
+  })
 }

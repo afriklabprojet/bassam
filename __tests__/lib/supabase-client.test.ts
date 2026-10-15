@@ -1,4 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const { mockCreateBrowserClient } = vi.hoisted(() => ({
+  mockCreateBrowserClient: vi.fn(),
+}));
+
+vi.mock('@supabase/ssr', () => ({
+  createBrowserClient: mockCreateBrowserClient,
+}));
 
 import {
   createClient,
@@ -14,6 +22,7 @@ describe('browser supabase config helpers', () => {
   afterEach(() => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnonKey;
+    mockCreateBrowserClient.mockReset();
   });
 
   it('signale une configuration manquante', () => {
@@ -27,5 +36,25 @@ describe('browser supabase config helpers', () => {
     });
     expect(hasBrowserSupabaseConfig()).toBe(false);
     expect(() => createClient()).toThrow(MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE);
+  });
+
+  it('corrèle chaque callback PKCE avec son vérificateur', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
+    const client = {};
+    mockCreateBrowserClient.mockReturnValue(client);
+
+    expect(createClient()).toBe(client);
+    expect(mockCreateBrowserClient).toHaveBeenCalledWith(
+      'https://example.supabase.co',
+      'anon-key',
+      {
+        auth: {
+          experimental: {
+            appendPkceFlowIdToRedirects: true,
+          },
+        },
+      }
+    );
   });
 });

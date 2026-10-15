@@ -1,19 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+
+const CALLBACK_ERROR_MESSAGE =
+  'Ce lien de réinitialisation est invalide ou expiré. Demandez un nouveau lien et ouvrez uniquement le plus récent.';
+
+function subscribeToLocation() {
+  return () => {};
+}
+
+function getCallbackError() {
+  const reason = new URLSearchParams(window.location.search).get('error');
+  return reason === 'missing_code' || reason === 'invalid_or_expired_link'
+    ? CALLBACK_ERROR_MESSAGE
+    : null;
+}
+
+function getServerCallbackError() {
+  return null;
+}
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const callbackError = useSyncExternalStore(
+    subscribeToLocation,
+    getCallbackError,
+    getServerCallbackError
+  );
+  const error = formError ?? callbackError;
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setFormError(null);
 
     const supabase = createClient();
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
@@ -24,7 +48,7 @@ export default function ResetPasswordPage() {
     );
 
     if (resetError) {
-      setError(resetError.message);
+      setFormError(resetError.message);
       setLoading(false);
     } else {
       setSuccess(true);

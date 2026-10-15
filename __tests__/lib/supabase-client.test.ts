@@ -8,8 +8,17 @@ vi.mock('@supabase/ssr', () => ({
   createBrowserClient: mockCreateBrowserClient,
 }));
 
+const { mockCreateSupabaseClient } = vi.hoisted(() => ({
+  mockCreateSupabaseClient: vi.fn(),
+}));
+
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: mockCreateSupabaseClient,
+}));
+
 import {
   createClient,
+  createPasswordRecoveryClient,
   getBrowserSupabaseConfig,
   hasBrowserSupabaseConfig,
   MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE,
@@ -23,6 +32,7 @@ describe('browser supabase config helpers', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalAnonKey;
     mockCreateBrowserClient.mockReset();
+    mockCreateSupabaseClient.mockReset();
   });
 
   it('signale une configuration manquante', () => {
@@ -50,9 +60,31 @@ describe('browser supabase config helpers', () => {
       'anon-key',
       {
         auth: {
+          detectSessionInUrl: false,
           experimental: {
             appendPkceFlowIdToRedirects: true,
           },
+        },
+      }
+    );
+  });
+
+  it('utilise un lien de récupération indépendant du navigateur demandeur', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key';
+    const client = {};
+    mockCreateSupabaseClient.mockReturnValue(client);
+
+    expect(createPasswordRecoveryClient()).toBe(client);
+    expect(mockCreateSupabaseClient).toHaveBeenCalledWith(
+      'https://example.supabase.co',
+      'anon-key',
+      {
+        auth: {
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+          flowType: 'implicit',
+          persistSession: false,
         },
       }
     );

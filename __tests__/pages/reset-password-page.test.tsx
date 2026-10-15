@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 const resetPasswordForEmail = vi.fn();
 
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({
+  createPasswordRecoveryClient: () => ({
     auth: { resetPasswordForEmail },
   }),
 }));
@@ -31,7 +31,7 @@ describe('Page de réinitialisation du mot de passe', () => {
 
     await waitFor(() => {
       expect(resetPasswordForEmail).toHaveBeenCalledWith('admin@example.com', {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+        redirectTo: `${window.location.origin}/auth/update-password`,
       });
     });
     expect(screen.getByRole('heading', { name: 'Email envoyé' })).toBeTruthy();

@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export const MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE =
   'Configuration Supabase manquante. Ajoutez NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY en production puis redéployez.'
@@ -27,9 +28,27 @@ export function createClient() {
 
   return createBrowserClient(url, anonKey, {
     auth: {
+      detectSessionInUrl: false,
       experimental: {
         appendPkceFlowIdToRedirects: true,
       },
+    },
+  })
+}
+
+export function createPasswordRecoveryClient() {
+  const { url, anonKey } = getBrowserSupabaseConfig()
+
+  if (!url || !anonKey) {
+    throw new Error(MISSING_BROWSER_SUPABASE_CONFIG_MESSAGE)
+  }
+
+  return createSupabaseClient(url, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      flowType: 'implicit',
+      persistSession: false,
     },
   })
 }

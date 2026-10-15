@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createPasswordRecoveryClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 const CALLBACK_ERROR_MESSAGE =
@@ -39,11 +39,11 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setFormError(null);
 
-    const supabase = createClient();
+    const supabase = createPasswordRecoveryClient();
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       email,
       {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+        redirectTo: `${window.location.origin}/auth/update-password`,
       }
     );
 

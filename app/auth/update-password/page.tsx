@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -9,14 +9,67 @@ export default function UpdatePasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [sessionReady, setSessionReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function prepareRecoverySession() {
+      const supabase = createClient();
+      const hash = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = hash.get('access_token');
+      const refreshToken = hash.get('refresh_token');
+
+      const result =
+        accessToken && refreshToken
+          ? await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            })
+          : await supabase.auth.getSession();
+
+      if (!active) {
+        return;
+      }
+
+      if (result.error || !result.data.session) {
+        setError(
+          'Ce lien de réinitialisation est invalide ou expiré. Demandez un nouveau lien.'
+        );
+        return;
+      }
+
+      if (accessToken && refreshToken) {
+        window.history.replaceState(
+          null,
+          '',
+          `${window.location.pathname}${window.location.search}`
+        );
+      }
+      setSessionReady(true);
+    }
+
+    void prepareRecoverySession();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    if (!sessionReady) {
+      setError(
+        'La session de récupération n’est pas prête. Demandez un nouveau lien.'
+      );
+      setLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -127,13 +180,26 @@ export default function UpdatePasswordPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !sessionReady}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
+            {loading
+              ? 'Mise à jour...'
+              : sessionReady
+                ? 'Mettre à jour le mot de passe'
+                : 'Vérification du lien...'}
           </button>
 
           <div className="text-center text-sm">
+            {!sessionReady && error && (
+              <Link
+                href="/auth/reset-password"
+                className="block mb-3 transition-colors"
+                style={{ color: 'var(--gold)' }}
+              >
+                Demander un nouveau lien
+              </Link>
+            )}
             <Link
               href="/"
               className="transition-colors"

@@ -8,6 +8,15 @@ function err(msg: string, status = 403) {
   return NextResponse.json({ error: msg }, { status });
 }
 
+// Le détail de l'erreur SQL reste dans les journaux serveur ; le client reçoit un message générique.
+function dbError(context: string, error: { message: string }) {
+  console.error(`[stock-alerts] ${context}:`, error.message);
+  return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+}
+
+const ALERT_STATUSES = ['pending', 'acknowledged', 'resolved'] as const;
+const MAX_NOTES_LENGTH = 2000;
+
 // ─── GET /api/admin/stock-alerts ───────────────────────────────────────────
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -26,7 +35,7 @@ export async function GET(request: NextRequest) {
   if (severity) query = query.eq('severity', severity);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError('GET', error);
 
   const alerts = data ?? [];
 
@@ -68,7 +77,7 @@ export async function POST(request: NextRequest) {
       .from('inventory')
       .select('id, name, sku, quantity, low_stock_threshold');
 
-    if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 });
+    if (invErr) return dbError('POST check (inventaire)', invErr);
 
     const lowItems = (items ?? []).filter((i) => i.quantity <= i.low_stock_threshold);
 
@@ -101,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { error: insertErr } = await supabase.from('stock_alerts').insert(toInsert);
-    if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
+    if (insertErr) return dbError('POST check (insertion)', insertErr);
 
     return NextResponse.json({ created: toInsert.length });
   }
@@ -131,7 +140,7 @@ export async function POST(request: NextRequest) {
       })
       .in('id', ids);
 
-    if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+    if (updErr) return dbError('POST notify', updErr);
 
     return NextResponse.json({ updated: pending.length });
   }
@@ -145,11 +154,20 @@ export async function PATCH(request: NextRequest) {
   const supabase = await createClient();
   if (!(await isCurrentUserAdmin())) return err('Accès interdit');
 
-  const body = await request.json() as Record<string, unknown>;
-  const { id, status, notes } = body;
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json() as Record<string, unknown>;
+  } catch {
+    return err('Corps JSON invalide', 400);
+  }
+  const { id, status, notes } = body ?? {};
 
   if (!id || typeof id !== 'string') return err('id requis', 400);
   if (!status || typeof status !== 'string') return err('status requis', 400);
+  if (!(ALERT_STATUSES as readonly string[]).includes(status)) return err('status invalide', 400);
+  if (notes !== undefined && notes !== null && (typeof notes !== 'string' || notes.length > MAX_NOTES_LENGTH)) {
+    return err(`notes invalide (texte de ${MAX_NOTES_LENGTH} caractères maximum)`, 400);
+  }
 
   const {
     data: { user },
@@ -169,7 +187,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const { error } = await supabase.from('stock_alerts').update(update).eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError('PATCH', error);
 
   return NextResponse.json({ success: true });
 }
@@ -184,7 +202,7 @@ export async function DELETE(request: NextRequest) {
   if (!id) return err('id requis', 400);
 
   const { error } = await supabase.from('stock_alerts').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbError('DELETE', error);
 
   return NextResponse.json({ success: true });
 }

@@ -10,6 +10,7 @@ const mockOrderInsert = vi.fn(() => ({
 }));
 const mockDuplicateSingle = vi.fn();
 const mockItemsInsert = vi.fn();
+const mockOrderDeleteEq = vi.fn();
 const mockPromoSingle = vi.fn();
 const mockPromoUpdate = vi.fn((values: { uses_count: number }) => ({
   eq: () => ({ eq: () => ({ select: () => Promise.resolve({ data: [{ id: 'promo-1', ...values }], error: null }) }) }),
@@ -43,7 +44,7 @@ const mockFrom = vi.fn((table: string) => {
   }
 
   if (table === 'orders') {
-    return { insert: mockOrderInsert, select: () => buildDuplicateQuery() };
+    return { insert: mockOrderInsert, select: () => buildDuplicateQuery(), delete: () => ({ eq: mockOrderDeleteEq }) };
   }
 
   if (table === 'order_items') {
@@ -108,6 +109,7 @@ beforeEach(() => {
     error: null,
   });
   mockItemsInsert.mockResolvedValue({ error: null });
+  mockOrderDeleteEq.mockResolvedValue({ error: null });
 });
 
 describe('createOrder', () => {
@@ -209,6 +211,24 @@ describe('createOrder', () => {
     const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
 
     expect(result.error).toBe('Erreur création commande');
+    expect(mockPromoUpdate.mock.calls.map(([values]) => values)).toEqual([{ uses_count: 5 }, { uses_count: 4 }]);
+  });
+
+  it('supprime la commande sans articles et rend l usage du code promo', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
+      error: null,
+    });
+    mockPromoSingle
+      .mockResolvedValueOnce({ data: PROMO_ROW, error: null })
+      .mockResolvedValueOnce({ data: { uses_count: 4, max_uses: 5 }, error: null })
+      .mockResolvedValueOnce({ data: { uses_count: 5, max_uses: 5 }, error: null });
+    mockItemsInsert.mockResolvedValue({ error: { code: '23503', message: 'fk violation' } });
+
+    const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
+
+    expect(result).toEqual({ order: null, error: 'Erreur création commande' });
+    expect(mockOrderDeleteEq).toHaveBeenCalledWith('id', 'order-1');
     expect(mockPromoUpdate.mock.calls.map(([values]) => values)).toEqual([{ uses_count: 5 }, { uses_count: 4 }]);
   });
 });

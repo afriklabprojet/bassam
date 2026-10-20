@@ -282,9 +282,7 @@ export async function createOrder(
   if (orderError || !order) {
     // The SQL detail stays in the server logs; the caller forwards `error` to the client.
     logger.error('createOrder', 'Failed to insert order', { code: orderError?.code, message: orderError?.message });
-    if (promoId && !(await releasePromoCodeUse(supabase, promoId))) {
-      logger.warn('createOrder', 'Could not release promo use after failed order insert', { promoId });
-    }
+    await releasePromoForFailedOrder(supabase, promoId);
     return { order: null, error: 'Erreur création commande' };
   }
 
@@ -301,12 +299,25 @@ export async function createOrder(
     .insert(itemsToInsert);
 
   if (itemsError) {
-    logger.error('createOrder', 'Failed to insert order items');
-    // Order was created but items failed — return partial
-    return { order: mapOrder(order), error: 'Commande créée mais erreur sur les articles' };
+    logger.error('createOrder', 'Failed to insert order items', { orderId: order.id, code: itemsError.code });
+    // An order without items can never be paid (the caller stops on any
+    // error), so remove it and give the promo use back for the retry.
+    const { error: deleteError } = await supabase.from('orders').delete().eq('id', order.id);
+    if (deleteError) {
+      logger.error('createOrder', 'Could not delete order left without items', { orderId: order.id, code: deleteError.code });
+    }
+    await releasePromoForFailedOrder(supabase, promoId);
+    return { order: null, error: 'Erreur création commande' };
   }
 
   return { order: mapOrder(order), error: null };
+}
+
+/** Gives back the promo use claimed for an order that was not created. */
+async function releasePromoForFailedOrder(supabase: SupabaseClient, promoId: string | undefined): Promise<void> {
+  if (!promoId || (await releasePromoCodeUse(supabase, promoId))) return;
+  // Logged at error level with the id so the counter can be reconciled by hand.
+  logger.error('createOrder', 'Could not release promo use after failed order', { promoId });
 }
 
 /** Fetch orders for authenticated user */

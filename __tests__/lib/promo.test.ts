@@ -20,7 +20,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockUpdateSelect.mockResolvedValue({ data: [{ id: PROMO_ID }], error: null });
   mockGuard.mockReturnValue({ select: mockUpdateSelect });
-  mockUpdate.mockReturnValue({ eq: vi.fn(() => ({ eq: mockGuard })) });
+  mockUpdate.mockReturnValue({ eq: vi.fn(() => ({ eq: mockGuard, is: mockGuard })) });
 });
 
 describe('claimPromoCodeUse', () => {
@@ -61,7 +61,15 @@ describe('claimPromoCodeUse', () => {
     mockUpdateSelect.mockResolvedValue({ data: [], error: null });
 
     await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(false);
-    expect(mockUpdate).toHaveBeenCalledTimes(3);
+    expect(mockUpdate).toHaveBeenCalledTimes(5);
+  });
+
+  it('gère un compteur NULL avec une garde IS NULL', async () => {
+    mockRead.mockResolvedValue({ data: { uses_count: null, max_uses: 1 }, error: null });
+
+    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(true);
+    expect(mockUpdate).toHaveBeenCalledWith({ uses_count: 1 });
+    expect(mockGuard).toHaveBeenCalledWith('uses_count', null);
   });
 });
 
@@ -71,5 +79,13 @@ describe('releasePromoCodeUse', () => {
 
     await expect(releasePromoCodeUse(supabase, PROMO_ID)).resolves.toBe(true);
     expect(mockUpdate).toHaveBeenCalledWith({ uses_count: 0 });
+  });
+
+  it('insiste davantage qu une réservation avant d abandonner', async () => {
+    mockRead.mockResolvedValue({ data: { uses_count: 2, max_uses: null }, error: null });
+    mockUpdateSelect.mockResolvedValue({ data: [], error: null });
+
+    await expect(releasePromoCodeUse(supabase, PROMO_ID)).resolves.toBe(false);
+    expect(mockUpdate).toHaveBeenCalledTimes(10);
   });
 });

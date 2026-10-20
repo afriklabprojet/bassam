@@ -108,6 +108,9 @@ export async function POST(request: NextRequest) {
             // which resends the same growing prefix on every iteration.
             system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
             cache_control: { type: 'ephemeral' },
+            // Thinking counts toward max_tokens; `low` keeps it short and skips
+            // it on simple questions, which suits a shop assistant.
+            output_config: { effort: 'low' },
             tools: CHAT_TOOLS,
             messages,
           });
@@ -118,6 +121,15 @@ export async function POST(request: NextRequest) {
           });
 
           const final = await msgStream.finalMessage();
+
+          if (final.stop_reason === 'refusal') {
+            logger.warn('API /chat', 'Model declined the request', { category: final.stop_details?.category ?? null });
+            controller.enqueue(
+              encoder.encode("\n\nJe ne peux pas répondre à cette demande. Pour toute question sur nos parfums, je reste à votre disposition.")
+            );
+            break;
+          }
+
           messages.push({ role: 'assistant', content: final.content });
 
           if (final.stop_reason !== 'tool_use') break;

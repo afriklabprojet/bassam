@@ -168,10 +168,18 @@ export async function POST(request: NextRequest) {
       ? { payment_status: 'paid', status: 'confirmed', payment_reference: transactionId }
       : { payment_status: 'failed', status: 'cancelled' };
 
-    const { error: updateError } = await supabase
+    // Compare-and-swap on the payment_status we just read: if Jeko delivers
+    // the same event twice concurrently, only one delivery claims the order,
+    // so stock and notifications are processed exactly once.
+    const claim = supabase
       .from('orders')
       .update(updates)
       .eq('id', resolvedOrder.id);
+    const { data: claimedRows, error: updateError } = await (
+      resolvedOrder.payment_status == null
+        ? claim.is('payment_status', null)
+        : claim.eq('payment_status', resolvedOrder.payment_status)
+    ).select('id');
 
     if (updateError) {
       logger.error(WEBHOOK_LOG_CONTEXT, 'Failed to update order from webhook', {
@@ -184,6 +192,15 @@ export async function POST(request: NextRequest) {
         error: updateError,
       });
       return NextResponse.json({ error: 'DB update failed' }, { status: 500 });
+    }
+
+    if (!claimedRows || claimedRows.length === 0) {
+      logger.info(WEBHOOK_LOG_CONTEXT, 'Skipping webhook: order already claimed by a concurrent delivery', {
+        correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
+        orderId: resolvedOrder.id,
+        status: payload.status,
+      });
+      return NextResponse.json({ ok: true });
     }
 
     logger.info(WEBHOOK_LOG_CONTEXT, 'Order updated from Jeko webhook', {

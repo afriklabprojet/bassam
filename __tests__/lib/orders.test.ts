@@ -137,4 +137,20 @@ describe('createOrder', () => {
     expect(mockOrderInsert).not.toHaveBeenCalled();
     expect(mockItemsInsert).not.toHaveBeenCalled();
   });
+
+  it('ne renvoie pas le message SQL quand l insertion échoue', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
+      error: null,
+    });
+    mockOrderSingle.mockResolvedValue({
+      data: null,
+      error: { code: '23514', message: 'new row for relation "orders" violates check constraint' },
+    });
+
+    const result = await createOrder('user-1', baseInput);
+
+    expect(result.order).toBeNull();
+    expect(result.error).toBe('Erreur création commande');
+  });
 });

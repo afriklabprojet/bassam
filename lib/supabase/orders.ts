@@ -274,8 +274,9 @@ export async function createOrder(
     .single();
 
   if (orderError || !order) {
-    logger.error('createOrder', 'Failed to insert order');
-    return { order: null, error: orderError?.message ?? 'Erreur création commande' };
+    // The SQL detail stays in the server logs; the caller forwards `error` to the client.
+    logger.error('createOrder', 'Failed to insert order', { code: orderError?.code, message: orderError?.message });
+    return { order: null, error: 'Erreur création commande' };
   }
 
   // Insert order items

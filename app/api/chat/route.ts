@@ -9,6 +9,7 @@ import { CHAT_TOOLS, runChatTool } from '@/lib/ai/chat-tools';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 import { getAssistantConfig } from '@/lib/ai/assistant-config-store';
 import { detectUnanswered, logUnansweredQuestion } from '@/lib/ai/unanswered-log';
+import { trimChatHistory } from '@/lib/ai/chat-history';
 
 const MAX_TOOL_ITERATIONS = 6;
 const MAX_HISTORY_MESSAGES = 40;
@@ -77,12 +78,10 @@ export async function POST(request: NextRequest) {
   }
 
   const anthropic = getAnthropicClient();
-  // The conversation must open with a user turn (the widget's greeting is an assistant turn).
-  const firstUserIndex = parsed.data.messages.findIndex((m) => m.role === 'user');
-  const messages: Anthropic.MessageParam[] = parsed.data.messages.slice(Math.max(0, firstUserIndex)).map((m) => ({
-    role: m.role,
-    content: m.content,
-  }));
+  const messages = trimChatHistory(parsed.data.messages);
+  if (messages.length === 0) {
+    return NextResponse.json({ error: 'Requête invalide' }, { status: 400 });
+  }
 
   let systemPrompt: string;
   try {
@@ -104,7 +103,11 @@ export async function POST(request: NextRequest) {
           const msgStream = anthropic.messages.stream({
             model: CHAT_MODEL,
             max_tokens: 1536,
-            system: systemPrompt,
+            // The system prompt only changes with the catalogue, so cache it
+            // across visitors; top-level auto-caching covers the tool loop,
+            // which resends the same growing prefix on every iteration.
+            system: [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }],
+            cache_control: { type: 'ephemeral' },
             tools: CHAT_TOOLS,
             messages,
           });

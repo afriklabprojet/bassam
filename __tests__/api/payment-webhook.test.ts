@@ -11,6 +11,8 @@ vi.stubEnv('RESEND_API_KEY', 're_test_key');
 const mockOrderSingle = vi.fn();
 const mockOrderTxnSingle = vi.fn();
 const mockOrderUpdate = vi.fn();
+const mockClaimGuard = vi.fn();
+const mockClaimSelect = vi.fn();
 const mockOrderItems = vi.fn();
 
 const mockFrom = vi.fn((table: string) => {
@@ -111,8 +113,10 @@ beforeEach(() => {
     }],
     error: null,
   });
+  mockClaimSelect.mockResolvedValue({ data: [{ id: ORDER_ID }], error: null });
+  mockClaimGuard.mockReturnValue({ select: mockClaimSelect });
   mockOrderUpdate.mockReturnValue({
-    eq: vi.fn().mockResolvedValue({ error: null }),
+    eq: vi.fn(() => ({ eq: mockClaimGuard, is: mockClaimGuard })),
   });
 });
 
@@ -221,6 +225,21 @@ describe('POST /api/payment/webhook — idempotence', () => {
     });
     await POST(makeRequest(SUCCESS_PAYLOAD));
     expect(mockOrderUpdate).not.toHaveBeenCalled();
+  });
+
+  it('conditionne la mise à jour au payment_status lu (compare-and-swap)', async () => {
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+    expect(mockClaimGuard).toHaveBeenCalledWith('payment_status', 'pending');
+  });
+
+  it('ne retraite ni stock ni notifications si une livraison concurrente a déjà réclamé la commande', async () => {
+    mockClaimSelect.mockResolvedValue({ data: [], error: null });
+
+    const res = await POST(makeRequest(SUCCESS_PAYLOAD));
+
+    expect(res.status).toBe(200);
+    expect(mockOrderItems).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
 

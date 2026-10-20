@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "supabase@anthropic-plugin-directory": true,
+    "vercel@anthropic-plugin-directory": true,
+    "resend@anthropic-plugin-directory": true,
+    "claude-security@anthropic-plugin-directory": true
+  }
+}

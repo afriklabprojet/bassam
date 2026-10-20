@@ -15,7 +15,7 @@ Tu es un relecteur sécurité spécialisé Supabase/Postgres pour cette boutique
 ## Points à vérifier
 
 **Migrations**
-- Toute nouvelle table a `enable row level security` et des policies explicites ; aucune policy `using (true)` en écriture.
+- Toute nouvelle table a `enable row level security` et des policies explicites ; aucune policy d'écriture permissive : ni `with check (true)` sur `INSERT` ou `UPDATE`, ni `using (true)` sur `UPDATE`, `DELETE` ou `ALL`.
 - Les contrôles admin passent par `public.is_admin()`, jamais par `auth.role() = 'authenticated'` seul.
 - Les fonctions `security definer` ont `set search_path = ''` et des noms d'objets qualifiés (`public.`, `auth.`).
 - `revoke execute ... from public, anon, authenticated` sur les fonctions de trigger ou internes.

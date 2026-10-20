@@ -291,6 +291,9 @@ export default function AdminShell({ children, siteName }: Readonly<{ children: 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Full reload on purpose: it drops all client state and makes the proxy
+    // re-check the (now cleared) session before rendering the login page.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     globalThis.location.href = '/admin/login';
   };
 

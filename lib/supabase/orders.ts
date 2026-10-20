@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 import { getShippingConfig } from '@/lib/shipping';
-import { validatePromoCode, computePromoDiscount, incrementPromoCodeUsage } from '@/lib/promo';
+import { validatePromoCode, computePromoDiscount, claimPromoCodeUse, releasePromoCodeUse } from '@/lib/promo';
 import { formatPrice } from '@/lib/format';
 import { logger } from '@/lib/logger';
 
@@ -70,7 +70,7 @@ type AggregateQuantitiesResult =
 type VerifiedOrderData = {
   items: OrderItem[];
   totalAmount: number;
-  appliedPromo?: { id: string; code: string; discount: number; usesCount: number };
+  appliedPromo?: { id: string; code: string; discount: number };
 };
 
 type BuildVerifiedOrderResult =
@@ -168,7 +168,6 @@ async function buildVerifiedOrder(
       id: promoResult.id,
       code: promoResult.code,
       discount,
-      usesCount: promoResult.usesCount,
     };
   }
 
@@ -257,6 +256,13 @@ export async function createOrder(
     : null;
   const notes = [input.notes, promoNote].filter(Boolean).join('\n') || null;
 
+  // Reserve the promo use before the order exists, so max_uses holds even
+  // when several customers redeem the last use at the same time.
+  const promoId = verifiedOrder.data.appliedPromo?.id;
+  if (promoId && !(await claimPromoCodeUse(supabase, promoId))) {
+    return { order: null, error: 'Ce code promo a atteint son nombre maximum d\'utilisations' };
+  }
+
   // Insert the order
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -276,6 +282,9 @@ export async function createOrder(
   if (orderError || !order) {
     // The SQL detail stays in the server logs; the caller forwards `error` to the client.
     logger.error('createOrder', 'Failed to insert order', { code: orderError?.code, message: orderError?.message });
+    if (promoId && !(await releasePromoCodeUse(supabase, promoId))) {
+      logger.warn('createOrder', 'Could not release promo use after failed order insert', { promoId });
+    }
     return { order: null, error: 'Erreur création commande' };
   }
 
@@ -295,11 +304,6 @@ export async function createOrder(
     logger.error('createOrder', 'Failed to insert order items');
     // Order was created but items failed — return partial
     return { order: mapOrder(order), error: 'Commande créée mais erreur sur les articles' };
-  }
-
-  if (verifiedOrder.data.appliedPromo) {
-    const { id, usesCount } = verifiedOrder.data.appliedPromo;
-    await incrementPromoCodeUsage(supabase, id, usesCount);
   }
 
   return { order: mapOrder(order), error: null };

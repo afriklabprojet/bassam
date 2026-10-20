@@ -57,15 +57,48 @@ export function computePromoDiscount(type: PromoType, value: number, amount: num
   return Math.min(Math.max(raw, 0), Math.max(amount, 0));
 }
 
-/** Best-effort usage counter increment, guarded against concurrent double-counting. */
-export async function incrementPromoCodeUsage(
-  supabase: SupabaseClient,
-  id: string,
-  currentUsesCount: number
-): Promise<void> {
-  await supabase
-    .from('promo_codes')
-    .update({ uses_count: currentUsesCount + 1 })
-    .eq('id', id)
-    .eq('uses_count', currentUsesCount);
+const PROMO_CAS_ATTEMPTS = 3;
+
+/**
+ * Adds `delta` to uses_count with a compare-and-swap retry (same pattern as
+ * decrementProductStock), so concurrent orders can neither lose an update nor
+ * push a code past max_uses. Returns false if the code is exhausted, missing,
+ * or stays contended after every attempt.
+ */
+async function adjustPromoCodeUses(supabase: SupabaseClient, id: string, delta: 1 | -1): Promise<boolean> {
+  for (let attempt = 0; attempt < PROMO_CAS_ATTEMPTS; attempt++) {
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select('uses_count, max_uses')
+      .eq('id', id)
+      .single();
+
+    const row = data as Pick<PromoCodeRow, 'uses_count' | 'max_uses'> | null;
+    if (error || !row) return false;
+
+    const current = Number(row.uses_count ?? 0);
+    if (delta > 0 && row.max_uses !== null && current >= row.max_uses) return false;
+    const next = Math.max(current + delta, 0);
+
+    const { data: updated, error: updateError } = await supabase
+      .from('promo_codes')
+      .update({ uses_count: next })
+      .eq('id', id)
+      .eq('uses_count', current)
+      .select('id');
+
+    if (!updateError && updated && updated.length > 0) return true;
+    // Row changed concurrently between the read and the write — retry.
+  }
+  return false;
+}
+
+/** Reserves one use of a promo code; false means the order must be refused. */
+export function claimPromoCodeUse(supabase: SupabaseClient, id: string): Promise<boolean> {
+  return adjustPromoCodeUses(supabase, id, 1);
+}
+
+/** Gives back a use claimed for an order that could not be created. */
+export function releasePromoCodeUse(supabase: SupabaseClient, id: string): Promise<boolean> {
+  return adjustPromoCodeUses(supabase, id, -1);
 }

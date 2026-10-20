@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart-context';
 import { shouldBypassNextImageOptimization } from '@/lib/image-optimization';
 import { useSiteSettings } from '@/lib/site-settings-context';
@@ -128,6 +128,7 @@ export default function Header({ navCategories }: Readonly<{ navCategories?: Nav
   const settings = useSiteSettings();
   const wordmark = splitBrandWordmark(settings.site_name);
   const pathname = usePathname();
+  const router = useRouter();
   const navLinks = React.useMemo(() => buildNavLinks(navCategories), [navCategories]);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -164,7 +165,11 @@ export default function Header({ navCategories }: Readonly<{ navCategories?: Nav
   const handleSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      globalThis.location.href = `/produits?q=${encodeURIComponent(searchQuery.trim())}`;
+      router.push(`/produits?q=${encodeURIComponent(searchQuery.trim())}`);
+      // Client navigation keeps the header mounted, so close the search UI explicitly.
+      setSearchOpen(false);
+      setMenuOpen(false);
+      setSearchQuery('');
     }
   };
 

@@ -3,6 +3,7 @@ import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 import { getServicesContent } from '@/lib/supabase/services-content';
 import QuizClient from './QuizClient';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,8 +54,8 @@ export default async function QuizOlfactifPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(serviceLd) }} />
       <QuizClient heroImageUrl={heroImageUrl} />
     </>
   );

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { getProductBySlug, getProducts } from '@/lib/supabase/products';
 import type { Product } from '@/types/product.types';
 import ProductDetailClient from './ProductDetailClient';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -149,8 +150,8 @@ export default async function ProductPage({ params }: Readonly<PageProps>) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(productLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
       <ProductDetailClient slug={slug} initialProduct={product} relatedProducts={relatedProducts} />
     </>
   );

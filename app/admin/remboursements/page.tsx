@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { GOLD, GOLD_DEEP, CARD_BG } from '@/lib/admin-theme';
-import { ADMIN_LIST_LIMIT } from '@/lib/constants';
+import { ADMIN_LIST_LIMIT as LIMIT } from '@/lib/constants';
 import { getSemanticStatusStyle } from '@/lib/status-theme';
 
 interface Refund {
@@ -54,7 +54,6 @@ export default function AdminRemboursements() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newRefund, setNewRefund] = useState({ order_id: '', amount: 0, currency: 'XOF', reason: '', refund_method: 'original', notes: '' });
-  const LIMIT = ADMIN_LIST_LIMIT;
 
   async function load() {
     try {

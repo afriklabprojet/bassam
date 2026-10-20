@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ADMIN_LIST_LIMIT } from '@/lib/constants';
+import { ADMIN_LIST_LIMIT as LIMIT } from '@/lib/constants';
 
 interface Payment {
   id: string;
@@ -53,7 +53,6 @@ export default function AdminPaiements() {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const LIMIT = ADMIN_LIST_LIMIT;
 
   useEffect(() => {
     void (async () => {

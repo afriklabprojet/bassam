@@ -57,15 +57,56 @@ export function computePromoDiscount(type: PromoType, value: number, amount: num
   return Math.min(Math.max(raw, 0), Math.max(amount, 0));
 }
 
-/** Best-effort usage counter increment, guarded against concurrent double-counting. */
-export async function incrementPromoCodeUsage(
+// Every failed attempt means another order changed the counter first, so
+// retrying is always right; a release gets more attempts because giving up
+// leaves a use counted without an order.
+const PROMO_CLAIM_ATTEMPTS = 5;
+const PROMO_RELEASE_ATTEMPTS = 10;
+
+/**
+ * Adds `delta` to uses_count with a compare-and-swap retry (same pattern as
+ * decrementProductStock), so concurrent orders can neither lose an update nor
+ * push a code past max_uses. Returns false if the code is exhausted, missing,
+ * or stays contended after every attempt.
+ */
+async function adjustPromoCodeUses(
   supabase: SupabaseClient,
   id: string,
-  currentUsesCount: number
-): Promise<void> {
-  await supabase
-    .from('promo_codes')
-    .update({ uses_count: currentUsesCount + 1 })
-    .eq('id', id)
-    .eq('uses_count', currentUsesCount);
+  delta: 1 | -1,
+  maxAttempts: number
+): Promise<boolean> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select('uses_count, max_uses')
+      .eq('id', id)
+      .single();
+
+    const row = data as { uses_count: number | null; max_uses: number | null } | null;
+    if (error || !row) return false;
+
+    const current = Number(row.uses_count ?? 0);
+    if (delta > 0 && row.max_uses !== null && current >= row.max_uses) return false;
+    const next = Math.max(current + delta, 0);
+
+    // uses_count is nullable: `= 0` never matches a NULL counter.
+    const update = supabase.from('promo_codes').update({ uses_count: next }).eq('id', id);
+    const { data: updated, error: updateError } = await (
+      row.uses_count === null ? update.is('uses_count', null) : update.eq('uses_count', current)
+    ).select('id');
+
+    if (!updateError && updated && updated.length > 0) return true;
+    // Row changed concurrently between the read and the write — retry.
+  }
+  return false;
+}
+
+/** Reserves one use of a promo code; false means the order must be refused. */
+export function claimPromoCodeUse(supabase: SupabaseClient, id: string): Promise<boolean> {
+  return adjustPromoCodeUses(supabase, id, 1, PROMO_CLAIM_ATTEMPTS);
+}
+
+/** Gives back a use claimed for an order that could not be created. */
+export function releasePromoCodeUse(supabase: SupabaseClient, id: string): Promise<boolean> {
+  return adjustPromoCodeUses(supabase, id, -1, PROMO_RELEASE_ATTEMPTS);
 }

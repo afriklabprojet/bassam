@@ -26,8 +26,9 @@ function checkRateLimit(ip: string): boolean {
 
 // Email subscription schema
 const subscribeSchema = z.object({
-  email: z.email({ message: 'Email invalide' }),
-  phone: z.string().optional(),
+  // Limits mirror the newsletter_subscriptions INSERT policy.
+  email: z.email({ message: 'Email invalide' }).max(254, { message: 'Email invalide' }),
+  phone: z.string().max(32, { message: 'Numéro invalide' }).optional(),
 })
 
 type SubscribeInput = z.infer<typeof subscribeSchema>

@@ -7,11 +7,13 @@ import { NEWSLETTER_RATE_LIMIT } from '@/lib/rate-limit-config';
 import { logger } from '@/lib/logger';
 
 const newsletterSchema = z.object({
-  email: z.string().trim().toLowerCase().email('Email invalide'),
+  // Limits mirror the newsletter_subscriptions INSERT policy.
+  email: z.string().trim().toLowerCase().max(254, 'Email invalide').email('Email invalide'),
   phone: z
     .string()
     .trim()
     .min(8, 'Numéro invalide')
+    .max(32, 'Numéro invalide')
     .optional()
     .or(z.literal('')),
 });

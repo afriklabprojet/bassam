@@ -40,11 +40,8 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
-      {
-        // ISR pages — stale-while-revalidate
-        source: '/(produits|collections)/:path*',
-        headers: [{ key: 'Cache-Control', value: 's-maxage=300, stale-while-revalidate=3600' }],
-      },
+      // No Cache-Control override for pages: the root layout is force-dynamic
+      // (per-request CSP nonce), so Next.js serves them `private, no-store`.
     ];
   },
 };

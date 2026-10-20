@@ -2,6 +2,7 @@ import { SITE_URL as BASE_URL } from '@/lib/site-config';
 import { getSiteSettings } from '@/lib/site-settings';
 import type { Metadata } from 'next';
 import ProduitsClient from './ProduitsClient';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,8 +47,8 @@ export default async function ProduitsPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPageLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(collectionPageLd) }} />
       <ProduitsClient />
     </>
   );

@@ -9,6 +9,7 @@ import ProductCard from '@/components/ProductCard';
 import { getProducts } from '@/lib/supabase/products';
 import { getPublicCategoryBySlug, getPublicCollectionBySlug } from '@/lib/supabase/taxonomies';
 import type { Product } from '@/types/product.types';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 interface PageProps {
   params: Promise<{ category: string }>;
@@ -161,7 +162,7 @@ export default async function CategoryPage({ params }: Readonly<PageProps>) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
     <div style={{ minHeight: '100vh', background: 'var(--offwhite)' }}>
       {/* Banner hero */}

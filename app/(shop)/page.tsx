@@ -13,6 +13,7 @@ import { getHomeUnivers } from '@/lib/supabase/home-content';
 import { getHomeHero } from '@/lib/supabase/home-hero';
 import { getSiteSettings } from '@/lib/site-settings';
 import { PAGE_SIZE_DEFAULT } from '@/lib/constants';
+import { serializeJsonLd } from '@/lib/json-ld';
 
 export const dynamic = 'force-dynamic';
 
@@ -184,9 +185,9 @@ export default async function HomePage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(localBusinessLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(organizationLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteLd) }} />
       {/* Animations de scroll automatiques */}
       <ScrollAnimations />
       

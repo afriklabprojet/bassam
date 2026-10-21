@@ -69,4 +69,26 @@ describe('Page de changement du mot de passe', () => {
       screen.getByRole('heading', { name: 'Mot de passe modifié' })
     ).toBeTruthy();
   });
+
+  it('affiche en français le refus d un mot de passe compromis', async () => {
+    updateUser.mockResolvedValue({
+      error: {
+        message: 'Password is known to be weak and easy to guess, please choose a different one.',
+        code: 'weak_password',
+        reasons: ['pwned'],
+      },
+    });
+    const user = userEvent.setup();
+    render(<UpdatePasswordPage />);
+    await waitFor(() => expect(setSession).toHaveBeenCalled());
+
+    await user.type(screen.getByLabelText('Nouveau mot de passe'), 'password123');
+    await user.type(screen.getByLabelText('Confirmer le mot de passe'), 'password123');
+    await user.click(
+      screen.getByRole('button', { name: 'Mettre à jour le mot de passe' })
+    );
+
+    expect(await screen.findByText(/fuites de données connues/)).toBeTruthy();
+    expect(screen.queryByText(/known to be weak/)).toBeNull();
+  });
 });

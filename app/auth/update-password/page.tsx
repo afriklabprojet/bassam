@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { passwordErrorMessage } from '@/lib/auth-errors';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -89,7 +90,7 @@ export default function UpdatePasswordPage() {
     });
 
     if (updateError) {
-      setError(updateError.message);
+      setError(passwordErrorMessage(updateError));
       setLoading(false);
     } else {
       setSuccess(true);

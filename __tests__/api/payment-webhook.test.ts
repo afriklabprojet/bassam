@@ -282,6 +282,24 @@ describe('POST /api/payment/webhook — usage du code promo', () => {
   });
 });
 
+describe('POST /api/payment/webhook — commande annulée automatiquement puis payée', () => {
+  it('accepte le paiement tardif et repasse la commande en confirmée / payée', async () => {
+    mockOrderSingle.mockResolvedValue({
+      data: { id: ORDER_ID, status: 'cancelled', payment_status: 'pending' },
+      error: null,
+    });
+
+    const res = await POST(makeRequest(SUCCESS_PAYLOAD));
+
+    expect(res.status).toBe(200);
+    expect(mockOrderUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ payment_status: 'paid', status: 'confirmed' }),
+    );
+    expect(mockClaimGuard).toHaveBeenCalledWith('payment_status', 'pending');
+    expect(mockRpc).toHaveBeenCalledWith('consume_order_promo_on_payment', { p_order_id: ORDER_ID });
+  });
+});
+
 describe('POST /api/payment/webhook — fallback par payment_reference', () => {
   it('trouve la commande par payment_reference (transactionDetails.id) si référence inconnue', async () => {
     mockOrderSingle.mockResolvedValue({ data: null, error: { message: 'not found' } });

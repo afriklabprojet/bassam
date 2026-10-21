@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin, getAdminOrders, getOrderCountByPhone, updateOrderStatus } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
 import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 // GET /api/admin/orders
 // GET /api/admin/orders?phone=&excludeId= → returns { previousCount }
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest) {
     const { error } = await updateOrderStatus(id, status);
 
     if (error) {
-      return NextResponse.json({ error }, { status: 500 });
+      return dbErrorResponse('API /admin/orders', error);
     }
 
     return NextResponse.json({ success: true });

@@ -9,9 +9,11 @@ const sql = readFileSync(path.join(MIGRATIONS_DIR, NAME), 'utf8');
 const executable = sql.replace(/^\s*--.*$/gm, '');
 
 describe('migration newsletter : durcissement de l inscription publique', () => {
-  it('passe après la dernière migration de sécurité', () => {
+  it('passe après les migrations de sécurité F1 à F5 et Security Advisor', () => {
     const names = readdirSync(MIGRATIONS_DIR).filter((f) => /^\d{14}_.*\.sql$/.test(f)).sort();
-    expect(names.at(-1)).toBe(NAME);
+    expect(names.indexOf(NAME)).toBeGreaterThan(
+      names.indexOf('20261011070000_security_advisor_platform_function_hardening.sql'),
+    );
   });
 
   it('remplace la politique WITH CHECK (true) dans une transaction', () => {

@@ -1,91 +1,57 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { claimPromoCodeUse, releasePromoCodeUse } from '@/lib/promo';
+import {
+  claimPromoCodeUse,
+  consumeOrderPromoUseOnPayment,
+  releaseOrderPromoUse,
+  releasePromoCodeUse,
+} from '@/lib/promo';
 
-const PROMO_ID = 'promo-1';
+vi.mock('@/lib/logger', () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
-const mockRead = vi.fn();
-const mockUpdate = vi.fn();
-const mockGuard = vi.fn();
-const mockUpdateSelect = vi.fn();
-
-const supabase = {
-  from: vi.fn(() => ({
-    select: () => ({ eq: () => ({ single: mockRead }) }),
-    update: mockUpdate,
-  })),
-} as unknown as SupabaseClient;
+const rpc = vi.fn();
+const supabase = { rpc } as unknown as SupabaseClient;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockUpdateSelect.mockResolvedValue({ data: [{ id: PROMO_ID }], error: null });
-  mockGuard.mockReturnValue({ select: mockUpdateSelect });
-  mockUpdate.mockReturnValue({ eq: vi.fn(() => ({ eq: mockGuard, is: mockGuard })) });
 });
 
-describe('claimPromoCodeUse', () => {
-  it('incrémente uses_count en le conditionnant à la valeur lue', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: 3, max_uses: 10 }, error: null });
+describe('fonctions SQL des usages de codes promo', () => {
+  it('réserve et rend un usage par code', async () => {
+    rpc.mockResolvedValue({ data: true, error: null });
+    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toEqual({ ok: true, changed: true });
+    expect(rpc).toHaveBeenLastCalledWith('claim_promo_code_use', { p_promo_id: 'promo-1' });
 
-    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(true);
-    expect(mockUpdate).toHaveBeenCalledWith({ uses_count: 4 });
-    expect(mockGuard).toHaveBeenCalledWith('uses_count', 3);
+    rpc.mockResolvedValue({ data: null, error: null });
+    await expect(releasePromoCodeUse(supabase, 'promo-1')).resolves.toBe(true);
+    expect(rpc).toHaveBeenLastCalledWith('unclaim_promo_code_use', { p_promo_id: 'promo-1' });
   });
 
-  it('refuse sans écrire quand max_uses est atteint', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: 10, max_uses: 10 }, error: null });
+  it.each([
+    ['releaseOrderPromoUse', releaseOrderPromoUse, 'release_order_promo'],
+    ['consumeOrderPromoUseOnPayment', consumeOrderPromoUseOnPayment, 'consume_order_promo_on_payment'],
+  ] as const)('%s distingue « rien à faire » d un échec', async (_label, fn, name) => {
+    rpc.mockResolvedValue({ data: true, error: null });
+    await expect(fn(supabase, 'order-1')).resolves.toEqual({ ok: true, changed: true });
+    expect(rpc).toHaveBeenLastCalledWith(name, { p_order_id: 'order-1' });
 
-    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(false);
-    expect(mockUpdate).not.toHaveBeenCalled();
+    rpc.mockResolvedValue({ data: false, error: null });
+    await expect(fn(supabase, 'order-1')).resolves.toEqual({ ok: true, changed: false });
+
+    rpc.mockResolvedValue({ data: null, error: { code: '42883', message: 'function does not exist' } });
+    await expect(fn(supabase, 'order-1')).resolves.toEqual({ ok: false, changed: false });
   });
 
-  it('accepte sans limite quand max_uses est null', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: 500, max_uses: null }, error: null });
-
-    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(true);
+  it('distingue le plafond atteint d un échec de l appel', async () => {
+    rpc.mockResolvedValue({ data: false, error: null });
+    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toEqual({ ok: true, changed: false });
   });
 
-  it('relit et réessaie quand une commande concurrente a modifié le compteur', async () => {
-    mockRead
-      .mockResolvedValueOnce({ data: { uses_count: 9, max_uses: 10 }, error: null })
-      .mockResolvedValueOnce({ data: { uses_count: 10, max_uses: 10 }, error: null });
-    mockUpdateSelect.mockResolvedValueOnce({ data: [], error: null });
+  it('renvoie false et journalise quand la fonction échoue', async () => {
+    const { logger } = await import('@/lib/logger');
+    rpc.mockResolvedValue({ data: null, error: { code: '42883', message: 'function does not exist' } });
 
-    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(false);
-    expect(mockRead).toHaveBeenCalledTimes(2);
-    expect(mockUpdate).toHaveBeenCalledTimes(1);
-  });
-
-  it('abandonne après plusieurs conflits successifs', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: 1, max_uses: null }, error: null });
-    mockUpdateSelect.mockResolvedValue({ data: [], error: null });
-
-    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(false);
-    expect(mockUpdate).toHaveBeenCalledTimes(5);
-  });
-
-  it('gère un compteur NULL avec une garde IS NULL', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: null, max_uses: 1 }, error: null });
-
-    await expect(claimPromoCodeUse(supabase, PROMO_ID)).resolves.toBe(true);
-    expect(mockUpdate).toHaveBeenCalledWith({ uses_count: 1 });
-    expect(mockGuard).toHaveBeenCalledWith('uses_count', null);
-  });
-});
-
-describe('releasePromoCodeUse', () => {
-  it('décrémente uses_count sans descendre sous zéro', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: 0, max_uses: 10 }, error: null });
-
-    await expect(releasePromoCodeUse(supabase, PROMO_ID)).resolves.toBe(true);
-    expect(mockUpdate).toHaveBeenCalledWith({ uses_count: 0 });
-  });
-
-  it('insiste davantage qu une réservation avant d abandonner', async () => {
-    mockRead.mockResolvedValue({ data: { uses_count: 2, max_uses: null }, error: null });
-    mockUpdateSelect.mockResolvedValue({ data: [], error: null });
-
-    await expect(releasePromoCodeUse(supabase, PROMO_ID)).resolves.toBe(false);
-    expect(mockUpdate).toHaveBeenCalledTimes(10);
+    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toEqual({ ok: false, changed: false });
+    expect(logger.error).toHaveBeenCalledWith('promo', 'claim_promo_code_use failed', expect.objectContaining({ code: '42883' }));
   });
 });

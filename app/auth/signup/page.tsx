@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { passwordErrorMessage, PWNED_PASSWORD_MESSAGE } from '@/lib/auth-errors';
+import { authErrorMessage, PWNED_PASSWORD_MESSAGE } from '@/lib/auth-errors';
 import { PASSWORD_HINT, passwordPolicyError } from '@/lib/password-policy';
 import { isPasswordPwned } from '@/lib/pwned-password';
 import Link from 'next/link';
@@ -84,7 +84,7 @@ export default function SignupPage() {
     });
 
     if (signUpError) {
-      setError(passwordErrorMessage(signUpError));
+      setError(authErrorMessage(signUpError));
       setLoading(false);
     } else {
       setSuccess(true);
@@ -100,7 +100,7 @@ export default function SignupPage() {
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-    if (signInError) { setError(signInError.message); setLoading(false); }
+    if (signInError) { setError(authErrorMessage(signInError)); setLoading(false); }
   };
 
   // ── État succès — email de confirmation envoyé ─────────────────────────────

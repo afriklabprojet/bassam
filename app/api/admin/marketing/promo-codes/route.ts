@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 // GET /api/admin/marketing/promo-codes
 export async function GET() {
@@ -14,7 +15,7 @@ export async function GET() {
       .from('promo_codes')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/promo-codes', error);
     return NextResponse.json({ codes: data ?? [] });
   } catch (err) {
     logger.error('[Admin GET /promo-codes]', 'Error', err);
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       if (error.code === '23505') return NextResponse.json({ error: 'Ce code existe déjà' }, { status: 409 });
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/marketing/promo-codes', error);
     }
     return NextResponse.json({ code: data }, { status: 201 });
   } catch (err) {
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest) {
 
     const supabase = await createClient();
     const { error } = await supabase.from('promo_codes').update(sanitized).eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/promo-codes', error);
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[Admin PATCH /promo-codes]', 'Error', err);
@@ -110,7 +111,7 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = await createClient();
     const { error } = await supabase.from('promo_codes').delete().eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/promo-codes', error);
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[Admin DELETE /promo-codes]', 'Error', err);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export async function GET() {
   try {
@@ -15,12 +16,12 @@ export async function GET() {
       .order('display_order', { ascending: true });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/product-collections', error);
     }
 
     return NextResponse.json({ items: data ?? [], collections: data ?? [] });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/product-collections', error);
   }
 }
 
@@ -50,12 +51,12 @@ export async function POST(req: NextRequest) {
       .select();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/product-collections', error);
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/product-collections', error);
   }
 }
 
@@ -86,12 +87,12 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/product-collections', error);
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/product-collections', error);
   }
 }
 
@@ -124,7 +125,7 @@ export async function DELETE(req: NextRequest) {
       .eq('collection_id', id);
 
     if (usageError) {
-      return NextResponse.json({ error: usageError.message }, { status: 500 });
+      return dbErrorResponse('API /admin/product-collections', usageError);
     }
 
     if ((count ?? 0) > 0) {
@@ -136,11 +137,11 @@ export async function DELETE(req: NextRequest) {
 
     const { error } = await supabase.from('collections').delete().eq('id', id);
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/product-collections', error);
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/product-collections', error);
   }
 }

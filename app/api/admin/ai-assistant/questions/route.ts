@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
 import { logger } from '@/lib/logger';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 const LIST_LIMIT = 100;
 
@@ -31,7 +32,7 @@ export async function GET() {
 
     if (error) {
       if (isMissingTable(error)) return NextResponse.json({ questions: [], setupRequired: true });
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/ai-assistant/questions', error);
     }
     return NextResponse.json({ questions: data ?? [], setupRequired: false });
   } catch (err) {
@@ -51,7 +52,7 @@ export async function PATCH(req: NextRequest) {
 
     const supabase = createServiceClient();
     const { error } = await supabase.from('assistant_unanswered').update({ status: 'resolved' }).eq('id', parsed.data.id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/ai-assistant/questions', error);
     return NextResponse.json({ ok: true });
   } catch (err) {
     logger.error('[Admin /ai-assistant/questions PATCH]', 'Error', err);
@@ -70,7 +71,7 @@ export async function DELETE(req: NextRequest) {
 
     const supabase = createServiceClient();
     const { error } = await supabase.from('assistant_unanswered').delete().eq('id', parsed.data.id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/ai-assistant/questions', error);
     return NextResponse.json({ ok: true });
   } catch (err) {
     logger.error('[Admin /ai-assistant/questions DELETE]', 'Error', err);

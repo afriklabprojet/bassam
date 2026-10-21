@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -23,7 +24,7 @@ export async function GET(_request: NextRequest) {
     `)
     .order('name');
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/inventory', error);
 
   const items = (data ?? []).map((item) => ({
     ...item,
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/inventory', error);
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -79,7 +80,7 @@ export async function PATCH(request: NextRequest) {
     .select('quantity')
     .eq('id', id)
     .single();
-  if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 });
+  if (fetchErr) return dbErrorResponse('API /admin/inventory', fetchErr);
 
   const updates: Record<string, unknown> = { ...rest, last_updated: new Date().toISOString() };
   if (quantity !== undefined) updates.quantity = quantity;
@@ -90,7 +91,7 @@ export async function PATCH(request: NextRequest) {
     .eq('id', id)
     .select()
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/inventory', error);
 
   // record movement if quantity changed
   if (quantity !== undefined && quantity !== current.quantity) {
@@ -117,6 +118,6 @@ export async function DELETE(request: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 });
 
   const { error } = await supabase.from('inventory').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/inventory', error);
   return NextResponse.json({ success: true });
 }

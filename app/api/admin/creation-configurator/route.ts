@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
 import { getDefaultCreationConfig, CREATION_CONFIG_KEY, type CreationConfig } from '@/lib/custom-creation';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -23,10 +24,7 @@ export async function GET() {
 
     return NextResponse.json({ config });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/creation-configurator', err);
   }
 }
 
@@ -52,9 +50,6 @@ export async function PUT(req: NextRequest) {
     if (error) throw error;
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/creation-configurator', err);
   }
 }

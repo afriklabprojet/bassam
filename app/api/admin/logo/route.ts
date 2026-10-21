@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
 import { logger } from '@/lib/logger';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 const BUCKET = 'product-images';
 const MAX_SIZE = 2 * 1024 * 1024; // 2 Mo
@@ -105,8 +106,7 @@ export async function POST(req: NextRequest) {
       });
 
     if (uploadError) {
-      logger.error('[logo upload] Storage error:', 'Error', uploadError.message);
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      return dbErrorResponse('API /admin/logo', uploadError);
     }
 
     const {

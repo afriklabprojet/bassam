@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/service';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { getAboutPageContent, toAboutPageSettingRows } from '@/lib/supabase/about-content';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -103,10 +104,7 @@ export async function GET() {
       page,
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/about', err);
   }
 }
 
@@ -195,9 +193,6 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/about', err);
   }
 }

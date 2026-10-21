@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
+import { dbErrorResponse } from '@/lib/api-errors';
 import {
   SHIPPING_CONFIG_KEY,
   DEFAULT_SHIPPING_CONFIG,
@@ -32,10 +33,7 @@ export async function GET() {
 
     return NextResponse.json({ config });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/shipping', err);
   }
 }
 
@@ -84,9 +82,6 @@ export async function PUT(req: NextRequest) {
     if (error) throw error;
     return NextResponse.json({ ok: true, config });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/shipping', err);
   }
 }

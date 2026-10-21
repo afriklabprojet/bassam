@@ -36,4 +36,22 @@ describe('Page de réinitialisation du mot de passe', () => {
     });
     expect(screen.getByRole('heading', { name: 'Email envoyé' })).toBeTruthy();
   });
+
+  it('affiche en français la limite de fréquence renvoyée en anglais par Supabase', async () => {
+    resetPasswordForEmail.mockResolvedValue({
+      error: {
+        message: 'For security purposes, you can only request this after 60 seconds.',
+        code: 'over_email_send_rate_limit',
+        status: 429,
+      },
+    });
+    const user = userEvent.setup();
+    render(<ResetPasswordPage />);
+
+    await user.type(screen.getByLabelText('Adresse email'), 'admin@example.com');
+    await user.click(screen.getByRole('button', { name: 'Envoyer le lien' }));
+
+    expect(await screen.findByText(/Trop d’e-mails ont été envoyés/)).toBeTruthy();
+    expect(screen.queryByText(/For security purposes/)).toBeNull();
+  });
 });

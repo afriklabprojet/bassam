@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { passwordErrorMessage, PWNED_PASSWORD_MESSAGE } from '@/lib/auth-errors';
+import { authErrorMessage, PWNED_PASSWORD_MESSAGE } from '@/lib/auth-errors';
 import { PASSWORD_MIN_LENGTH, passwordPolicyError } from '@/lib/password-policy';
 import { isPasswordPwned } from '@/lib/pwned-password';
 import { useRouter } from 'next/navigation';
@@ -99,7 +99,7 @@ export default function UpdatePasswordPage() {
     });
 
     if (updateError) {
-      setError(passwordErrorMessage(updateError));
+      setError(authErrorMessage(updateError));
       setLoading(false);
     } else {
       setSuccess(true);

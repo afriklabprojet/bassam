@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { authErrorMessage } from '@/lib/auth-errors';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSiteSettings } from '@/lib/site-settings-context';
@@ -36,7 +37,7 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
     if (signInError) {
-      setError('Email ou mot de passe incorrect.');
+      setError(authErrorMessage(signInError));
       setLoading(false);
     } else {
       router.push('/');

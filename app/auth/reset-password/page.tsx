@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from 'react';
 import { createPasswordRecoveryClient } from '@/lib/supabase/client';
+import { authErrorMessage } from '@/lib/auth-errors';
 import Link from 'next/link';
 
 const CALLBACK_ERROR_MESSAGE =
@@ -48,7 +49,7 @@ export default function ResetPasswordPage() {
     );
 
     if (resetError) {
-      setFormError(resetError.message);
+      setFormError(authErrorMessage(resetError));
       setLoading(false);
     } else {
       setSuccess(true);

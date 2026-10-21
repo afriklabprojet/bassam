@@ -125,12 +125,14 @@ test.describe('Consultation privée', () => {
     await expect(form).toBeVisible({ timeout: 8000 });
   });
 
-  test('contient les 3 formules tarifaires', async ({ page }) => {
+  // The pricing tiers section was replaced by a 3-step booking wizard (bc7a806).
+  test('présente la réservation et les 3 étapes de la séance', async ({ page }) => {
     await page.goto('/services/consultation');
-    const formules = page.locator('#formules');
-    await expect(formules.getByRole('heading', { name: 'Découverte' })).toBeVisible({ timeout: 8000 });
-    await expect(formules.getByRole('heading', { name: 'Signature' })).toBeVisible({ timeout: 5000 });
-    await expect(formules.getByRole('heading', { name: 'Cadeau' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Réservez votre séance.', exact: true })).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole('heading', { name: 'Comment ça se passe', exact: true })).toBeVisible({ timeout: 5000 });
+    for (const step of ['Profil olfactif', 'Exploration sensorielle', 'Sélection & suivi']) {
+      await expect(page.getByRole('heading', { name: step, exact: true })).toBeVisible({ timeout: 5000 });
+    }
   });
 });
 

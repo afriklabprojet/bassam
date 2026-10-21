@@ -34,7 +34,7 @@ export const GET_SHOP_INFO_TOOL: Anthropic.Tool = {
   description:
     "Lit en direct les informations officielles publiées par la boutique (données du site, modifiables par l'équipe) : " +
     "tarifs et modes de livraison, moyens de paiement, services, formules de création sur mesure (prix, volumes, délais, familles, flacons), " +
-    "collections et catégories, histoire et engagements, FAQ (retours, authenticité, seuil de livraison offerte…), coordonnées. " +
+    "collections et catégories, histoire et engagements, FAQ (retours, authenticité, seuil de livraison offerte…), coordonnées et horaires d'ouverture. " +
     "À utiliser dès que la question porte sur une de ces informations — ne jamais répondre de mémoire.",
   input_schema: {
     type: 'object',

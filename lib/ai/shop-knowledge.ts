@@ -1,4 +1,4 @@
-import { getSiteSettings } from '@/lib/site-settings';
+import { getSiteSettings, hasWhatsApp } from '@/lib/site-settings';
 import { getShippingConfig } from '@/lib/shipping';
 import { getServicesContent } from '@/lib/supabase/services-content';
 import { getContactFaq } from '@/lib/supabase/contact-content';
@@ -9,7 +9,7 @@ import { fetchCreationConfig } from '@/lib/custom-creation';
 import { createServiceClient } from '@/lib/supabase/service';
 import { PAYMENT_METHODS } from '@/lib/payment/methods';
 import { formatPrice } from '@/lib/format';
-import { SITE_URL } from '@/lib/site-config';
+import { SITE_URL, SHOP_HOURS } from '@/lib/site-config';
 
 /**
  * Live knowledge the assistant reads straight from the site's own data
@@ -140,6 +140,10 @@ async function contact() {
     whatsapp: s.whatsapp_display || undefined,
     telephone: s.support_phone_display || undefined,
     adresse: [s.address_display, s.address_detail].filter(Boolean).join(' — ') || undefined,
+    horaires: {
+      boutique_et_telephone: SHOP_HOURS.full,
+      ...(hasWhatsApp(s) ? { whatsapp: 'disponible 7j/7' } : {}),
+    },
     instagram: s.instagram_url || undefined,
     facebook: s.facebook_url || undefined,
     tiktok: s.tiktok_url || undefined,

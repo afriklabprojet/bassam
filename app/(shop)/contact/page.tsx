@@ -1,4 +1,4 @@
-import { SITE_URL as BASE_URL } from '@/lib/site-config';
+import { SITE_URL as BASE_URL, SHOP_HOURS } from '@/lib/site-config';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSiteSettings, hasWhatsApp, buildWhatsAppHref, getPhoneHref, type SiteSettings } from '@/lib/site-settings';
@@ -64,7 +64,7 @@ function buildCanaux(s: SiteSettings) {
       ),
       titre: 'Téléphone',
       valeur: phoneValue,
-      sous: 'Lun–Sam, 8h–18h',
+      sous: SHOP_HOURS.short,
       href: phoneHref,
       label: 'Appeler',
       extern: false,
@@ -275,7 +275,7 @@ export default async function ContactPage() {
                   Horaires de disponibilité
                 </p>
                 <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  Lundi – Samedi · 8h00 – 18h00 (GMT)<br />
+                  {SHOP_HOURS.full}<br />
                   <span style={{ color: 'var(--gold)', fontWeight: 500 }}>{hasWhatsApp(settings) ? 'WhatsApp disponible 7j/7' : 'Réponse email sous 24h ouvrées'}</span>
                 </p>
               </div>

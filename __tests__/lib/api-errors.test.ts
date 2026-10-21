@@ -7,7 +7,7 @@ const rawMessage = 'duplicate key value violates unique constraint "categories_s
 describe('dbErrorResponse', () => {
   it.each([
     ['23505', 409, 'Cet élément existe déjà.'],
-    ['23503', 409, 'Cet élément est encore utilisé ailleurs et ne peut pas être supprimé.'],
+    ['23503', 409, 'Opération impossible : un élément lié est manquant ou encore utilisé.'],
     ['23502', 400, 'Données invalides : un champ obligatoire est manquant.'],
     ['23514', 400, 'Données invalides.'],
     ['22P02', 400, 'Données invalides.'],

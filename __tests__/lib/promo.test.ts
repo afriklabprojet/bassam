@@ -19,7 +19,7 @@ beforeEach(() => {
 describe('fonctions SQL des usages de codes promo', () => {
   it('réserve et rend un usage par code', async () => {
     rpc.mockResolvedValue({ data: true, error: null });
-    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toBe(true);
+    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toEqual({ ok: true, changed: true });
     expect(rpc).toHaveBeenLastCalledWith('claim_promo_code_use', { p_promo_id: 'promo-1' });
 
     rpc.mockResolvedValue({ data: null, error: null });
@@ -42,16 +42,16 @@ describe('fonctions SQL des usages de codes promo', () => {
     await expect(fn(supabase, 'order-1')).resolves.toEqual({ ok: false, changed: false });
   });
 
-  it('refuse la réservation quand la fonction renvoie false (plafond atteint)', async () => {
+  it('distingue le plafond atteint d un échec de l appel', async () => {
     rpc.mockResolvedValue({ data: false, error: null });
-    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toBe(false);
+    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toEqual({ ok: true, changed: false });
   });
 
   it('renvoie false et journalise quand la fonction échoue', async () => {
     const { logger } = await import('@/lib/logger');
     rpc.mockResolvedValue({ data: null, error: { code: '42883', message: 'function does not exist' } });
 
-    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toBe(false);
+    await expect(claimPromoCodeUse(supabase, 'promo-1')).resolves.toEqual({ ok: false, changed: false });
     expect(logger.error).toHaveBeenCalledWith('promo', 'claim_promo_code_use failed', expect.objectContaining({ code: '42883' }));
   });
 });

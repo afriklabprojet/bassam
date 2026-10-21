@@ -270,4 +270,18 @@ describe('createOrder', () => {
     expect(rpcNames()).toEqual(['claim_promo_code_use', 'release_order_promo']);
     expect(mockRpc).toHaveBeenLastCalledWith('release_order_promo', { p_order_id: 'order-1' });
   });
+
+  it('répond par une erreur serveur, et non « code épuisé », si la réservation échoue', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
+      error: null,
+    });
+    mockPromoSingle.mockResolvedValueOnce({ data: PROMO_ROW, error: null });
+    mockRpc.mockResolvedValueOnce({ data: null, error: { code: '42501', message: 'permission denied for function' } });
+
+    const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
+
+    expect(result).toEqual({ order: null, error: 'Erreur création commande' });
+    expect(mockOrderInsert).not.toHaveBeenCalled();
+  });
 });

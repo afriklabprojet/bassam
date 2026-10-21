@@ -89,7 +89,9 @@ export async function updateOrderStatus(orderId: string, status: string) {
   // Cancelling an order that was never paid gives its promo use back (no-op without a promo).
   const paymentStatus = (data as Array<{ payment_status: string | null }> | null)?.[0]?.payment_status;
   if (status === 'cancelled' && paymentStatus !== 'paid' && paymentStatus !== 'refunded') {
-    await releaseOrderPromoUse(supabase, orderId);
+    const release = await releaseOrderPromoUse(supabase, orderId);
+    // Report it so the admin retries: cancelling again is a no-op and retries the release.
+    if (!release.ok) return { error: { code: 'promo_release_failed', message: 'Promo use release failed' } };
   }
 
   return { error: null };

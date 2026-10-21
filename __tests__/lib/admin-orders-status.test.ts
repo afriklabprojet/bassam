@@ -47,4 +47,13 @@ describe('updateOrderStatus — usage du code promo', () => {
     await expect(updateOrderStatus('pas-un-uuid', 'cancelled')).resolves.toEqual({ error: dbError });
     expect(mockRpc).not.toHaveBeenCalled();
   });
+
+  it('signale l échec de la libération pour que l admin réessaie', async () => {
+    mockSelect.mockResolvedValue({ data: [{ payment_status: 'pending' }], error: null });
+    mockRpc.mockResolvedValue({ data: null, error: { code: '57014', message: 'canceling statement due to timeout' } });
+
+    const result = await updateOrderStatus('order-1', 'cancelled');
+
+    expect(result.error).toEqual(expect.objectContaining({ code: 'promo_release_failed' }));
+  });
 });

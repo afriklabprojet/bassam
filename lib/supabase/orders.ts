@@ -259,8 +259,13 @@ export async function createOrder(
   // Reserve the promo use before the order exists, so max_uses holds even
   // when several customers redeem the last use at the same time.
   const promoId = verifiedOrder.data.appliedPromo?.id;
-  if (promoId && !(await claimPromoCodeUse(supabase, promoId))) {
-    return { order: null, error: 'Ce code promo a atteint son nombre maximum d\'utilisations' };
+  if (promoId) {
+    const claim = await claimPromoCodeUse(supabase, promoId);
+    // A failed call is a server error, not an exhausted code (already logged by lib/promo).
+    if (!claim.ok) return { order: null, error: 'Erreur création commande' };
+    if (!claim.changed) {
+      return { order: null, error: 'Ce code promo a atteint son nombre maximum d\'utilisations' };
+    }
   }
 
   // Insert the order

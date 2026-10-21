@@ -83,10 +83,12 @@ async function callPromoFunction(
   return { ok: true, changed: data === true };
 }
 
-/** Reserves one use of a promo code; false means the order must be refused. */
-export async function claimPromoCodeUse(supabase: SupabaseClient, promoId: string): Promise<boolean> {
-  const result = await callPromoFunction(supabase, 'claim_promo_code_use', { p_promo_id: promoId });
-  return result.changed;
+/**
+ * Reserves one use of a promo code. `changed` false with `ok` true means the
+ * code is exhausted; `ok` false means the call itself failed.
+ */
+export function claimPromoCodeUse(supabase: SupabaseClient, promoId: string): Promise<PromoCallResult> {
+  return callPromoFunction(supabase, 'claim_promo_code_use', { p_promo_id: promoId });
 }
 
 /** Gives back a use reserved for an order that could not be created (the function returns nothing). */

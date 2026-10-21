@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/logger', () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
-const { buildAssertion, notifyAdminsOfPaidOrder, readServiceAccount, resetFcmCache, sendPushToAdmins } = await import('@/lib/push/fcm');
+const { buildAssertion, notifyAdminsOfPaidOrder, PUSH_DEADLINE_MS, readServiceAccount, resetFcmCache, sendPushToAdmins } =
+  await import('@/lib/push/fcm');
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 2048,
@@ -18,11 +19,19 @@ type Row = { token: string; user_id?: string };
 type Roles = Record<string, string | null | 'erreur'>;
 
 function makeSupabase(tokens: Row[], roles: Roles = {}) {
+  // Jetons périmés : delete().in('token', …). Jetons d'un admin rétrogradé : delete().eq('user_id', id).in('token', …).
   const deleteIn = vi.fn().mockResolvedValue({ error: null });
+  const deleteOwnedBy = vi.fn().mockResolvedValue({ error: null });
   const rows = tokens.map((row) => ({ user_id: 'admin-1', ...row }));
   const from = vi.fn((table: string) => {
     if (table === 'admin_push_tokens') {
-      return { select: vi.fn().mockResolvedValue({ data: rows, error: null }), delete: vi.fn(() => ({ in: deleteIn })) };
+      return {
+        select: vi.fn().mockResolvedValue({ data: rows, error: null }),
+        delete: vi.fn(() => ({
+          in: deleteIn,
+          eq: (_column: string, userId: string) => ({ in: (_c: string, list: string[]) => deleteOwnedBy(userId, list) }),
+        })),
+      };
     }
     throw new Error(`Table non simulée : ${table}`);
   });
@@ -31,7 +40,7 @@ function makeSupabase(tokens: Row[], roles: Roles = {}) {
     if (role === 'erreur') return { data: { user: null }, error: new Error('réseau') };
     return { data: { user: { id: userId, app_metadata: role ? { role } : {} } }, error: null };
   });
-  return { client: { from, auth: { admin: { getUserById } } } as never, deleteIn, from, getUserById };
+  return { client: { from, auth: { admin: { getUserById } } } as never, deleteIn, deleteOwnedBy, from, getUserById };
 }
 
 function mockFcm(onSend: (token: string) => { ok: boolean; status: number }) {
@@ -114,7 +123,7 @@ describe('sendPushToAdmins', () => {
 
   it('un administrateur rétrogradé ne reçoit plus rien et ses jetons sont supprimés', async () => {
     const sent = mockFcm(() => ({ ok: true, status: 200 }));
-    const { client, deleteIn } = makeSupabase(
+    const { client, deleteIn, deleteOwnedBy } = makeSupabase(
       [{ token: 'admin-tel', user_id: 'a1' }, { token: 'ex-admin-tel', user_id: 'a2' }],
       { a1: 'admin', a2: null },
     );
@@ -122,7 +131,27 @@ describe('sendPushToAdmins', () => {
     await sendPushToAdmins(client, { title: 'Titre', body: 'Texte' });
 
     expect(sent.map((s) => s.token)).toEqual(['admin-tel']);
-    expect(deleteIn).toHaveBeenCalledWith('token', ['ex-admin-tel']);
+    // Filtré aussi sur l'ancien propriétaire : si le téléphone vient d'être réattribué à un autre admin, son
+    // nouvel enregistrement n'est pas effacé.
+    expect(deleteOwnedBy).toHaveBeenCalledWith('a2', ['ex-admin-tel']);
+    expect(deleteIn).not.toHaveBeenCalled();
+  });
+
+  it('chaque appel à Google (jeton OAuth, envoi FCM) a un délai maximal', async () => {
+    const signals: Array<AbortSignal | null | undefined> = [];
+    mockFcm(() => ({ ok: true, status: 200 }));
+    const recording = vi.mocked(fetch);
+    const original = recording.getMockImplementation();
+    recording.mockImplementation(async (input, init) => {
+      signals.push(init?.signal);
+      return original!(input, init);
+    });
+    const { client } = makeSupabase([{ token: 'tel', user_id: 'a1' }]);
+
+    await sendPushToAdmins(client, { title: 'Titre', body: 'Texte' });
+
+    expect(signals).toHaveLength(2);
+    for (const signal of signals) expect(signal).toBeInstanceOf(AbortSignal);
   });
 
   it('rôle illisible (panne passagère) : aucun envoi à cet utilisateur, mais ses jetons sont conservés', async () => {
@@ -150,6 +179,25 @@ describe('sendPushToAdmins', () => {
 });
 
 describe('notifyAdminsOfPaidOrder', () => {
+  it('Google ne répond pas : rend la main après le délai global, le webhook n’est jamais bloqué', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>(() => {})));
+      const { client } = makeSupabase([{ token: 'tel', user_id: 'a1' }]);
+      let done = false;
+      const pending = notifyAdminsOfPaidOrder(client, { id: 'abcdef12-0000-4000-8000-000000000000', total_amount: 1 }).then(() => {
+        done = true;
+      });
+      await vi.advanceTimersByTimeAsync(PUSH_DEADLINE_MS - 1);
+      expect(done).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await pending;
+      expect(done).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('annonce la commande avec son numéro et son montant, et porte son identifiant', async () => {
     const sent = mockFcm(() => ({ ok: true, status: 200 }));
     const { client, from } = makeSupabase([{ token: 'bon' }]);

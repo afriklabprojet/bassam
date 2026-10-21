@@ -11,6 +11,13 @@ import { logger } from '@/lib/logger';
 const LOG_CONTEXT = 'Admin push';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
+/** Délai maximal de chaque appel à Google (jeton OAuth, envoi FCM). */
+const GOOGLE_TIMEOUT_MS = 5_000;
+/**
+ * Durée maximale de toute la notification (rôles, jeton, envois). Le webhook de paiement attend ce canal avant de
+ * répondre à Jeko : il ne doit jamais rester bloqué par Google ou par Supabase Auth.
+ */
+export const PUSH_DEADLINE_MS = 8_000;
 
 export type ServiceAccount = { project_id: string; client_email: string; private_key: string };
 
@@ -46,6 +53,7 @@ async function getAccessToken(account: ServiceAccount): Promise<string | null> {
   if (cachedAccessToken && cachedAccessToken.expiresAt - 60_000 > now) return cachedAccessToken.value;
 
   const response = await fetch(TOKEN_URL, {
+    signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -76,6 +84,7 @@ async function sendToTokens(account: ServiceAccount, accessToken: string, tokens
     tokens.map(async (token) => {
       try {
         const response = await fetch(`https://fcm.googleapis.com/v1/projects/${account.project_id}/messages:send`, {
+          signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
           method: 'POST',
           headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -102,10 +111,13 @@ type TokenRow = { token: string; user_id: string };
 
 /**
  * Relit le rôle de chaque propriétaire de jeton : la clé service contourne la RLS, et un administrateur rétrogradé
- * sans s'être déconnecté garderait sinon son jeton. `revoked` : jetons d'utilisateurs qui ne sont plus administrateurs
- * (à supprimer). Un rôle illisible (erreur passagère) n'envoie rien mais ne supprime rien.
+ * sans s'être déconnecté garderait sinon son jeton. `revoked` : par utilisateur, les jetons de ceux qui ne sont plus
+ * administrateurs (à supprimer). Un rôle illisible (erreur passagère) n'envoie rien mais ne supprime rien.
  */
-async function splitByAdminRole(supabase: SupabaseClient, rows: TokenRow[]): Promise<{ allowed: string[]; revoked: string[] }> {
+async function splitByAdminRole(
+  supabase: SupabaseClient,
+  rows: TokenRow[],
+): Promise<{ allowed: string[]; revoked: Map<string, string[]> }> {
   const userIds = [...new Set(rows.map((row) => row.user_id))];
   const roles = new Map<string, 'admin' | 'revoked' | 'unknown'>();
   await Promise.all(
@@ -119,10 +131,11 @@ async function splitByAdminRole(supabase: SupabaseClient, rows: TokenRow[]): Pro
       roles.set(userId, data.user.app_metadata?.role === 'admin' ? 'admin' : 'revoked');
     }),
   );
-  return {
-    allowed: rows.filter((row) => roles.get(row.user_id) === 'admin').map((row) => row.token),
-    revoked: rows.filter((row) => roles.get(row.user_id) === 'revoked').map((row) => row.token),
-  };
+  const revoked = new Map<string, string[]>();
+  for (const row of rows) {
+    if (roles.get(row.user_id) === 'revoked') revoked.set(row.user_id, [...(revoked.get(row.user_id) ?? []), row.token]);
+  }
+  return { allowed: rows.filter((row) => roles.get(row.user_id) === 'admin').map((row) => row.token), revoked };
 }
 
 async function sendWithAccount(account: ServiceAccount, supabase: SupabaseClient, message: PushMessage): Promise<void> {
@@ -131,21 +144,41 @@ async function sendWithAccount(account: ServiceAccount, supabase: SupabaseClient
     if (error || !data || data.length === 0) return;
 
     const { allowed, revoked } = await splitByAdminRole(supabase, data as TokenRow[]);
-    const stale = [...revoked];
-    if (allowed.length > 0) {
-      const accessToken = await getAccessToken(account);
-      if (accessToken) stale.push(...(await sendToTokens(account, accessToken, allowed, message)));
+    // Filtré sur l'ancien propriétaire : un jeton réattribué entre-temps à un autre admin (POST /push-token) reste.
+    for (const [userId, tokens] of revoked) {
+      await supabase.from('admin_push_tokens').delete().eq('user_id', userId).in('token', tokens);
     }
+    if (allowed.length === 0) return;
+    const accessToken = await getAccessToken(account);
+    if (!accessToken) return;
+    // Jeton déclaré périmé par Firebase (application désinstallée) : invalide quel que soit son propriétaire.
+    const stale = await sendToTokens(account, accessToken, allowed, message);
     if (stale.length > 0) await supabase.from('admin_push_tokens').delete().in('token', stale);
   } catch (error) {
     logger.error(LOG_CONTEXT, 'Unable to send admin push notifications', { error });
   }
 }
 
+/** Rend la main au plus tard après PUSH_DEADLINE_MS ; l'envoi en cours n'est pas attendu au-delà. */
+async function withinDeadline(work: Promise<void>): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<void>((resolve) => {
+    timer = setTimeout(() => {
+      logger.warn(LOG_CONTEXT, 'Admin push notification exceeded its deadline', { deadlineMs: PUSH_DEADLINE_MS });
+      resolve();
+    }, PUSH_DEADLINE_MS);
+  });
+  try {
+    await Promise.race([work, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Envoie une notification aux téléphones des utilisateurs qui sont encore administrateurs. Ne lève jamais d'erreur. */
 export async function sendPushToAdmins(supabase: SupabaseClient, message: PushMessage): Promise<void> {
   const account = readServiceAccount();
-  if (account) await sendWithAccount(account, supabase, message);
+  if (account) await withinDeadline(sendWithAccount(account, supabase, message));
 }
 
 export type PaidOrder = { id: string; total_amount: number | string | null };
@@ -158,9 +191,11 @@ export async function notifyAdminsOfPaidOrder(supabase: SupabaseClient, order: P
   const account = readServiceAccount();
   if (!account) return;
 
-  await sendWithAccount(account, supabase, {
-    title: 'Nouvelle commande payée',
-    body: `VIP-${order.id.slice(0, 8).toUpperCase()} — ${formatCFA(Number(order.total_amount) || 0)}`,
-    data: { type: 'order_paid', orderId: order.id },
-  });
+  await withinDeadline(
+    sendWithAccount(account, supabase, {
+      title: 'Nouvelle commande payée',
+      body: `VIP-${order.id.slice(0, 8).toUpperCase()} — ${formatCFA(Number(order.total_amount) || 0)}`,
+      data: { type: 'order_paid', orderId: order.id },
+    }),
+  );
 }

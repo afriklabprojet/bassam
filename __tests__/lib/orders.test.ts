@@ -12,9 +12,9 @@ const mockDuplicateSingle = vi.fn();
 const mockItemsInsert = vi.fn();
 const mockOrderDeleteEq = vi.fn();
 const mockPromoSingle = vi.fn();
-const mockPromoUpdate = vi.fn((values: { uses_count: number }) => ({
-  eq: () => ({ eq: () => ({ select: () => Promise.resolve({ data: [{ id: 'promo-1', ...values }], error: null }) }) }),
-}));
+// Promo use counters only move through SQL functions (supabase.rpc).
+const mockRpc = vi.fn();
+const rpcNames = () => mockRpc.mock.calls.map(([name]) => name);
 
 const PROMO_ROW = {
   id: 'promo-1',
@@ -54,7 +54,6 @@ const mockFrom = vi.fn((table: string) => {
   if (table === 'promo_codes') {
     return {
       select: () => ({ eq: () => ({ single: mockPromoSingle }) }),
-      update: mockPromoUpdate,
     };
   }
 
@@ -66,7 +65,7 @@ const mockServiceFrom = vi.fn(() => ({
 }));
 
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(() => Promise.resolve({ from: mockFrom })),
+  createClient: vi.fn(() => Promise.resolve({ from: mockFrom, rpc: mockRpc })),
 }));
 
 vi.mock('@/lib/supabase/service', () => ({
@@ -110,6 +109,7 @@ beforeEach(() => {
   });
   mockItemsInsert.mockResolvedValue({ error: null });
   mockOrderDeleteEq.mockResolvedValue({ error: null });
+  mockRpc.mockImplementation(async (name: string) => ({ data: name === 'unclaim_promo_code_use' ? null : true, error: null }));
 });
 
 describe('createOrder', () => {
@@ -179,22 +179,51 @@ describe('createOrder', () => {
     expect(result.error).toBe('Erreur création commande');
   });
 
+  it('enregistre le code promo sur la commande et y rattache l usage réservé', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
+      error: null,
+    });
+    mockPromoSingle.mockResolvedValueOnce({ data: PROMO_ROW, error: null });
+
+    const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
+
+    expect(result.error).toBeNull();
+    expect(mockRpc).toHaveBeenCalledWith('claim_promo_code_use', { p_promo_id: 'promo-1' });
+    expect(mockOrderInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ promo_code_id: 'promo-1', promo_use_counted: true }),
+    );
+  });
+
+  it('ne rattache aucun usage à une commande sans code promo', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
+      error: null,
+    });
+
+    await createOrder('user-1', baseInput);
+
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(mockOrderInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ promo_code_id: null, promo_use_counted: false }),
+    );
+  });
+
   it('refuse la commande si le dernier usage du code promo est pris entre-temps', async () => {
     mockProductsIn.mockResolvedValue({
       data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
       error: null,
     });
     // Validation sees 4/5; by the time the use is claimed, another order took the 5th.
-    mockPromoSingle
-      .mockResolvedValueOnce({ data: PROMO_ROW, error: null })
-      .mockResolvedValueOnce({ data: { uses_count: 5, max_uses: 5 }, error: null });
+    mockPromoSingle.mockResolvedValueOnce({ data: PROMO_ROW, error: null });
+    mockRpc.mockResolvedValueOnce({ data: false, error: null });
 
     const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
 
     expect(result.order).toBeNull();
     expect(result.error).toMatch(/code promo/i);
     expect(mockOrderInsert).not.toHaveBeenCalled();
-    expect(mockPromoUpdate).not.toHaveBeenCalled();
+    expect(rpcNames()).toEqual(['claim_promo_code_use']);
   });
 
   it('rend l usage du code promo si l insertion de la commande échoue', async () => {
@@ -202,16 +231,13 @@ describe('createOrder', () => {
       data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
       error: null,
     });
-    mockPromoSingle
-      .mockResolvedValueOnce({ data: PROMO_ROW, error: null })
-      .mockResolvedValueOnce({ data: { uses_count: 4, max_uses: 5 }, error: null })
-      .mockResolvedValueOnce({ data: { uses_count: 5, max_uses: 5 }, error: null });
+    mockPromoSingle.mockResolvedValueOnce({ data: PROMO_ROW, error: null });
     mockOrderSingle.mockResolvedValue({ data: null, error: { code: '23514', message: 'check violation' } });
 
     const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
 
     expect(result.error).toBe('Erreur création commande');
-    expect(mockPromoUpdate.mock.calls.map(([values]) => values)).toEqual([{ uses_count: 5 }, { uses_count: 4 }]);
+    expect(rpcNames()).toEqual(['claim_promo_code_use', 'unclaim_promo_code_use']);
   });
 
   it('supprime la commande sans articles et rend l usage du code promo', async () => {
@@ -219,16 +245,29 @@ describe('createOrder', () => {
       data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
       error: null,
     });
-    mockPromoSingle
-      .mockResolvedValueOnce({ data: PROMO_ROW, error: null })
-      .mockResolvedValueOnce({ data: { uses_count: 4, max_uses: 5 }, error: null })
-      .mockResolvedValueOnce({ data: { uses_count: 5, max_uses: 5 }, error: null });
+    mockPromoSingle.mockResolvedValueOnce({ data: PROMO_ROW, error: null });
     mockItemsInsert.mockResolvedValue({ error: { code: '23503', message: 'fk violation' } });
 
     const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
 
     expect(result).toEqual({ order: null, error: 'Erreur création commande' });
     expect(mockOrderDeleteEq).toHaveBeenCalledWith('id', 'order-1');
-    expect(mockPromoUpdate.mock.calls.map(([values]) => values)).toEqual([{ uses_count: 5 }, { uses_count: 4 }]);
+    expect(rpcNames()).toEqual(['claim_promo_code_use', 'unclaim_promo_code_use']);
+  });
+
+  it('libère l usage par la commande si sa suppression échoue, sans double restitution', async () => {
+    mockProductsIn.mockResolvedValue({
+      data: [{ id: PRODUCT_ID, price: 30000, stock_quantity: 5 }],
+      error: null,
+    });
+    mockPromoSingle.mockResolvedValueOnce({ data: PROMO_ROW, error: null });
+    mockItemsInsert.mockResolvedValue({ error: { code: '23503', message: 'fk violation' } });
+    mockOrderDeleteEq.mockResolvedValue({ error: { code: '57014', message: 'canceling statement' } });
+
+    const result = await createOrder('user-1', { ...baseInput, promoCode: 'vip10' });
+
+    expect(result.error).toBe('Erreur création commande');
+    expect(rpcNames()).toEqual(['claim_promo_code_use', 'release_order_promo']);
+    expect(mockRpc).toHaveBeenLastCalledWith('release_order_promo', { p_order_id: 'order-1' });
   });
 });

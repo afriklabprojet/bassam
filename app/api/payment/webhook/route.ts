@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { decrementProductStock } from '@/lib/supabase/products';
 import { verifyWebhookSignature, type JekoWebhookPayload } from '@/lib/payment/jeko';
 import { sendOrderNotifications } from '@/lib/order-notifications';
+import { consumeOrderPromoUseOnPayment, releaseOrderPromoUse } from '@/lib/promo';
 import { logger } from '@/lib/logger';
 
 const WEBHOOK_LOG_CONTEXT = 'API /payment/webhook';
@@ -212,7 +213,32 @@ export async function POST(request: NextRequest) {
       newPaymentStatus: updates.payment_status,
     });
 
-    // ── 7. Deplete stock now that payment is actually confirmed ────────────
+    // ── 7. Settle the promo use held by the order ─────────────────────────
+    // Paid: keep it (or count it again if the 24 h job had given it back).
+    // Failed: give it back (the hourly job retries if this call fails). Both
+    // are no-ops for orders without a promo; call failures are logged by
+    // lib/promo and must not fail the webhook either.
+    try {
+      if (isSuccess) {
+        const recount = await consumeOrderPromoUseOnPayment(supabase, resolvedOrder.id);
+        if (recount.changed) {
+          logger.info(WEBHOOK_LOG_CONTEXT, 'Promo use counted again for an order paid after its release', {
+            correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
+            orderId: resolvedOrder.id,
+          });
+        }
+      } else {
+        await releaseOrderPromoUse(supabase, resolvedOrder.id);
+      }
+    } catch (promoError) {
+      logger.error(WEBHOOK_LOG_CONTEXT, 'Unexpected error while settling promo use', {
+        correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
+        orderId: resolvedOrder.id,
+        error: promoError,
+      });
+    }
+
+    // ── 8. Deplete stock now that payment is actually confirmed ────────────
     // (nothing decrements stock earlier in the flow — see createOrder, which
     // only checks availability — so this is the one place it happens.)
     // Isolated in its own try/catch: a stock-side failure must never turn

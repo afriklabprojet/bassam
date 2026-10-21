@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from './server';
 import { getShippingConfig } from '@/lib/shipping';
-import { validatePromoCode, computePromoDiscount, claimPromoCodeUse, releasePromoCodeUse } from '@/lib/promo';
+import { validatePromoCode, computePromoDiscount, claimPromoCodeUse, releaseOrderPromoUse, releasePromoCodeUse } from '@/lib/promo';
 import { formatPrice } from '@/lib/format';
 import { logger } from '@/lib/logger';
 
@@ -275,6 +275,10 @@ export async function createOrder(
       phone: input.phone,
       email: input.email,
       notes,
+      // The order holds the use claimed above until it is paid, fails, is
+      // cancelled, or stays unpaid for 24 h (pg_cron job).
+      promo_code_id: promoId ?? null,
+      promo_use_counted: Boolean(promoId),
     })
     .select()
     .single();
@@ -305,8 +309,12 @@ export async function createOrder(
     const { error: deleteError } = await supabase.from('orders').delete().eq('id', order.id);
     if (deleteError) {
       logger.error('createOrder', 'Could not delete order left without items', { orderId: order.id, code: deleteError.code });
+      // The order still holds the use: release it through the order's flag so
+      // the 24 h job cannot give it back a second time.
+      if (promoId) await releaseOrderPromoUse(supabase, order.id);
+    } else {
+      await releasePromoForFailedOrder(supabase, promoId);
     }
-    await releasePromoForFailedOrder(supabase, promoId);
     return { order: null, error: 'Erreur création commande' };
   }
 

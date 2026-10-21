@@ -1,5 +1,6 @@
 import { createClient } from './server';
 import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
+import { releaseOrderPromoUse } from '@/lib/promo';
 
 type OrderItemJoin = { name: string; brand: string; slug: string };
 
@@ -77,10 +78,19 @@ export async function updateOrderStatus(orderId: string, status: string) {
   const { createServiceClient } = await import('./service');
   const supabase = createServiceClient();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('orders')
     .update({ status })
-    .eq('id', orderId);
+    .eq('id', orderId)
+    .select('payment_status');
 
-  return { error: error?.message ?? null };
+  if (error) return { error };
+
+  // Cancelling an order that was never paid gives its promo use back (no-op without a promo).
+  const paymentStatus = (data as Array<{ payment_status: string | null }> | null)?.[0]?.payment_status;
+  if (status === 'cancelled' && paymentStatus !== 'paid' && paymentStatus !== 'refunded') {
+    await releaseOrderPromoUse(supabase, orderId);
+  }
+
+  return { error: null };
 }

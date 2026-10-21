@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '@/lib/logger';
 
 export type PromoType = 'percentage' | 'fixed';
 
@@ -57,56 +58,56 @@ export function computePromoDiscount(type: PromoType, value: number, amount: num
   return Math.min(Math.max(raw, 0), Math.max(amount, 0));
 }
 
-// Every failed attempt means another order changed the counter first, so
-// retrying is always right; a release gets more attempts because giving up
-// leaves a use counted without an order.
-const PROMO_CLAIM_ATTEMPTS = 5;
-const PROMO_RELEASE_ATTEMPTS = 10;
+// Promo use counters are changed only through the SQL functions of migration
+// 20261021000000_promo_reservation_lifecycle: each runs as one statement, so
+// concurrent orders cannot exceed max_uses or count a release twice. They are
+// executable by the service role only.
 
 /**
- * Adds `delta` to uses_count with a compare-and-swap retry (same pattern as
- * decrementProductStock), so concurrent orders can neither lose an update nor
- * push a code past max_uses. Returns false if the code is exhausted, missing,
- * or stays contended after every attempt.
+ * `ok` is false only when the call itself failed (already logged here);
+ * `changed` tells whether the function did something — doing nothing is the
+ * normal outcome for an order without a promo or already settled.
  */
-async function adjustPromoCodeUses(
+export type PromoCallResult = { ok: boolean; changed: boolean };
+
+async function callPromoFunction(
   supabase: SupabaseClient,
-  id: string,
-  delta: 1 | -1,
-  maxAttempts: number
-): Promise<boolean> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const { data, error } = await supabase
-      .from('promo_codes')
-      .select('uses_count, max_uses')
-      .eq('id', id)
-      .single();
-
-    const row = data as { uses_count: number | null; max_uses: number | null } | null;
-    if (error || !row) return false;
-
-    const current = Number(row.uses_count ?? 0);
-    if (delta > 0 && row.max_uses !== null && current >= row.max_uses) return false;
-    const next = Math.max(current + delta, 0);
-
-    // uses_count is nullable: `= 0` never matches a NULL counter.
-    const update = supabase.from('promo_codes').update({ uses_count: next }).eq('id', id);
-    const { data: updated, error: updateError } = await (
-      row.uses_count === null ? update.is('uses_count', null) : update.eq('uses_count', current)
-    ).select('id');
-
-    if (!updateError && updated && updated.length > 0) return true;
-    // Row changed concurrently between the read and the write — retry.
+  name: string,
+  args: Record<string, string>
+): Promise<PromoCallResult> {
+  const { data, error } = await supabase.rpc(name, args);
+  if (error) {
+    logger.error('promo', `${name} failed`, { code: error.code, message: error.message, ...args });
+    return { ok: false, changed: false };
   }
-  return false;
+  return { ok: true, changed: data === true };
 }
 
 /** Reserves one use of a promo code; false means the order must be refused. */
-export function claimPromoCodeUse(supabase: SupabaseClient, id: string): Promise<boolean> {
-  return adjustPromoCodeUses(supabase, id, 1, PROMO_CLAIM_ATTEMPTS);
+export async function claimPromoCodeUse(supabase: SupabaseClient, promoId: string): Promise<boolean> {
+  const result = await callPromoFunction(supabase, 'claim_promo_code_use', { p_promo_id: promoId });
+  return result.changed;
 }
 
-/** Gives back a use claimed for an order that could not be created. */
-export function releasePromoCodeUse(supabase: SupabaseClient, id: string): Promise<boolean> {
-  return adjustPromoCodeUses(supabase, id, -1, PROMO_RELEASE_ATTEMPTS);
+/** Gives back a use reserved for an order that could not be created (the function returns nothing). */
+export async function releasePromoCodeUse(supabase: SupabaseClient, promoId: string): Promise<boolean> {
+  const result = await callPromoFunction(supabase, 'unclaim_promo_code_use', { p_promo_id: promoId });
+  return result.ok;
+}
+
+/**
+ * Gives back the use an order holds (payment failed, order cancelled). No-op
+ * if already given back, without promo, or if the order is paid or refunded.
+ */
+export function releaseOrderPromoUse(supabase: SupabaseClient, orderId: string): Promise<PromoCallResult> {
+  return callPromoFunction(supabase, 'release_order_promo', { p_order_id: orderId });
+}
+
+/**
+ * Counts the use again for a paid order whose use had been given back (paid
+ * more than 24 h after ordering); no-op otherwise. The customer has paid, so
+ * this may exceed max_uses.
+ */
+export function consumeOrderPromoUseOnPayment(supabase: SupabaseClient, orderId: string): Promise<PromoCallResult> {
+  return callPromoFunction(supabase, 'consume_order_promo_on_payment', { p_order_id: orderId });
 }

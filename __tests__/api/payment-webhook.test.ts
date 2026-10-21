@@ -14,6 +14,7 @@ const mockOrderUpdate = vi.fn();
 const mockClaimGuard = vi.fn();
 const mockClaimSelect = vi.fn();
 const mockOrderItems = vi.fn();
+const mockRpc = vi.fn();
 
 const mockFrom = vi.fn((table: string) => {
   if (table === 'orders') {
@@ -37,7 +38,7 @@ const mockFrom = vi.fn((table: string) => {
 });
 
 vi.mock('@/lib/supabase/service', () => ({
-  createServiceClient: vi.fn(() => ({ from: mockFrom })),
+  createServiceClient: vi.fn(() => ({ from: mockFrom, rpc: mockRpc })),
 }));
 
 const ORDER_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -114,6 +115,7 @@ beforeEach(() => {
     error: null,
   });
   mockClaimSelect.mockResolvedValue({ data: [{ id: ORDER_ID }], error: null });
+  mockRpc.mockResolvedValue({ data: false, error: null });
   mockClaimGuard.mockReturnValue({ select: mockClaimSelect });
   mockOrderUpdate.mockReturnValue({
     eq: vi.fn(() => ({ eq: mockClaimGuard, is: mockClaimGuard })),
@@ -240,6 +242,43 @@ describe('POST /api/payment/webhook — idempotence', () => {
     expect(res.status).toBe(200);
     expect(mockOrderItems).not.toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/payment/webhook — usage du code promo', () => {
+  it('confirme l usage (ou le recompte) quand le paiement réussit', async () => {
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+    expect(mockRpc).toHaveBeenCalledWith('consume_order_promo_on_payment', { p_order_id: ORDER_ID });
+    expect(mockRpc).not.toHaveBeenCalledWith('release_order_promo', expect.anything());
+  });
+
+  it('rend l usage quand le paiement échoue', async () => {
+    await POST(makeRequest(ERROR_PAYLOAD));
+    expect(mockRpc).toHaveBeenCalledWith('release_order_promo', { p_order_id: ORDER_ID });
+    expect(mockRpc).not.toHaveBeenCalledWith('consume_order_promo_on_payment', expect.anything());
+  });
+
+  it('ne touche pas à l usage pour une livraison concurrente déjà traitée', async () => {
+    mockClaimSelect.mockResolvedValue({ data: [], error: null });
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
+  it('n écrit aucun journal d erreur côté promo quand il n y a rien à régler', async () => {
+    const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    mockRpc.mockResolvedValue({ data: false, error: null });
+
+    await POST(makeRequest(SUCCESS_PAYLOAD));
+
+    const errorLines = write.mock.calls.map(([chunk]) => String(chunk)).filter((line) => line.includes('"level":"error"'));
+    write.mockRestore();
+    expect(errorLines.filter((line) => /promo/i.test(line))).toEqual([]);
+  });
+
+  it('répond 200 même si la fonction promo échoue', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { code: '42883', message: 'function does not exist' } });
+    const res = await POST(makeRequest(SUCCESS_PAYLOAD));
+    expect(res.status).toBe(200);
   });
 });
 

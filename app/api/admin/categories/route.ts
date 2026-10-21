@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export async function GET() {
   try {
@@ -12,10 +13,10 @@ export async function GET() {
       .from('categories')
       .select('id, name, slug, description, image_url, display_order')
       .order('display_order', { ascending: true });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/categories', error);
     return NextResponse.json({ items: data ?? [], categories: data ?? [] });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error).message || 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/categories', e);
   }
 }
 
@@ -42,11 +43,11 @@ export async function POST(req: NextRequest) {
       },
     ]);
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/categories', error);
     }
     return NextResponse.json({ success: true, data });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error).message || "Erreur serveur" }, { status: 500 });
+    return dbErrorResponse('API /admin/categories', e);
   }
 }
 
@@ -72,10 +73,10 @@ export async function PATCH(req: NextRequest) {
       .eq('id', id)
       .select()
       .single();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/categories', error);
     return NextResponse.json({ success: true, data });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error).message || 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/categories', e);
   }
 }
 
@@ -105,7 +106,7 @@ export async function DELETE(req: NextRequest) {
       .eq('category', category.slug);
 
     if (usageError) {
-      return NextResponse.json({ error: usageError.message }, { status: 500 });
+      return dbErrorResponse('API /admin/categories', usageError);
     }
 
     if ((count ?? 0) > 0) {
@@ -116,9 +117,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { error } = await supabase.from('categories').delete().eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/categories', error);
     return NextResponse.json({ success: true });
   } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error).message || 'Erreur serveur' }, { status: 500 });
+    return dbErrorResponse('API /admin/categories', e);
   }
 }

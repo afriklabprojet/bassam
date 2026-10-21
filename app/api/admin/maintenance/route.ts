@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
   if (priority) query = query.eq('priority', priority);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/maintenance', error);
 
   const stats = {
     pending: 0, in_progress: 0, done: 0, cancelled: 0,
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/maintenance', error);
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -86,7 +87,7 @@ export async function PATCH(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/maintenance', error);
   return NextResponse.json(data);
 }
 
@@ -101,6 +102,6 @@ export async function DELETE(request: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 });
 
   const { error } = await supabase.from('maintenance_logs').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/maintenance', error);
   return NextResponse.json({ success: true });
 }

@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { logger } from '@/lib/logger';
 import { getAssistantConfig } from '@/lib/ai/assistant-config-store';
 import { ASSISTANT_CONFIG_KEY, assistantConfigSchema } from '@/lib/ai/assistant-config';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 /* ─── GET /api/admin/ai-assistant ────────────────────────────────────────── */
 export async function GET() {
@@ -47,7 +48,7 @@ export async function PUT(req: NextRequest) {
       .upsert({ key: ASSISTANT_CONFIG_KEY, value: JSON.stringify(parsed.data) }, { onConflict: 'key' });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/ai-assistant', error);
     }
 
     // The storefront layout embeds the public part (name, avatar, welcome) — refresh it now.

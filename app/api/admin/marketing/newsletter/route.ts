@@ -4,6 +4,7 @@ import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
 import { buildFromAddress } from '@/lib/email-from';
 import { getSiteSettings } from '@/lib/site-settings';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 // GET /api/admin/marketing/newsletter?page=1&limit=50
 export async function GET(request: NextRequest) {
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/newsletter', error);
 
     return NextResponse.json({ campaign, status, recipientsCount });
   } catch (err) {
@@ -161,7 +162,7 @@ export async function PATCH(request: NextRequest) {
       .update({ is_active })
       .eq('id', id);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/newsletter', error);
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[Admin PATCH /newsletter]', 'Error', err);
@@ -185,7 +186,7 @@ export async function DELETE(request: NextRequest) {
       .delete()
       .eq('id', id);
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/newsletter', error);
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[Admin DELETE /newsletter]', 'Error', err);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 // GET /api/admin/marketing/banners
 export async function GET() {
@@ -14,7 +15,7 @@ export async function GET() {
       .from('banners')
       .select('*')
       .order('display_order', { ascending: true });
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/banners', error);
     return NextResponse.json({ banners: data ?? [] });
   } catch (err) {
     logger.error('[Admin GET /banners]', 'Error', err);
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/banners', error);
     return NextResponse.json({ banner: data }, { status: 201 });
   } catch (err) {
     logger.error('[Admin POST /banners]', 'Error', err);
@@ -77,7 +78,7 @@ export async function PATCH(request: NextRequest) {
 
     const supabase = await createClient();
     const { error } = await supabase.from('banners').update(sanitized).eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/banners', error);
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[Admin PATCH /banners]', 'Error', err);
@@ -97,7 +98,7 @@ export async function DELETE(request: NextRequest) {
 
     const supabase = await createClient();
     const { error } = await supabase.from('banners').delete().eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse('API /admin/marketing/banners', error);
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error('[Admin DELETE /banners]', 'Error', err);

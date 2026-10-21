@@ -3,6 +3,7 @@ import { isCurrentUserAdmin } from '@/lib/supabase/admin';
 import { createServiceClient } from '@/lib/supabase/service';
 import type { SiteSettings } from '@/lib/site-settings';
 import { logger } from '@/lib/logger';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 const ALLOWED_KEYS: Array<keyof SiteSettings> = [
   'site_name',
@@ -43,7 +44,7 @@ export async function GET() {
       .order('key');
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/settings', error);
     }
 
     const settings = Object.fromEntries(
@@ -91,7 +92,7 @@ export async function PUT(req: NextRequest) {
       .upsert(rows, { onConflict: 'key' });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/settings', error);
     }
 
     return NextResponse.json({ ok: true });

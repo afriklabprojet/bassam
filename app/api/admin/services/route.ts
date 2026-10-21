@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -22,10 +23,7 @@ export async function GET() {
 
     return NextResponse.json({ services: data ?? [] });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/services', err);
   }
 }
 
@@ -83,9 +81,6 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/services', err);
   }
 }

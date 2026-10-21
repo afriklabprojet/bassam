@@ -7,6 +7,7 @@ import {
   toHomeHeroDbRow,
 } from '@/lib/supabase/home-hero';
 import { isValidColor } from '@/lib/branding';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -94,10 +95,7 @@ export async function GET() {
   try {
     return NextResponse.json({ hero: await getHomeHero() });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/home-hero', err);
   }
 }
 
@@ -126,9 +124,6 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 },
-    );
+    return dbErrorResponse('API /admin/home-hero', err);
   }
 }

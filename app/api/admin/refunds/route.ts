@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { isCurrentUserAdmin } from '@/lib/supabase/admin';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 export const runtime = 'nodejs';
 
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   if (status) query = query.eq('status', status);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/refunds', error);
 
   // aggregate stats
   const { data: all } = await supabase.from('refunds').select('status, amount');
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/refunds', error);
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -136,6 +137,6 @@ export async function PATCH(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse('API /admin/refunds', error);
   return NextResponse.json(data);
 }

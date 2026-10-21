@@ -9,6 +9,7 @@ import {
   type BrandingConfig,
 } from '@/lib/branding';
 import { logger } from '@/lib/logger';
+import { dbErrorResponse } from '@/lib/api-errors';
 
 // Clés acceptées (toutes les clés de BrandingConfig)
 const ALLOWED_KEYS = Object.keys(BRANDING_DB_KEYS) as Array<keyof BrandingConfig>;
@@ -28,7 +29,7 @@ export async function GET() {
       .like('key', 'brand_%');
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/branding', error);
     }
 
     const settings = Object.fromEntries(
@@ -105,7 +106,7 @@ export async function PUT(req: NextRequest) {
       .upsert(rows, { onConflict: 'key' });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return dbErrorResponse('API /admin/branding', error);
     }
 
     return NextResponse.json({ ok: true });

@@ -18,7 +18,7 @@ describe('passwordErrorMessage', () => {
 
   it('traduit les mots de passe trop courts ou trop simples', () => {
     expect(passwordErrorMessage(weak(['length']))).toBe('Ce mot de passe est trop court.');
-    expect(passwordErrorMessage(weak(['characters']))).toMatch(/types de caractères/);
+    expect(passwordErrorMessage(weak(['characters']))).toMatch(/une lettre et un chiffre/);
     expect(passwordErrorMessage(weak([]))).toMatch(/trop facile à deviner/);
   });
 

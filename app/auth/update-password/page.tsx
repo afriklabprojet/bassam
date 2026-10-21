@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { passwordErrorMessage } from '@/lib/auth-errors';
+import { passwordErrorMessage, PWNED_PASSWORD_MESSAGE } from '@/lib/auth-errors';
+import { PASSWORD_MIN_LENGTH, passwordPolicyError } from '@/lib/password-policy';
+import { isPasswordPwned } from '@/lib/pwned-password';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -78,8 +80,15 @@ export default function UpdatePasswordPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      setError(policyError);
+      setLoading(false);
+      return;
+    }
+
+    if (await isPasswordPwned(password)) {
+      setError(PWNED_PASSWORD_MESSAGE);
       setLoading(false);
       return;
     }
@@ -158,7 +167,7 @@ export default function UpdatePasswordPage() {
                 autoComplete="new-password"
                 required
                 className="input"
-                placeholder="Min. 6 caractères"
+                placeholder={`Min. ${PASSWORD_MIN_LENGTH} caractères, lettres et chiffres`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

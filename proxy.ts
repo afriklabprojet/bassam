@@ -17,7 +17,8 @@ function buildCsp(nonce: string): string {
     "font-src 'self' data: https://fonts.gstatic.com",
     "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in",
     "media-src 'self' blob: https://*.supabase.co https://*.supabase.in",
-    "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.jeko.africa",
+    // api.pwnedpasswords.com: leaked-password check on sign-up / password change (lib/pwned-password.ts)
+    "connect-src 'self' https://*.supabase.co https://*.supabase.in https://api.jeko.africa https://api.pwnedpasswords.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

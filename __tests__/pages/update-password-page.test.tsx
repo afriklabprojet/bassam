@@ -2,12 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const { getSession, push, setSession, updateUser } = vi.hoisted(() => ({
+const { getSession, isPasswordPwned, push, setSession, updateUser } = vi.hoisted(() => ({
   getSession: vi.fn(),
+  isPasswordPwned: vi.fn(),
   push: vi.fn(),
   setSession: vi.fn(),
   updateUser: vi.fn(),
 }));
+
+vi.mock('@/lib/pwned-password', () => ({ isPasswordPwned }));
 
 vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
@@ -32,6 +35,8 @@ describe('Page de changement du mot de passe', () => {
       error: null,
     });
     updateUser.mockResolvedValue({ error: null });
+    isPasswordPwned.mockReset();
+    isPasswordPwned.mockResolvedValue(false);
     window.history.replaceState(
       null,
       '',
@@ -90,5 +95,39 @@ describe('Page de changement du mot de passe', () => {
 
     expect(await screen.findByText(/fuites de données connues/)).toBeTruthy();
     expect(screen.queryByText(/known to be weak/)).toBeNull();
+  });
+
+  async function submitPassword(value: string) {
+    const user = userEvent.setup();
+    render(<UpdatePasswordPage />);
+    await waitFor(() => expect(setSession).toHaveBeenCalled());
+    await user.type(screen.getByLabelText('Nouveau mot de passe'), value);
+    await user.type(screen.getByLabelText('Confirmer le mot de passe'), value);
+    await user.click(screen.getByRole('button', { name: 'Mettre à jour le mot de passe' }));
+  }
+
+  it('refuse un mot de passe sans chiffre avant d appeler Supabase', async () => {
+    await submitPassword('abcdefgh');
+
+    expect(await screen.findByText(/une lettre et un chiffre/)).toBeTruthy();
+    expect(isPasswordPwned).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('refuse un mot de passe présent dans une fuite connue sans appeler Supabase', async () => {
+    isPasswordPwned.mockResolvedValue(true);
+
+    await submitPassword('Password123');
+
+    expect(await screen.findByText(/fuites de données connues/)).toBeTruthy();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
+  it('laisse passer le changement si la vérification des fuites est indisponible', async () => {
+    isPasswordPwned.mockResolvedValue(null);
+
+    await submitPassword('Parfum2026x');
+
+    await waitFor(() => expect(updateUser).toHaveBeenCalledWith({ password: 'Parfum2026x' }));
   });
 });

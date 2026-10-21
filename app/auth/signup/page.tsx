@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { passwordErrorMessage } from '@/lib/auth-errors';
+import { passwordErrorMessage, PWNED_PASSWORD_MESSAGE } from '@/lib/auth-errors';
+import { PASSWORD_HINT, passwordPolicyError } from '@/lib/password-policy';
+import { isPasswordPwned } from '@/lib/pwned-password';
 import Link from 'next/link';
 import { useSiteSettings } from '@/lib/site-settings-context';
 import { splitBrandWordmark } from '@/lib/brand-name';
@@ -58,8 +60,15 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères.');
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      setError(policyError);
+      setLoading(false);
+      return;
+    }
+
+    if (await isPasswordPwned(password)) {
+      setError(PWNED_PASSWORD_MESSAGE);
       setLoading(false);
       return;
     }
@@ -286,7 +295,7 @@ export default function SignupPage() {
             {/* Mot de passe */}
             <div>
               <label htmlFor="password" style={{ display: 'block', fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: 7 }}>
-                Mot de passe <span style={{ color: 'var(--text-pale)', fontWeight: 400, letterSpacing: '0.04em', textTransform: 'none', fontSize: '0.6rem' }}>min. 6 caractères</span>
+                Mot de passe <span style={{ color: 'var(--text-pale)', fontWeight: 400, letterSpacing: '0.04em', textTransform: 'none', fontSize: '0.6rem' }}>{PASSWORD_HINT}</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <input

@@ -37,7 +37,7 @@ order by d.start_time desc
 limit 20;
 ```
 
-`return_message` contient le nombre de commandes traitées. Pour suspendre une tâche :
+`status` indique si l'exécution a réussi. `return_message` vaut `1 row` : il ne donne **pas** le nombre de commandes traitées. Pour connaître les volumes, interrogez les données, par exemple les commandes annulées automatiquement par jour (voir 4). Pour suspendre une tâche :
 
 ```sql
 select cron.unschedule('cancel-abandoned-orders');
@@ -61,7 +61,7 @@ Cycle de vie :
 
 Les compteurs ne changent que par des fonctions SQL, chacune en une seule instruction et exécutable par `service_role` uniquement : `claim_promo_code_use`, `unclaim_promo_code_use`, `release_order_promo`, `consume_order_promo_on_payment`, `release_stale_promo_reservations` et `reconcile_paid_order_promo_uses`. Ne pas modifier `uses_count` à la main pendant qu'une promotion est en cours.
 
-Contrôle de cohérence : les deux colonnes de chaque ligne doivent être égales.
+Contrôle de cohérence : `usages_detenus` compte les usages rattachés aux commandes passées depuis le 21/10. Pour un code créé après cette date, il doit être égal à `uses_count`. Pour un code plus ancien, `uses_count` contient aussi ses usages historiques, que la migration a conservés sans les rattacher à des commandes : un écart égal au nombre d'usages antérieurs au 21/10 est donc normal, et ne doit pas être « corrigé ».
 
 ```sql
 select p.code, p.uses_count,
@@ -71,8 +71,6 @@ left join orders o on o.promo_code_id = p.id
 group by p.id, p.code, p.uses_count
 order by p.code;
 ```
-
-Les commandes passées avant le 21/10 n'ont pas de `promo_code_id`. Seules les nouvelles commandes entrent dans ce contrôle.
 
 ## 4. Commandes abandonnées
 
@@ -96,7 +94,18 @@ where notes like '%Annulée automatiquement : non payée après%'
 order by created_at;
 ```
 
-Remettre une commande en attente (après avoir suspendu la tâche si besoin) :
+Volumes par jour (date de passage en annulée) :
+
+```sql
+select updated_at::date as jour, count(*)
+from orders
+where notes like '%Annulée automatiquement : non payée après%'
+  and status = 'cancelled'
+group by 1
+order by 1 desc;
+```
+
+Remettre une commande en attente (après avoir suspendu la tâche si besoin). Le `WHERE` ne restaure qu'une commande **toujours** annulée automatiquement et impayée au moment de l'écriture. Une commande payée entre-temps (le webhook l'a repassée en `confirmed` / `paid`) n'est donc jamais rétrogradée, et la requête ne modifie alors aucune ligne :
 
 ```sql
 update orders
@@ -108,7 +117,10 @@ set status = 'pending',
       ),
       ''
     )
-where id = '<id>';
+where id = '<id>'
+  and status = 'cancelled'
+  and payment_status = 'pending'
+  and notes like '%Annulée automatiquement : non payée après 48 h.%';
 ```
 
 ## 5. Mots de passe
@@ -120,14 +132,16 @@ where id = '<id>';
 - **Messages d'erreur** : Supabase répond en anglais. `lib/auth-errors.ts` traduit tous ses codes, et un code inconnu affiche un message générique en français.
 - **Délai d'application** : un changement de réglage Auth via l'API ou le tableau de bord met environ une minute à s'appliquer. Pour le vérifier, n'utilisez pas une inscription qui pourrait créer un vrai compte. Testez plutôt un mot de passe trop court avec une adresse `@example.com` : Supabase refuse cette adresse si le mot de passe passe la règle, donc aucun compte ne peut être créé.
 
-## 6. Accès à la Management API
+## 6. Scripts et accès
 
-Les scripts `apply-migration` et `validate-supabase-test` demandent un jeton personnel Supabase dans `SUPABASE_ACCESS_TOKEN` :
+Les scripts ne chargent **jamais** un fichier d'environnement implicitement : passez-le avec `--env-file`. Un fichier `.env.test*` est obligatoire pour une cible TEST.
 
-- dans `.env.test.local` pour TEST ;
-- dans `.env.local` pour la production.
+| Script | Variables requises |
+|---|---|
+| `npm run apply-migration` | `NEXT_PUBLIC_SUPABASE_URL` et `SUPABASE_ACCESS_TOKEN` (jeton personnel Supabase, utilisé pour la Management API) |
+| `npm run test:supabase:test` (`validate-supabase-test`) | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY` ; aucun jeton personnel n'est nécessaire |
 
-Créez un jeton dédié avec l'accès en écriture à la base. Ne le collez jamais dans une conversation, et révoquez-le après usage. Les jetons utilisés les 20 et 21/10 sont révoqués.
+Pour `apply-migration`, créez un jeton dédié avec l'accès en écriture à la base. Ne le collez jamais dans une conversation, et révoquez-le après usage. Les jetons utilisés les 20 et 21/10 sont révoqués, et les lignes `SUPABASE_ACCESS_TOKEN=` de `.env.local` et `.env.test.local` sont vides.
 
 ## 7. Points ouverts
 

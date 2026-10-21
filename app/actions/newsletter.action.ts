@@ -49,13 +49,15 @@ type ActionResult = {
  * 4. Authorization check (N/A for public endpoint)
  * 5. Mutation
  * 6. Granular revalidateTag()
- * 7. Audit log
+ *
+ * No audit_logs row is written: the subscription itself is the record, and
+ * the visitor's IP is only used for rate limiting, never stored.
  */
 export async function subscribeToNewsletter(
   input: SubscribeInput
 ): Promise<ActionResult> {
   try {
-    // ── Extraire l'IP dès le début (needed for rate limit + audit log) ───────
+    // ── Extraire l'IP dès le début (limitation de débit uniquement) ─────────
     const headersList = await headers()
     const ip =
       headersList.get('x-forwarded-for')?.split(',')[0].trim() ??
@@ -129,21 +131,6 @@ export async function subscribeToNewsletter(
 
     // Step 6: Granular revalidateTag (Next.js 16 requires a cache profile)
     revalidateTag('newsletter-count', 'max')
-
-    // Step 7: Audit log (async, non-blocking)
-    // Don't await to avoid blocking the response
-    supabase
-      .from('audit_logs')
-      .insert({
-        action: 'newsletter_subscription',
-        user_id: user?.id || null,
-        metadata: { email, hasPhone: !!phone },
-        ip_address: ip,
-        created_at: new Date().toISOString(),
-      })
-      .then(({ error }) => {
-        if (error) logger.warn('newsletter.action', 'Audit log failed')
-      })
 
     return {
       success: true,

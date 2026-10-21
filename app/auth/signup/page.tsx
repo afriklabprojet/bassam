@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { passwordErrorMessage } from '@/lib/auth-errors';
 import Link from 'next/link';
 import { useSiteSettings } from '@/lib/site-settings-context';
 import { splitBrandWordmark } from '@/lib/brand-name';
@@ -74,7 +75,7 @@ export default function SignupPage() {
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      setError(passwordErrorMessage(signUpError));
       setLoading(false);
     } else {
       setSuccess(true);

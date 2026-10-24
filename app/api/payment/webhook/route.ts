@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service';
 import { decrementProductStock } from '@/lib/supabase/products';
 import { verifyWebhookSignature, type JekoWebhookPayload } from '@/lib/payment/jeko';
 import { sendOrderNotifications } from '@/lib/order-notifications';
+import { notifyAdminsOfPaidOrder } from '@/lib/push/fcm';
 import { consumeOrderPromoUseOnPayment, releaseOrderPromoUse } from '@/lib/promo';
 import { logger } from '@/lib/logger';
 
@@ -114,10 +115,10 @@ export async function POST(request: NextRequest) {
 
     // ── 4. Find order by reference (our order UUID) ─────────────────────────
     const { data: order, error: findError } = reference
-      ? await supabase.from('orders').select('id, status, payment_status').eq('id', reference).single()
+      ? await supabase.from('orders').select('id, status, payment_status, total_amount').eq('id', reference).single()
       : { data: null, error: null };
 
-    type OrderRow = { id: string; status: string; payment_status: string };
+    type OrderRow = { id: string; status: string; payment_status: string; total_amount: number | string | null };
 
     let resolvedOrder: OrderRow | null = order;
 
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
       // Fallback: match via payment_reference (the payment-request id we
       // stored on the order right after calling Jeko's initiation API).
       const { data: orderByTxn } = paymentRequestId
-        ? await supabase.from('orders').select('id, status, payment_status').eq('payment_reference', paymentRequestId).single()
+        ? await supabase.from('orders').select('id, status, payment_status, total_amount').eq('payment_reference', paymentRequestId).single()
         : { data: null };
 
       if (!orderByTxn) {
@@ -279,13 +280,25 @@ export async function POST(request: NextRequest) {
     }
 
     if (isSuccess) {
-      try {
-        await sendOrderNotifications(supabase, resolvedOrder.id);
-      } catch (notificationError) {
+      // Email/WhatsApp et téléphones des administrateurs sont indépendants : en parallèle, pour qu'un fournisseur lent
+      // ne retarde pas l'autre canal ni la réponse au webhook (délai de Jeko). Aucun échec ne bloque la réponse.
+      const correlationId = getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id);
+      const [notifications, push] = await Promise.allSettled([
+        sendOrderNotifications(supabase, resolvedOrder.id),
+        notifyAdminsOfPaidOrder(supabase, resolvedOrder),
+      ]);
+      if (notifications.status === 'rejected') {
         logger.error(WEBHOOK_LOG_CONTEXT, 'Unable to send order notifications', {
-          correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
+          correlationId,
           orderId: resolvedOrder.id,
-          error: notificationError,
+          error: notifications.reason,
+        });
+      }
+      if (push.status === 'rejected') {
+        logger.error(WEBHOOK_LOG_CONTEXT, 'Unable to send admin push notification', {
+          correlationId,
+          orderId: resolvedOrder.id,
+          error: push.reason,
         });
       }
     }

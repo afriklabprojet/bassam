@@ -4,6 +4,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle } from '@/lib/order-status-theme';
 import { formatCFA, formatDateTime as formatDate } from '@/lib/format';
 import { ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
+import type { AdminTrackedOrder as TrackedOrder } from '@/lib/supabase/admin-order-search';
+import { OrderResult } from '../OrderSearch';
 
 interface OrderItem {
   id: string;
@@ -221,6 +223,30 @@ export default function AdminOrders() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Commande ouverte depuis la recherche du tableau de bord (?ref=VIP-XXXXXXXX)
+  const [pinned, setPinned] = useState<TrackedOrder[]>([]);
+  const [pinnedMessage, setPinnedMessage] = useState<string | null>(null);
+  const [pinnedRef, setPinnedRef] = useState<string | null>(null);
+
+  const loadPinned = useCallback(async (ref: string) => {
+    try {
+      const res = await fetch(`/api/admin/orders/search?q=${encodeURIComponent(ref)}`);
+      if (!res.ok) { setPinnedMessage('Impossible de charger la commande recherchée.'); return; }
+      const data = (await res.json()) as { orders?: TrackedOrder[] };
+      setPinned(data.orders ?? []);
+      setPinnedMessage((data.orders ?? []).length === 0 ? 'Aucune commande trouvée pour ce numéro de suivi.' : null);
+    } catch {
+      setPinnedMessage('Impossible de charger la commande recherchée.');
+    }
+  }, []);
+
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get('ref')?.trim();
+    if (!ref) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPinnedRef(ref);
+    void loadPinned(ref);
+  }, [loadPinned]);
 
   const load = useCallback(async () => {
     try {
@@ -251,6 +277,7 @@ export default function AdminOrders() {
     });
     setUpdating(null);
     void load();
+    if (pinnedRef) void loadPinned(pinnedRef);
   }
 
   if (error) {
@@ -274,6 +301,46 @@ export default function AdminOrders() {
           {total} commande{total > 1 ? 's' : ''}
         </p>
       </div>
+
+      {/* Commande ouverte depuis la recherche du tableau de bord */}
+      {pinnedRef && (
+        <section aria-label="Commande recherchée" className="mb-6 rounded-xl p-4" style={{ background: 'var(--noir-card)', border: '1px solid rgba(197,165,90,0.25)' }}>
+          <div className="flex items-center justify-between mb-3">
+            <span style={{ color: '#999', fontSize: '0.8125rem' }}>Commande recherchée : {pinnedRef}</span>
+            <button
+              type="button"
+              onClick={() => { setPinnedRef(null); setPinned([]); window.history.replaceState(null, '', '/admin/commandes'); }}
+              style={{ minHeight: 44, padding: '0 14px', borderRadius: 10, background: 'rgba(255,255,255,0.06)', color: '#bbb', fontSize: '0.8125rem', cursor: 'pointer' }}
+            >
+              Fermer
+            </button>
+          </div>
+          {pinnedMessage && <p role="alert" style={{ color: '#aaa', fontSize: '0.875rem' }}>{pinnedMessage}</p>}
+          <div className="grid gap-3">
+            {pinned.map((order) => (
+              <OrderResult
+                key={order.id}
+                order={order}
+                showLink={false}
+                actions={
+                  <select
+                    aria-label={`Statut de la commande ${order.trackingNumber}`}
+                    value={order.status}
+                    onChange={(e) => void updateStatus(order.id, e.target.value)}
+                    disabled={updating === order.id}
+                    className="px-2.5 rounded-lg text-xs font-medium cursor-pointer"
+                    style={{ minHeight: 44, background: getDarkOrderStatusStyle(order.status).bg, color: getDarkOrderStatusStyle(order.status).color, border: 'none' }}
+                  >
+                    {ORDER_STATUS_KEYS.map((s) => (
+                      <option key={s} value={s}>{ORDER_STATUS_LABELS[s]}</option>
+                    ))}
+                  </select>
+                }
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Status filter tabs */}
       <div className="flex flex-wrap gap-2 mb-6">

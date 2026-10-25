@@ -196,6 +196,11 @@ function ConfirmationBody() {
           Contacter le service client
         </Link>
       )}
+      <p style={{ marginTop: '1.5rem', fontSize: '0.875rem' }}>
+        <Link href={`/suivi-commande?ref=${orderNumber}`} style={{ color: 'var(--gold-dark)' }}>
+          Suivre ma commande
+        </Link>
+      </p>
       <div style={{ marginTop: '1.75rem' }}>
         <Link href="/" style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
           ← Retour à l&apos;accueil

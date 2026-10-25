@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
           '/compte',
           '/panier',
           '/commande',
+          '/suivi-commande',
           '/services/merci',
         ],
       },

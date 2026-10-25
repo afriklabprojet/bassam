@@ -33,6 +33,7 @@ const ACCOUNT_LINKS: FooterLink[] = [
   { label: 'Se connecter', href: '/auth/login' },
   { label: 'Créer un compte', href: '/auth/signup' },
   { label: 'Mes commandes', href: '/compte?tab=commandes' },
+  { label: 'Suivre ma commande', href: '/suivi-commande' },
   { label: 'Ma Wishlist', href: '/compte?tab=wishlist' },
   { label: 'Programme fidélité', href: '/compte?tab=fidelite' },
 ];

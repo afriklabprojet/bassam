@@ -9,3 +9,5 @@ export const REVIEWS_POST_RATE_LIMIT: RateLimitConfig = { limit: 5, windowSec: 6
 export const PROMO_CODE_VALIDATE_RATE_LIMIT: RateLimitConfig = { limit: 10, windowSec: 60 };
 /** LLM calls are costly — tighter window than other public forms. */
 export const CHAT_RATE_LIMIT: RateLimitConfig = { limit: 15, windowSec: 300 };
+/** Public order tracking: number + phone are both required; this slows down guessing either one. */
+export const ORDER_TRACK_RATE_LIMIT: RateLimitConfig = { limit: 10, windowSec: 600 };

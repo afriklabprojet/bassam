@@ -361,29 +361,57 @@ const PAYMENT_FAILED_EMAIL: StatusEmailContent = {
   cta: { label: 'Repasser commande', path: '/panier' },
 };
 
+/** Commande non payée sous 48 h, annulée par la tâche cancel-abandoned-orders (prévenue par /api/cron/abandoned-orders). */
+const ABANDONED_EMAIL: StatusEmailContent = {
+  subject: (number: string) => `Votre commande ${number} a été annulée`,
+  title: 'Votre commande a été annulée',
+  text: 'Votre commande n’a pas été payée sous 48 h : elle a été annulée. Vous pouvez repasser commande sur le site.',
+  cta: { label: 'Repasser commande', path: '/panier' },
+};
+
+const OTHER_EMAILS = { payment_failed: PAYMENT_FAILED_EMAIL, abandoned: ABANDONED_EMAIL };
+
 export type CustomerStatusEmail = keyof typeof ORDER_STATUS_EMAILS;
-export type CustomerEmailKind = CustomerStatusEmail | 'payment_failed';
+export type CustomerEmailKind = CustomerStatusEmail | keyof typeof OTHER_EMAILS;
 
 /** Statuts de commande qui préviennent le client (tous). */
 export function isCustomerStatusEmail(status: string): status is CustomerStatusEmail {
   return Object.hasOwn(ORDER_STATUS_EMAILS, status);
 }
 
-/** E-mail au client pour un changement de statut (ou un paiement échoué). Ne lève jamais d'erreur. */
-export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string, status: CustomerEmailKind) {
+/** sent : accepté par Resend · failed : refusé ou injoignable (à réessayer) · skipped : rien à envoyer. */
+export type StatusEmailResult = 'sent' | 'failed' | 'skipped';
+
+/**
+ * E-mail au client pour un changement de statut (ou un paiement échoué, une annulation automatique).
+ * Ne lève jamais d'erreur.
+ */
+export async function sendOrderStatusEmail(
+  supabase: SupabaseClient,
+  id: string,
+  status: CustomerEmailKind,
+): Promise<StatusEmailResult> {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return;
+  if (!resendKey) return 'skipped';
 
   try {
     const [{ data: order }, settings] = await Promise.all([
-      supabase.from('orders').select('id,email,shipping_address').eq('id', id).maybeSingle(),
+      supabase.from('orders').select('id,email,shipping_address,status,payment_status').eq('id', id).maybeSingle(),
       getSiteSettings(),
     ]);
-    const row = order as { id: string; email: string | null; shipping_address: ShippingAddress | null } | null;
-    if (!row?.email) return;
+    const row = order as {
+      id: string;
+      email: string | null;
+      shipping_address: ShippingAddress | null;
+      status?: string;
+      payment_status?: string | null;
+    } | null;
+    if (!row?.email) return 'skipped';
+    // Annulation automatique : relu au dernier moment, un paiement arrivé entre-temps annule l'envoi.
+    if (status === 'abandoned' && (row.status !== 'cancelled' || row.payment_status === 'paid')) return 'skipped';
 
     const number = orderNumber(row.id);
-    const content: StatusEmailContent = status === 'payment_failed' ? PAYMENT_FAILED_EMAIL : ORDER_STATUS_EMAILS[status];
+    const content: StatusEmailContent = isCustomerStatusEmail(status) ? ORDER_STATUS_EMAILS[status] : OTHER_EMAILS[status];
     const firstName = row.shipping_address?.firstName?.trim();
     const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:${EMAIL_BODY_COLOR}">
     <h1 style="font-size:22px">${content.title}</h1>
@@ -412,7 +440,9 @@ export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string,
     if (!response.ok) {
       logger.error('Order notification', 'Status email send failed', { orderId: id, status, httpStatus: response.status });
     }
+    return response.ok ? 'sent' : 'failed';
   } catch (error) {
     logger.error('Order notification', 'Status email failed', { orderId: id, status, error });
+    return 'failed';
   }
 }

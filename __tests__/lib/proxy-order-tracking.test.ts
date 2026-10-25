@@ -32,6 +32,11 @@ describe('proxy — suivi de commande public', () => {
     },
   );
 
+  it('/api/cron/abandoned-orders atteint la route (qui vérifie elle-même CRON_SECRET)', async () => {
+    const res = await proxy(req('/api/cron/abandoned-orders'));
+    expect(res.headers.get('location') ?? '').not.toContain('/auth/login');
+  });
+
   it('une page privée redirige toujours vers la connexion sans session', async () => {
     const res = await proxy(req('/compte'));
     expect(res.headers.get('location') ?? '').toContain('/auth/login');

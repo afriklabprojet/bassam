@@ -59,6 +59,8 @@ const PUBLIC_ROUTES = [
   '/api/reviews',
   '/api/shipping-config',
   '/api/consultation',
+  // Tâches planifiées Vercel : la route vérifie elle-même CRON_SECRET.
+  '/api/cron',
   '/panier',
   '/commande',
   '/suivi-commande',

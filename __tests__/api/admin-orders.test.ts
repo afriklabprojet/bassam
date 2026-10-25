@@ -19,6 +19,22 @@ vi.mock('@/lib/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn() },
 }));
 
+// E-mail au client : `after` exécute le travail après la réponse ; ici, on le récupère pour l'attendre.
+const afterTasks: Array<() => unknown> = [];
+vi.mock('next/server', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/server')>()),
+  after: vi.fn((task: () => unknown) => afterTasks.push(task)),
+}));
+const mockSendStatusEmail = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/lib/order-notifications', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/order-notifications')>()),
+  sendOrderStatusEmail: mockSendStatusEmail,
+}));
+vi.mock('@/lib/supabase/service', () => ({ createServiceClient: vi.fn(() => ({ service: true })) }));
+const runAfterTasks = async () => {
+  for (const task of afterTasks.splice(0)) await task();
+};
+
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 
 function makePatch(body: Record<string, unknown>) {
@@ -101,6 +117,36 @@ describe('PATCH /api/admin/orders', () => {
     const req = makePatch({ id: 'order-1', status: 'confirmed' });
     const res = await PATCH(req);
     expect(res.status).toBe(500);
+  });
+
+  it.each(['shipped', 'delivered'])('passage à « %s » : e-mail au client, envoyé après la réponse', async (status) => {
+    mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: 'confirmed' });
+    const res = await PATCH(makePatch({ id: 'order-1', status }));
+    expect(res.status).toBe(200);
+    expect(mockSendStatusEmail).not.toHaveBeenCalled();
+    await runAfterTasks();
+    expect(mockSendStatusEmail).toHaveBeenCalledWith({ service: true }, 'order-1', status);
+  });
+
+  it('statut inchangé (même clic deux fois) : aucun e-mail en double', async () => {
+    mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: 'shipped' });
+    await PATCH(makePatch({ id: 'order-1', status: 'shipped' }));
+    await runAfterTasks();
+    expect(mockSendStatusEmail).not.toHaveBeenCalled();
+  });
+
+  it.each(['pending', 'confirmed', 'cancelled'])('passage à « %s » : pas d’e-mail', async (status) => {
+    mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: 'shipped' });
+    await PATCH(makePatch({ id: 'order-1', status }));
+    await runAfterTasks();
+    expect(mockSendStatusEmail).not.toHaveBeenCalled();
+  });
+
+  it('échec de la mise à jour : aucun e-mail', async () => {
+    mockUpdateOrderStatus.mockResolvedValue({ error: 'Erreur DB' });
+    await PATCH(makePatch({ id: 'order-1', status: 'shipped' }));
+    await runAfterTasks();
+    expect(mockSendStatusEmail).not.toHaveBeenCalled();
   });
 });
 

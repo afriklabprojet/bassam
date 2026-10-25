@@ -73,10 +73,16 @@ export async function getOrderCountByPhone(phone: string, excludeOrderId: string
   return count ?? 0;
 }
 
-/** Update order status */
+/**
+ * Update order status. `previousStatus` (null if it could not be read) lets the caller notify the customer only
+ * when the status really changes.
+ */
 export async function updateOrderStatus(orderId: string, status: string) {
   const { createServiceClient } = await import('./service');
   const supabase = createServiceClient();
+
+  const { data: before } = await supabase.from('orders').select('status').eq('id', orderId).maybeSingle();
+  const previousStatus = (before as { status?: string } | null)?.status ?? null;
 
   const { data, error } = await supabase
     .from('orders')
@@ -94,5 +100,5 @@ export async function updateOrderStatus(orderId: string, status: string) {
     if (!release.ok) return { error: { code: 'promo_release_failed', message: 'Promo use release failed' } };
   }
 
-  return { error: null };
+  return { error: null, previousStatus };
 }

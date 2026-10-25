@@ -188,6 +188,10 @@ describe('POST /api/payment/webhook — status success', () => {
     expect(messages.every((message) =>
       message.attachments[0].filename.endsWith('.pdf') && message.attachments[0].content.length > 0
     )).toBe(true);
+    // Le client reçoit le lien de suivi (numéro prérempli) ; la copie vendeur n'en a pas besoin.
+    const html = (to: string) => (messages.find((message) => message.to === to) as unknown as { html: string }).html;
+    expect(html('client@example.com')).toContain('/suivi-commande?ref=VIP-BBBBBBBB');
+    expect(html('commande@vipparfumeriebar.com')).not.toContain('/suivi-commande');
   });
 });
 

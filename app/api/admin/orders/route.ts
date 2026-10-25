@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { isCurrentUserAdmin, getAdminOrders, getOrderCountByPhone, updateOrderStatus } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
 import { ADMIN_PAGE_DEFAULT, ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 import { dbErrorResponse } from '@/lib/api-errors';
+import { isCustomerStatusEmail, sendOrderStatusEmail } from '@/lib/order-notifications';
+import { createServiceClient } from '@/lib/supabase/service';
 
 // GET /api/admin/orders
 // GET /api/admin/orders?phone=&excludeId= → returns { previousCount }
@@ -53,10 +55,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Statut invalide' }, { status: 400 });
     }
 
-    const { error } = await updateOrderStatus(id, status);
+    const result = await updateOrderStatus(id, status);
 
-    if (error) {
-      return dbErrorResponse('API /admin/orders', error);
+    if (result.error) {
+      return dbErrorResponse('API /admin/orders', result.error);
+    }
+
+    // « En route » / « livrée » : le client est prévenu, seulement si le statut change vraiment (pas de doublon),
+    // et après la réponse pour ne jamais ralentir l'admin (site ou application).
+    if (isCustomerStatusEmail(status) && result.previousStatus !== status) {
+      after(() => sendOrderStatusEmail(createServiceClient(), id, status));
     }
 
     return NextResponse.json({ success: true });

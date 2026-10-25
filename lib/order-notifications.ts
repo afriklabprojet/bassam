@@ -379,21 +379,36 @@ export function isCustomerStatusEmail(status: string): status is CustomerStatusE
   return Object.hasOwn(ORDER_STATUS_EMAILS, status);
 }
 
+/** sent : accepté par Resend · failed : refusé ou injoignable (à réessayer) · skipped : rien à envoyer. */
+export type StatusEmailResult = 'sent' | 'failed' | 'skipped';
+
 /**
  * E-mail au client pour un changement de statut (ou un paiement échoué, une annulation automatique).
- * Ne lève jamais d'erreur ; renvoie true si Resend a accepté l'e-mail.
+ * Ne lève jamais d'erreur.
  */
-export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string, status: CustomerEmailKind): Promise<boolean> {
+export async function sendOrderStatusEmail(
+  supabase: SupabaseClient,
+  id: string,
+  status: CustomerEmailKind,
+): Promise<StatusEmailResult> {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return false;
+  if (!resendKey) return 'skipped';
 
   try {
     const [{ data: order }, settings] = await Promise.all([
-      supabase.from('orders').select('id,email,shipping_address').eq('id', id).maybeSingle(),
+      supabase.from('orders').select('id,email,shipping_address,status,payment_status').eq('id', id).maybeSingle(),
       getSiteSettings(),
     ]);
-    const row = order as { id: string; email: string | null; shipping_address: ShippingAddress | null } | null;
-    if (!row?.email) return false;
+    const row = order as {
+      id: string;
+      email: string | null;
+      shipping_address: ShippingAddress | null;
+      status?: string;
+      payment_status?: string | null;
+    } | null;
+    if (!row?.email) return 'skipped';
+    // Annulation automatique : relu au dernier moment, un paiement arrivé entre-temps annule l'envoi.
+    if (status === 'abandoned' && (row.status !== 'cancelled' || row.payment_status === 'paid')) return 'skipped';
 
     const number = orderNumber(row.id);
     const content: StatusEmailContent = isCustomerStatusEmail(status) ? ORDER_STATUS_EMAILS[status] : OTHER_EMAILS[status];
@@ -425,9 +440,9 @@ export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string,
     if (!response.ok) {
       logger.error('Order notification', 'Status email send failed', { orderId: id, status, httpStatus: response.status });
     }
-    return response.ok;
+    return response.ok ? 'sent' : 'failed';
   } catch (error) {
     logger.error('Order notification', 'Status email failed', { orderId: id, status, error });
-    return false;
+    return 'failed';
   }
 }

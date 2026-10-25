@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/logger', () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
 
-const sendOrderStatusEmail = vi.fn<(supabase: unknown, id: string, kind: string) => Promise<boolean>>();
+const sendOrderStatusEmail = vi.fn<(supabase: unknown, id: string, kind: string) => Promise<'sent' | 'skipped' | 'failed'>>();
 vi.mock('@/lib/order-notifications', () => ({
   sendOrderStatusEmail: (...args: [unknown, string, string]) => sendOrderStatusEmail(...args),
 }));
@@ -14,6 +14,7 @@ const claimed = new Set<string>();
 /** Commandes payées entre la lecture et le marquage : le marquage conditionnel ne les trouve plus. */
 const paidMeanwhile = new Set<string>();
 const claimConditions: Array<Array<[string, unknown]>> = [];
+const released: string[] = [];
 const filters: Array<[string, string, unknown]> = [];
 const listResult = vi.fn(async () => ({ data: pending, error: null as unknown }));
 
@@ -21,6 +22,7 @@ function listQuery() {
   const query = {
     eq: (column: string, value: unknown) => (filters.push(['eq', column, value]), query),
     is: (column: string, value: unknown) => (filters.push(['is', column, value]), query),
+    in: (column: string, value: unknown) => (filters.push(['in', column, value]), query),
     like: (column: string, value: unknown) => (filters.push(['like', column, value]), query),
     order: () => query,
     limit: () => listResult(),
@@ -33,6 +35,10 @@ const mockFrom = vi.fn(() => ({
   update: (values: Record<string, unknown>) => {
     const conditions: Array<[string, unknown]> = [];
     let id = '';
+    // Remise en file après un refus de Resend : update({ cancellation_email_sent_at: null }).eq('id', …).
+    if (values.cancellation_email_sent_at === null) {
+      return { eq: async (_c: string, value: string) => (released.push(value), claimed.delete(value), { error: null }) };
+    }
     const chain = {
       eq: (column: string, value: unknown) => {
         if (column === 'id') id = String(value);
@@ -40,6 +46,7 @@ const mockFrom = vi.fn(() => ({
         return chain;
       },
       is: (column: string, value: unknown) => (conditions.push([column, value]), chain),
+      in: (column: string, value: unknown) => (conditions.push([column, value]), chain),
       select: async () => {
         expect(values).toEqual({ cancellation_email_sent_at: expect.any(String) });
         claimConditions.push(conditions);
@@ -70,8 +77,9 @@ beforeEach(() => {
   claimed.clear();
   paidMeanwhile.clear();
   claimConditions.length = 0;
+  released.length = 0;
   filters.length = 0;
-  sendOrderStatusEmail.mockResolvedValue(true);
+  sendOrderStatusEmail.mockResolvedValue('sent');
 });
 
 afterEach(() => vi.unstubAllEnvs());
@@ -107,7 +115,8 @@ describe('GET /api/cron/abandoned-orders', () => {
     expect(filters).toEqual(
       expect.arrayContaining([
         ['eq', 'status', 'cancelled'],
-        ['eq', 'payment_status', 'pending'],
+        // Annulée automatiquement puis paiement refusé : le webhook ne prévient pas (déjà annulée), la tâche oui.
+        ['in', 'payment_status', ['pending', 'failed']],
         ['is', 'cancellation_email_sent_at', null],
         ['like', 'notes', '%Annulée automatiquement : non payée%'],
       ]),
@@ -120,7 +129,7 @@ describe('GET /api/cron/abandoned-orders', () => {
     expect(claimConditions[0]).toEqual(
       expect.arrayContaining([
         ['status', 'cancelled'],
-        ['payment_status', 'pending'],
+        ['payment_status', ['pending', 'failed']],
         ['cancellation_email_sent_at', null],
       ]),
     );
@@ -134,11 +143,37 @@ describe('GET /api/cron/abandoned-orders', () => {
     expect(sendOrderStatusEmail).not.toHaveBeenCalled();
   });
 
-  it('ne compte que les e-mails réellement acceptés', async () => {
-    pending.push({ id: 'o1' }, { id: 'o2' });
-    sendOrderStatusEmail.mockResolvedValueOnce(false);
+  it('refus de Resend : la commande est remise en file pour le prochain passage ; sans objet : elle reste marquée', async () => {
+    pending.push({ id: 'o1' }, { id: 'o2' }, { id: 'o3' });
+    sendOrderStatusEmail.mockResolvedValueOnce('failed').mockResolvedValueOnce('skipped');
     const res = await cron('Bearer secret-de-test-0123456789');
-    expect(await res.json()).toEqual({ found: 2, sent: 1 });
+    expect(await res.json()).toEqual({ found: 3, sent: 1 });
+    expect(released).toEqual(['o1']);
+  });
+
+  it('s’arrête avant la limite de durée : le reste est repris au passage suivant, sans être marqué', async () => {
+    pending.push({ id: 'o1' }, { id: 'o2' }, { id: 'o3' });
+    let now = 1_000_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+    sendOrderStatusEmail.mockImplementation(async () => {
+      now += 25_000;
+      return 'sent';
+    });
+    try {
+      const res = await cron('Bearer secret-de-test-0123456789');
+      expect(await res.json()).toEqual({ found: 3, sent: 2 });
+      expect(claimed.has('o3')).toBe(false);
+    } finally {
+      vi.mocked(Date.now).mockRestore();
+    }
+  });
+
+  it('espace les envois pour rester sous la limite de Resend', async () => {
+    pending.push({ id: 'o1' }, { id: 'o2' });
+    const sentAt: number[] = [];
+    sendOrderStatusEmail.mockImplementation(async () => (sentAt.push(performance.now()), 'sent'));
+    await cron('Bearer secret-de-test-0123456789');
+    expect(sentAt[1]! - sentAt[0]!).toBeGreaterThanOrEqual(500);
   });
 
   it('un e-mail en échec n’arrête pas les suivants', async () => {

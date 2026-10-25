@@ -50,7 +50,7 @@ type SearchState =
   | { kind: 'error'; message: string }
   | { kind: 'done'; orders: TrackedOrder[] };
 
-export default function OrderSearch() {
+export default function OrderSearch({ onView }: Readonly<{ onView?: (order: TrackedOrder) => void }>) {
   const [value, setValue] = useState('');
   const [state, setState] = useState<SearchState>({ kind: 'idle' });
   const abortRef = useRef<AbortController | null>(null);
@@ -203,7 +203,7 @@ export default function OrderSearch() {
               </button>
             </div>
             {state.orders.map((order) => (
-              <OrderResult key={order.id} order={order} />
+              <OrderResult key={order.id} order={order} onView={onView} />
             ))}
           </div>
         )}
@@ -221,7 +221,7 @@ function Field({ label, children }: Readonly<{ label: string; children: React.Re
   );
 }
 
-export function OrderResult({ order, showLink = true, actions }: Readonly<{ order: TrackedOrder; showLink?: boolean; actions?: React.ReactNode }>) {
+export function OrderResult({ order, showLink = true, actions, onView }: Readonly<{ order: TrackedOrder; showLink?: boolean; actions?: React.ReactNode; onView?: (order: TrackedOrder) => void }>) {
   const statusStyle = getDarkOrderStatusStyle(order.status);
   const address = order.shippingAddress;
 
@@ -237,7 +237,17 @@ export function OrderResult({ order, showLink = true, actions }: Readonly<{ orde
             {getOrderStatusLabel(order.status)}
           </span>
           {actions}
-          {showLink && (
+          {showLink && onView && (
+            <button
+              type="button"
+              className="order-search-link"
+              onClick={() => onView(order)}
+              style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '0 16px', borderRadius: 10, background: 'var(--gold)', color: 'var(--noir)', fontWeight: 600, fontSize: '0.8125rem', border: 'none', cursor: 'pointer' }}
+            >
+              Voir la commande
+            </button>
+          )}
+          {showLink && !onView && (
             <Link
               href={`/admin/commandes?ref=${encodeURIComponent(order.trackingNumber)}`}
               className="order-search-link"

@@ -16,7 +16,6 @@ import {
   TopCustomersTable,
   LowStockCard,
 } from './dashboard-ui';
-import OrderSearch from './OrderSearch';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -110,8 +109,6 @@ export default function AdminDashboard() {
       `}</style>
 
       <div ref={containerRef} className="space-y-5">
-        <OrderSearch />
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           <HeroRevenueCard stats={stats} greeting={greeting} />
           <QuickActionsCard />

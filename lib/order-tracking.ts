@@ -19,9 +19,13 @@ export function orderIdRange(ref: string): [string, string] {
   return [`${ref}-0000-0000-0000-000000000000`, `${ref}-ffff-ffff-ffff-ffffffffffff`];
 }
 
-/** Forme comparable : numéro ivoirien en +225…, sinon les chiffres seuls (préfixe international 00 retiré). */
+/**
+ * Forme comparable : numéro ivoirien en +225…, sinon les chiffres seuls. Le préfixe international 00 est retiré
+ * AVANT la normalisation : « 00225 07… » doit valoir « +225 07… ».
+ */
 function canonicalPhone(phone: string): string {
-  return normalizePhoneForJeko(phone) ?? phone.replaceAll(/\D/g, '').replace(/^00/, '');
+  const digits = phone.replaceAll(/\D/g, '').replace(/^00/, '');
+  return normalizePhoneForJeko(digits) ?? digits;
 }
 
 export function phonesMatch(given: string, stored: string | null | undefined): boolean {

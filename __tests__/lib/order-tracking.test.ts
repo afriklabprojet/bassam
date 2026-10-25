@@ -37,6 +37,13 @@ describe('phonesMatch', () => {
     expect(phonesMatch('701020304', '0701020304')).toBe(true);
   });
 
+  it('accepte le préfixe international 00225, dans les deux sens', () => {
+    expect(phonesMatch('00225 07 01 02 03 04', '0701020304')).toBe(true);
+    expect(phonesMatch('0701020304', '00225 07 01 02 03 04')).toBe(true);
+    expect(phonesMatch('00225 07 01 02 03 04', '+225 07 01 02 03 04')).toBe(true);
+    expect(phonesMatch('+2250701020304', '002250701020304')).toBe(true);
+  });
+
   it('compare aussi les numéros étrangers (chiffres seuls)', () => {
     expect(phonesMatch('+33 6 12 34 56 78', '0033612345678')).toBe(true);
     expect(phonesMatch('+33 6 12 34 56 78', '+33 6 12 34 56 79')).toBe(false);

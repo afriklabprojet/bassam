@@ -39,10 +39,14 @@ describe('orderTrackingUrl', () => {
 });
 
 describe('isCustomerStatusEmail', () => {
-  it('seuls « expédiée » et « livrée » préviennent le client', () => {
-    expect(isCustomerStatusEmail('shipped')).toBe(true);
-    expect(isCustomerStatusEmail('delivered')).toBe(true);
-    for (const status of ['pending', 'confirmed', 'cancelled', 'autre']) expect(isCustomerStatusEmail(status)).toBe(false);
+  it('chaque statut de commande prévient le client', () => {
+    for (const status of ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']) {
+      expect(isCustomerStatusEmail(status)).toBe(true);
+    }
+  });
+
+  it('une valeur inconnue ne déclenche rien', () => {
+    for (const status of ['autre', 'payment_failed', 'toString', '']) expect(isCustomerStatusEmail(status)).toBe(false);
   });
 });
 
@@ -69,6 +73,31 @@ describe('sendOrderStatusEmail', () => {
     await sendOrderStatusEmail(client, ORDER_ID, 'delivered');
     expect(sentEmail(fetchMock).subject).toBe('Votre commande VIP-ABCDEF12 a été livrée');
     expect(sentEmail(fetchMock).html).toContain('Bonjour,');
+  });
+
+  it.each([
+    ['confirmed', 'Votre commande VIP-ABCDEF12 est confirmée', 'en cours de préparation'],
+    ['cancelled', 'Votre commande VIP-ABCDEF12 a été annulée', 'a été annulée'],
+    ['pending', 'Votre commande VIP-ABCDEF12 est en attente', 'en attente de traitement'],
+  ] as const)('statut « %s » : objet et texte dédiés, avec le lien de suivi', async (status, subject, text) => {
+    const fetchMock = mockResend();
+    const { client } = supabaseWith({ id: ORDER_ID, email: 'aya@example.com', shipping_address: { firstName: 'Aya' } });
+    await sendOrderStatusEmail(client, ORDER_ID, status);
+    const email = sentEmail(fetchMock);
+    expect(email.subject).toBe(subject);
+    expect(email.html).toContain(text);
+    expect(email.html).toContain('/suivi-commande?ref=VIP-ABCDEF12');
+  });
+
+  it('paiement échoué : commande annulée, et un lien pour repasser commande (pas de lien de suivi)', async () => {
+    const fetchMock = mockResend();
+    const { client } = supabaseWith({ id: ORDER_ID, email: 'aya@example.com', shipping_address: null });
+    await sendOrderStatusEmail(client, ORDER_ID, 'payment_failed');
+    const email = sentEmail(fetchMock);
+    expect(email.subject).toBe('Le paiement de votre commande VIP-ABCDEF12 n’a pas abouti');
+    expect(email.html).toContain('commande a été annulée');
+    expect(email.html).toMatch(/href="[^"]*\/panier"/);
+    expect(email.html).not.toContain('/suivi-commande');
   });
 
   it('échappe le prénom saisi par le client', async () => {

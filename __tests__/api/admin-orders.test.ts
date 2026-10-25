@@ -119,8 +119,8 @@ describe('PATCH /api/admin/orders', () => {
     expect(res.status).toBe(500);
   });
 
-  it.each(['shipped', 'delivered'])('passage à « %s » : e-mail au client, envoyé après la réponse', async (status) => {
-    mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: 'confirmed' });
+  it.each(['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'])('passage à « %s » : e-mail au client, envoyé après la réponse', async (status) => {
+    mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: status === 'pending' ? 'confirmed' : 'pending' });
     const res = await PATCH(makePatch({ id: 'order-1', status }));
     expect(res.status).toBe(200);
     expect(mockSendStatusEmail).not.toHaveBeenCalled();
@@ -131,13 +131,6 @@ describe('PATCH /api/admin/orders', () => {
   it('statut inchangé (même clic deux fois) : aucun e-mail en double', async () => {
     mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: 'shipped' });
     await PATCH(makePatch({ id: 'order-1', status: 'shipped' }));
-    await runAfterTasks();
-    expect(mockSendStatusEmail).not.toHaveBeenCalled();
-  });
-
-  it.each(['pending', 'confirmed', 'cancelled'])('passage à « %s » : pas d’e-mail', async (status) => {
-    mockUpdateOrderStatus.mockResolvedValue({ error: null, previousStatus: 'shipped' });
-    await PATCH(makePatch({ id: 'order-1', status }));
     await runAfterTasks();
     expect(mockSendStatusEmail).not.toHaveBeenCalled();
   });

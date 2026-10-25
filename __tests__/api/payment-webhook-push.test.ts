@@ -38,8 +38,10 @@ vi.mock('@/lib/promo', () => ({
 }));
 
 const sendOrderNotifications = vi.fn<(supabase: unknown, id: string) => Promise<void>>();
+const sendOrderStatusEmail = vi.fn<(supabase: unknown, id: string, kind: string) => Promise<void>>();
 vi.mock('@/lib/order-notifications', () => ({
   sendOrderNotifications: (...args: [unknown, string]) => sendOrderNotifications(...args),
+  sendOrderStatusEmail: (...args: [unknown, string, string]) => sendOrderStatusEmail(...args),
 }));
 
 const notifyAdminsOfPaidOrder = vi.fn<(supabase: unknown, order: unknown) => Promise<void>>();

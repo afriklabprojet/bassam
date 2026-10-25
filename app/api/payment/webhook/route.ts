@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { createServiceClient } from '@/lib/supabase/service';
 import { decrementProductStock } from '@/lib/supabase/products';
 import { verifyWebhookSignature, type JekoWebhookPayload } from '@/lib/payment/jeko';
-import { sendOrderNotifications } from '@/lib/order-notifications';
+import { sendOrderNotifications, sendOrderStatusEmail } from '@/lib/order-notifications';
 import { notifyAdminsOfPaidOrder } from '@/lib/push/fcm';
 import { consumeOrderPromoUseOnPayment, releaseOrderPromoUse } from '@/lib/promo';
 import { logger } from '@/lib/logger';
@@ -299,6 +299,18 @@ export async function POST(request: NextRequest) {
           correlationId,
           orderId: resolvedOrder.id,
           error: push.reason,
+        });
+      }
+    } else if (resolvedOrder.status !== 'cancelled') {
+      // Paiement échoué : la commande vient d'être annulée (une seule fois, grâce au claim) — le client est prévenu,
+      // sauf si elle l'était déjà (l'admin l'a annulée et le client a déjà reçu « annulée »).
+      try {
+        await sendOrderStatusEmail(supabase, resolvedOrder.id, 'payment_failed');
+      } catch (emailError) {
+        logger.error(WEBHOOK_LOG_CONTEXT, 'Unable to send payment failed email', {
+          correlationId: getWebhookCorrelationId(requestCorrelationId, reference, transactionId, resolvedOrder.id),
+          orderId: resolvedOrder.id,
+          error: emailError,
         });
       }
     }

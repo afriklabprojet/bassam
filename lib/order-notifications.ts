@@ -47,8 +47,12 @@ export function orderTrackingUrl(id: string) {
   return `${SITE_URL}/suivi-commande?ref=${orderNumber(id)}`;
 }
 
+function button(url: string, label: string) {
+  return `<p style="margin:28px 0"><a href="${escapeHtml(url)}" style="display:inline-block;background:#181818;color:#fff;padding:12px 22px;border-radius:3px;text-decoration:none;font-weight:600">${escapeHtml(label)}</a></p>`;
+}
+
 function trackingButton(id: string) {
-  return `<p style="margin:28px 0"><a href="${escapeHtml(orderTrackingUrl(id))}" style="display:inline-block;background:#181818;color:#fff;padding:12px 22px;border-radius:3px;text-decoration:none;font-weight:600">Suivre ma commande</a></p>`;
+  return button(orderTrackingUrl(id), 'Suivre ma commande');
 }
 
 function customerName(address: ShippingAddress) {
@@ -312,7 +316,26 @@ export async function sendOrderNotifications(supabase: SupabaseClient, id: strin
 
 /* ─── Changement de statut : le client est prévenu ─────────────────────── */
 
-const STATUS_EMAILS = {
+type StatusEmailContent = {
+  subject: (number: string) => string;
+  title: string;
+  text: string;
+  /** Bouton principal ; par défaut, le suivi de la commande. */
+  cta?: { label: string; path: string };
+};
+
+/** Un e-mail par statut de commande : le client est prévenu à chaque changement. */
+const ORDER_STATUS_EMAILS = {
+  pending: {
+    subject: (number: string) => `Votre commande ${number} est en attente`,
+    title: 'Votre commande est en attente',
+    text: 'Votre commande est en attente de traitement. Nous vous tiendrons informé de la suite.',
+  },
+  confirmed: {
+    subject: (number: string) => `Votre commande ${number} est confirmée`,
+    title: 'Votre commande est confirmée',
+    text: 'Votre commande est confirmée et en cours de préparation.',
+  },
   shipped: {
     subject: (number: string) => `Votre commande ${number} est en route`,
     title: 'Votre commande est en route',
@@ -323,17 +346,31 @@ const STATUS_EMAILS = {
     title: 'Votre commande a été livrée',
     text: 'Votre commande a été livrée. Merci pour votre confiance. Une question ? Contactez-nous depuis le site.',
   },
-} as const;
+  cancelled: {
+    subject: (number: string) => `Votre commande ${number} a été annulée`,
+    title: 'Votre commande a été annulée',
+    text: 'Votre commande a été annulée. Une question ? Contactez-nous depuis le site.',
+  },
+} satisfies Record<string, StatusEmailContent>;
 
-export type CustomerStatusEmail = keyof typeof STATUS_EMAILS;
+/** Paiement Jeko refusé ou abandonné : la commande est annulée par le webhook. */
+const PAYMENT_FAILED_EMAIL: StatusEmailContent = {
+  subject: (number: string) => `Le paiement de votre commande ${number} n’a pas abouti`,
+  title: 'Le paiement n’a pas abouti',
+  text: 'Le paiement de votre commande n’a pas abouti : la commande a été annulée. Vous pouvez repasser commande sur le site.',
+  cta: { label: 'Repasser commande', path: '/panier' },
+};
 
-/** Statuts qui déclenchent un e-mail au client (les autres sont internes ou déjà couverts par la confirmation). */
+export type CustomerStatusEmail = keyof typeof ORDER_STATUS_EMAILS;
+export type CustomerEmailKind = CustomerStatusEmail | 'payment_failed';
+
+/** Statuts de commande qui préviennent le client (tous). */
 export function isCustomerStatusEmail(status: string): status is CustomerStatusEmail {
-  return Object.hasOwn(STATUS_EMAILS, status);
+  return Object.hasOwn(ORDER_STATUS_EMAILS, status);
 }
 
-/** E-mail « en route » / « livrée » au client, avec le lien de suivi. Ne lève jamais d'erreur. */
-export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string, status: CustomerStatusEmail) {
+/** E-mail au client pour un changement de statut (ou un paiement échoué). Ne lève jamais d'erreur. */
+export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string, status: CustomerEmailKind) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return;
 
@@ -346,15 +383,17 @@ export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string,
     if (!row?.email) return;
 
     const number = orderNumber(row.id);
-    const content = STATUS_EMAILS[status];
+    const content: StatusEmailContent = status === 'payment_failed' ? PAYMENT_FAILED_EMAIL : ORDER_STATUS_EMAILS[status];
     const firstName = row.shipping_address?.firstName?.trim();
     const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:${EMAIL_BODY_COLOR}">
     <h1 style="font-size:22px">${content.title}</h1>
     <p>${firstName ? `Bonjour ${escapeHtml(firstName)},` : 'Bonjour,'}</p>
     <p>${content.text}</p>
     <p>Commande <strong>${number}</strong></p>
-    ${trackingButton(row.id)}
-    <p style="font-size:13px;color:#777">Le téléphone utilisé pour la commande vous sera demandé.</p>
+    ${content.cta
+      ? button(`${SITE_URL}${content.cta.path}`, content.cta.label)
+      : `${trackingButton(row.id)}
+    <p style="font-size:13px;color:#777">Le téléphone utilisé pour la commande vous sera demandé.</p>`}
     <p style="font-size:12px;color:#777">${escapeHtml(settings.site_name)}</p>
   </div>`;
 

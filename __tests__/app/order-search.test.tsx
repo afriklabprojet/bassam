@@ -116,6 +116,18 @@ describe('OrderSearch', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Accès refusé');
   });
 
+  it('délègue « Voir la commande » à onView quand il est fourni (écran Commandes)', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { orders: [ORDER] }));
+    const onView = vi.fn();
+    const user = userEvent.setup();
+    render(<OrderSearch onView={onView} />);
+    await user.type(screen.getByPlaceholderText(PLACEHOLDER), 'VIP-3F2A9C1B{Enter}');
+
+    expect(screen.queryByRole('link', { name: 'Voir la commande' })).not.toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Voir la commande' }));
+    expect(onView).toHaveBeenCalledWith(expect.objectContaining({ trackingNumber: 'VIP-3F2A9C1B' }));
+  });
+
   it('permet de fermer le panneau de résultats', async () => {
     fetchMock.mockReturnValue(jsonResponse(200, { orders: [ORDER] }));
     const user = userEvent.setup();

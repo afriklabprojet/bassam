@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ORDER_STATUS_KEYS, ORDER_STATUS_LABELS, getDarkOrderStatusStyle } from '@/lib/order-status-theme';
 import { formatCFA, formatDateTime as formatDate } from '@/lib/format';
 import { ADMIN_LIMIT_DEFAULT } from '@/lib/constants';
 import type { AdminTrackedOrder as TrackedOrder } from '@/lib/supabase/admin-order-search';
-import { OrderResult } from '../OrderSearch';
+import OrderSearch, { OrderResult } from '../OrderSearch';
 
 interface OrderItem {
   id: string;
@@ -223,10 +223,21 @@ export default function AdminOrders() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Commande ouverte depuis la recherche du tableau de bord (?ref=VIP-XXXXXXXX)
+  // Commande ouverte depuis la recherche par numéro de suivi (ou par lien ?ref=VIP-XXXXXXXX)
   const [pinned, setPinned] = useState<TrackedOrder[]>([]);
   const [pinnedMessage, setPinnedMessage] = useState<string | null>(null);
   const [pinnedRef, setPinnedRef] = useState<string | null>(null);
+  const pinnedSectionRef = useRef<HTMLElement | null>(null);
+
+  function openPinned(order: TrackedOrder) {
+    setPinnedRef(order.trackingNumber);
+    setPinned([order]);
+    setPinnedMessage(null);
+  }
+
+  useEffect(() => {
+    if (pinnedRef) pinnedSectionRef.current?.scrollIntoView?.({ block: 'start' });
+  }, [pinnedRef]);
 
   const loadPinned = useCallback(async (ref: string) => {
     try {
@@ -302,9 +313,14 @@ export default function AdminOrders() {
         </p>
       </div>
 
-      {/* Commande ouverte depuis la recherche du tableau de bord */}
+      {/* Recherche par numéro de suivi (VIP-XXXXXXXX) */}
+      <div className="mb-6">
+        <OrderSearch onView={openPinned} />
+      </div>
+
+      {/* Commande ouverte depuis la recherche par numéro de suivi */}
       {pinnedRef && (
-        <section aria-label="Commande recherchée" className="mb-6 rounded-xl p-4" style={{ background: 'var(--noir-card)', border: '1px solid rgba(197,165,90,0.25)' }}>
+        <section ref={pinnedSectionRef} aria-label="Commande recherchée" className="mb-6 rounded-xl p-4" style={{ background: 'var(--noir-card)', border: '1px solid rgba(197,165,90,0.25)' }}>
           <div className="flex items-center justify-between mb-3">
             <span style={{ color: '#999', fontSize: '0.8125rem' }}>Commande recherchée : {pinnedRef}</span>
             <button

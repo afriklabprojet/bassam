@@ -100,4 +100,18 @@ describe('Commandes — commande ouverte depuis la recherche (?ref=)', () => {
     expect(screen.queryByText('Oud Royal')).not.toBeInTheDocument();
     expect(window.location.search).toBe('');
   });
+
+  it('propose la recherche par numéro de suivi sur l\'écran Commandes et ouvre la fiche avec « Voir la commande »', async () => {
+    window.history.replaceState(null, '', '/admin/commandes');
+    route(() => json(200, { orders: [ORDER] }));
+    const user = userEvent.setup();
+    render(<AdminOrders />);
+
+    await user.type(await screen.findByPlaceholderText('Rechercher une commande par numéro de suivi…'), 'VIP-3F2A9C1B{Enter}');
+    await user.click(await screen.findByRole('button', { name: 'Voir la commande' }));
+
+    const pinned = await screen.findByLabelText('Commande recherchée');
+    expect(pinned).toHaveTextContent('Commande recherchée : VIP-3F2A9C1B');
+    expect(screen.getByLabelText('Statut de la commande VIP-3F2A9C1B')).toBeInTheDocument();
+  });
 });

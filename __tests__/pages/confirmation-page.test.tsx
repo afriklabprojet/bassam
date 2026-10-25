@@ -82,6 +82,7 @@ describe('Page de confirmation de commande', () => {
     expect(screen.getByText('VIP-ABCDEF12')).toBeTruthy();
     expect(screen.getByText('***0000')).toBeTruthy();
     expect(screen.queryByText('0700000000')).toBeNull();
+    expect(screen.getByRole('link', { name: 'Suivre ma commande' }).getAttribute('href')).toBe('/suivi-commande?ref=VIP-ABCDEF12');
   });
 
   it('paiement échoué : message d\'échec, panier conservé', async () => {

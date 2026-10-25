@@ -61,6 +61,7 @@ const PUBLIC_ROUTES = [
   '/api/consultation',
   '/panier',
   '/commande',
+  '/suivi-commande',
   '/cgv',
   '/mentions',
   '/confidentialite',

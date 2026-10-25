@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 import { getSiteSettings } from '@/lib/site-settings';
 import { buildFromAddress } from '@/lib/email-from';
 import { EMAIL_BODY_COLOR } from '@/lib/email-theme';
+import { SITE_URL } from '@/lib/site-config';
 
 type ShippingAddress = {
   firstName?: string;
@@ -39,6 +40,15 @@ type OrderNotificationData = {
 
 function orderNumber(id: string) {
   return `VIP-${id.slice(0, 8).toUpperCase()}`;
+}
+
+/** Page publique de suivi, numéro prérempli (le client n'a plus qu'à saisir son téléphone). */
+export function orderTrackingUrl(id: string) {
+  return `${SITE_URL}/suivi-commande?ref=${orderNumber(id)}`;
+}
+
+function trackingButton(id: string) {
+  return `<p style="margin:28px 0"><a href="${escapeHtml(orderTrackingUrl(id))}" style="display:inline-block;background:#181818;color:#fff;padding:12px 22px;border-radius:3px;text-decoration:none;font-weight:600">Suivre ma commande</a></p>`;
 }
 
 function customerName(address: ShippingAddress) {
@@ -145,6 +155,7 @@ function buildOrderHtml(data: OrderNotificationData, sellerCopy: boolean, siteNa
       <tbody>${rows}</tbody>
     </table>
     <p style="text-align:right;font-size:18px"><strong>Total payé : ${formatPrice(Number(data.order.total_amount))}</strong></p>
+    ${sellerCopy ? '' : trackingButton(data.order.id)}
     <p style="font-size:12px;color:#777">${escapeHtml(siteName)}</p>
   </div>`;
 }
@@ -297,4 +308,72 @@ export async function sendOrderNotifications(supabase: SupabaseClient, id: strin
     : Promise.resolve();
 
   await Promise.all([emailSend, sendWhatsAppInvoiceCopy(data, pdf, id)]);
+}
+
+/* ─── Changement de statut : le client est prévenu ─────────────────────── */
+
+const STATUS_EMAILS = {
+  shipped: {
+    subject: (number: string) => `Votre commande ${number} est en route`,
+    title: 'Votre commande est en route',
+    text: 'Votre commande a été expédiée. Vous pouvez suivre son avancement à tout moment.',
+  },
+  delivered: {
+    subject: (number: string) => `Votre commande ${number} a été livrée`,
+    title: 'Votre commande a été livrée',
+    text: 'Votre commande a été livrée. Merci pour votre confiance. Une question ? Contactez-nous depuis le site.',
+  },
+} as const;
+
+export type CustomerStatusEmail = keyof typeof STATUS_EMAILS;
+
+/** Statuts qui déclenchent un e-mail au client (les autres sont internes ou déjà couverts par la confirmation). */
+export function isCustomerStatusEmail(status: string): status is CustomerStatusEmail {
+  return Object.hasOwn(STATUS_EMAILS, status);
+}
+
+/** E-mail « en route » / « livrée » au client, avec le lien de suivi. Ne lève jamais d'erreur. */
+export async function sendOrderStatusEmail(supabase: SupabaseClient, id: string, status: CustomerStatusEmail) {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+
+  try {
+    const [{ data: order }, settings] = await Promise.all([
+      supabase.from('orders').select('id,email,shipping_address').eq('id', id).maybeSingle(),
+      getSiteSettings(),
+    ]);
+    const row = order as { id: string; email: string | null; shipping_address: ShippingAddress | null } | null;
+    if (!row?.email) return;
+
+    const number = orderNumber(row.id);
+    const content = STATUS_EMAILS[status];
+    const firstName = row.shipping_address?.firstName?.trim();
+    const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:${EMAIL_BODY_COLOR}">
+    <h1 style="font-size:22px">${content.title}</h1>
+    <p>${firstName ? `Bonjour ${escapeHtml(firstName)},` : 'Bonjour,'}</p>
+    <p>${content.text}</p>
+    <p>Commande <strong>${number}</strong></p>
+    ${trackingButton(row.id)}
+    <p style="font-size:13px;color:#777">Le téléphone utilisé pour la commande vous sera demandé.</p>
+    <p style="font-size:12px;color:#777">${escapeHtml(settings.site_name)}</p>
+  </div>`;
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      // Exécuté après la réponse à l'admin (after) : borné pour ne pas épuiser la durée de la fonction.
+      signal: AbortSignal.timeout(10_000),
+      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM_EMAIL ?? buildFromAddress('contact', settings.site_name),
+        to: row.email,
+        subject: content.subject(number),
+        html,
+      }),
+    });
+    if (!response.ok) {
+      logger.error('Order notification', 'Status email send failed', { orderId: id, status, httpStatus: response.status });
+    }
+  } catch (error) {
+    logger.error('Order notification', 'Status email failed', { orderId: id, status, error });
+  }
 }

@@ -46,7 +46,7 @@ describe('isCustomerStatusEmail', () => {
   });
 
   it('une valeur inconnue ne déclenche rien', () => {
-    for (const status of ['autre', 'payment_failed', 'toString', '']) expect(isCustomerStatusEmail(status)).toBe(false);
+    for (const status of ['autre', 'payment_failed', 'abandoned', 'toString', '']) expect(isCustomerStatusEmail(status)).toBe(false);
   });
 });
 
@@ -100,6 +100,17 @@ describe('sendOrderStatusEmail', () => {
     expect(email.html).not.toContain('/suivi-commande');
   });
 
+  it('annulation automatique (non payée sous 48 h) : explication et lien pour repasser commande', async () => {
+    const fetchMock = mockResend();
+    const { client } = supabaseWith({ id: ORDER_ID, email: 'aya@example.com', shipping_address: { firstName: 'Aya' } });
+    await sendOrderStatusEmail(client, ORDER_ID, 'abandoned');
+    const email = sentEmail(fetchMock);
+    expect(email.subject).toBe('Votre commande VIP-ABCDEF12 a été annulée');
+    expect(email.html).toContain('n’a pas été payée sous 48 h');
+    expect(email.html).toMatch(/href="[^"]*\/panier"/);
+    expect(email.html).not.toContain('/suivi-commande');
+  });
+
   it('échappe le prénom saisi par le client', async () => {
     const fetchMock = mockResend();
     const { client } = supabaseWith({ id: ORDER_ID, email: 'a@example.com', shipping_address: { firstName: '<img src=x onerror=alert(1)>' } });
@@ -107,9 +118,17 @@ describe('sendOrderStatusEmail', () => {
     expect(sentEmail(fetchMock).html).not.toContain('<img src=x');
   });
 
+  it('indique si l’e-mail a été accepté par Resend', async () => {
+    mockResend(true);
+    const { client } = supabaseWith({ id: ORDER_ID, email: 'a@example.com' });
+    await expect(sendOrderStatusEmail(client, ORDER_ID, 'shipped')).resolves.toBe(true);
+    mockResend(false);
+    await expect(sendOrderStatusEmail(client, ORDER_ID, 'shipped')).resolves.toBe(false);
+  });
+
   it('sans e-mail client, sans commande ou sans Resend : rien n’est envoyé', async () => {
     const fetchMock = mockResend();
-    await sendOrderStatusEmail(supabaseWith({ id: ORDER_ID, email: null }).client, ORDER_ID, 'shipped');
+    await expect(sendOrderStatusEmail(supabaseWith({ id: ORDER_ID, email: null }).client, ORDER_ID, 'shipped')).resolves.toBe(false);
     await sendOrderStatusEmail(supabaseWith(null).client, ORDER_ID, 'shipped');
     vi.stubEnv('RESEND_API_KEY', '');
     const unconfigured = supabaseWith({ id: ORDER_ID, email: 'a@example.com' });
@@ -121,8 +140,8 @@ describe('sendOrderStatusEmail', () => {
   it('un échec de Resend ou du réseau ne lève jamais d’erreur', async () => {
     mockResend(false);
     const { client } = supabaseWith({ id: ORDER_ID, email: 'a@example.com' });
-    await expect(sendOrderStatusEmail(client, ORDER_ID, 'shipped')).resolves.toBeUndefined();
+    await expect(sendOrderStatusEmail(client, ORDER_ID, 'shipped')).resolves.toBe(false);
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('réseau')));
-    await expect(sendOrderStatusEmail(client, ORDER_ID, 'delivered')).resolves.toBeUndefined();
+    await expect(sendOrderStatusEmail(client, ORDER_ID, 'delivered')).resolves.toBe(false);
   });
 });

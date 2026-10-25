@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest) {
       return dbErrorResponse('API /admin/orders', result.error);
     }
 
-    // « En route » / « livrée » : le client est prévenu, seulement si le statut change vraiment (pas de doublon),
+    // Chaque changement de statut prévient le client, seulement s'il change vraiment (pas de doublon),
     // et après la réponse pour ne jamais ralentir l'admin (site ou application).
     if (isCustomerStatusEmail(status) && result.previousStatus !== status) {
       after(() => sendOrderStatusEmail(createServiceClient(), id, status));
